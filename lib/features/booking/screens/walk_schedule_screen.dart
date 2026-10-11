@@ -1,10 +1,11 @@
-
 import 'package:flutter/material.dart';
 
 import 'booking_start_screen.dart';
+import 'booking_confirmation_screen.dart';
 
 const Color scheduleOrange = Color(0xFFFF7900);
 const Color scheduleBackground = Color(0xFFFFFAF5);
+const Color scheduleText = Color(0xFF202020);
 
 class WalkScheduleScreen extends StatefulWidget {
   const WalkScheduleScreen({
@@ -19,11 +20,13 @@ class WalkScheduleScreen extends StatefulWidget {
   final Map<String, dynamic> pickupAddress;
 
   @override
-  State<WalkScheduleScreen> createState() => _WalkScheduleScreenState();
+  State<WalkScheduleScreen> createState() =>
+      _WalkScheduleScreenState();
 }
 
 class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
-  DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
+  DateTime _selectedDate =
+      DateUtils.dateOnly(DateTime.now()).add(const Duration(days: 1));
 
   String? _selectedTime;
   String _duration = '30 minutes';
@@ -72,7 +75,7 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
 
     if (result != null && mounted) {
       setState(() {
-        _selectedDate = result;
+        _selectedDate = DateUtils.dateOnly(result);
       });
     }
   }
@@ -93,7 +96,10 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
       'duration': _duration,
       'isRegular': _isRegular,
       'frequency': _isRegular ? _frequency : null,
-      'walksPerWeek': _isRegular ? _walksPerWeek : null,
+      'walksPerWeek': _isRegular &&
+              _frequency == 'Selected days each week'
+          ? _walksPerWeek
+          : null,
     };
 
     Navigator.of(context).push(
@@ -116,7 +122,10 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
         backgroundColor: scheduleBackground,
         title: const Text(
           'Walk Schedule',
-          style: TextStyle(fontWeight: FontWeight.w800),
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            color: scheduleText,
+          ),
         ),
       ),
       body: SafeArea(
@@ -129,7 +138,7 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
                 fontSize: 27,
                 height: 1.2,
                 fontWeight: FontWeight.w900,
-                color: Color(0xFF202020),
+                color: scheduleText,
               ),
             ),
             const SizedBox(height: 8),
@@ -235,8 +244,12 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
             _sectionTitle('3. Walk duration'),
             const SizedBox(height: 12),
 
-            ...['20 minutes', '30 minutes', '45 minutes', '60 minutes']
-                .map((duration) {
+            ...[
+              '20 minutes',
+              '30 minutes',
+              '45 minutes',
+              '60 minutes',
+            ].map((duration) {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: _optionTile(
@@ -258,7 +271,10 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
               _sectionTitle('4. Repeat schedule'),
               const SizedBox(height: 12),
 
-              ...['Daily', 'Selected days each week'].map((frequency) {
+              ...[
+                'Daily',
+                'Selected days each week',
+              ].map((frequency) {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: _optionTile(
@@ -321,8 +337,8 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
                   Expanded(
                     child: Text(
                       'These are preferred times, not confirmed '
-                      'availability. Your booking must be checked '
-                      'against actual walker availability.',
+                      'availability. Actual walker availability '
+                      'must be checked before booking.',
                       style: TextStyle(
                         fontSize: 12,
                         height: 1.5,
@@ -376,7 +392,7 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
       style: const TextStyle(
         fontSize: 17,
         fontWeight: FontWeight.w900,
-        color: Color(0xFF202020),
+        color: scheduleText,
       ),
     );
   }
@@ -451,14 +467,28 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
 
   String _formatDate(DateTime date) {
     const weekdays = [
-      'Monday', 'Tuesday', 'Wednesday', 'Thursday',
-      'Friday', 'Saturday', 'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
     ];
 
     const months = [
-      'January', 'February', 'March', 'April',
-      'May', 'June', 'July', 'August',
-      'September', 'October', 'November', 'December',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
 
     return '${weekdays[date.weekday - 1]}, '
@@ -549,6 +579,7 @@ class WalkScheduleReviewScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 27,
                 fontWeight: FontWeight.w900,
+                color: scheduleText,
               ),
             ),
             const SizedBox(height: 8),
@@ -595,25 +626,25 @@ class WalkScheduleReviewScreen extends StatelessWidget {
                   ),
                   detail(
                     'Preferred time',
-                    schedule['time'].toString(),
+                    (schedule['time'] ?? 'Not selected').toString(),
                     Icons.access_time_rounded,
                   ),
                   detail(
                     'Duration',
-                    schedule['duration'].toString(),
+                    (schedule['duration'] ?? 'Not selected').toString(),
                     Icons.timer_outlined,
                   ),
                   if (schedule['isRegular'] == true) ...[
                     detail(
                       'Frequency',
-                      schedule['frequency'].toString(),
+                      (schedule['frequency'] ?? 'Not selected').toString(),
                       Icons.repeat_rounded,
                     ),
                     if (schedule['frequency'] ==
                         'Selected days each week')
                       detail(
                         'Walks per week',
-                        '${schedule['walksPerWeek']} days',
+                        '${schedule['walksPerWeek'] ?? '-'} days',
                         Icons.date_range_rounded,
                       ),
                   ],
@@ -647,10 +678,13 @@ class WalkScheduleReviewScreen extends StatelessWidget {
               height: 52,
               child: ElevatedButton(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Next step: booking confirmation and login.',
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => BookingConfirmationScreen(
+                        walkType: walkType,
+                        dogDetails: dogDetails,
+                        pickupAddress: pickupAddress,
+                        schedule: schedule,
                       ),
                     ),
                   );
@@ -679,6 +713,12 @@ class WalkScheduleReviewScreen extends StatelessWidget {
               height: 50,
               child: OutlinedButton(
                 onPressed: () => Navigator.pop(context),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: scheduleText,
+                  side: const BorderSide(
+                    color: Color(0xFFDDDDDD),
+                  ),
+                ),
                 child: const Text('Edit Schedule'),
               ),
             ),
