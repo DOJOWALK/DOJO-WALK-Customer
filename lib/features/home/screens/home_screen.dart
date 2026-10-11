@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../booking/screens/booking_start_screen.dart';
 import '../../booking/screens/my_bookings_screen.dart';
+import '../../booking/screens/my_dogs_screen.dart';
 
 const Color dojoOrange = Color(0xFFFF7900);
 const Color dojoBackground = Color(0xFFFFFAF5);
@@ -54,8 +55,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _openService(String service) {
     if (service == 'My Dogs') {
-      _showMessage(
-        'Dog profiles will be connected in the next step.',
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const MyDogsScreen(),
+        ),
       );
       return;
     }
@@ -889,10 +893,16 @@ class _HomeScreenState extends State<HomeScreen> {
           }
 
           if (index == 1) {
+            setState(() {
+              _selectedTab = 1;
+            });
             _openService('My Bookings');
             return;
           }
 
+          setState(() {
+            _selectedTab = 2;
+          });
           _openService('Profile');
         },
         child: Padding(
