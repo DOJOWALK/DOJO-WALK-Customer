@@ -1,3 +1,4 @@
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -35,9 +36,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   }
 
   bool _isUpcoming(Map<String, dynamic> data) {
-    final status = (data['status'] ?? '')
-        .toString()
-        .toLowerCase();
+    final status =
+        (data['status'] ?? '').toString().toLowerCase();
 
     return [
       'pending',
@@ -45,6 +45,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       'assigned',
       'accepted',
       'in_progress',
+      'in progress',
     ].contains(status);
   }
 
@@ -56,10 +57,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   }
 
   bool _isCancelled(Map<String, dynamic> data) {
-    return (data['status'] ?? '')
-            .toString()
-            .toLowerCase() ==
-        'cancelled';
+    final status =
+        (data['status'] ?? '').toString().toLowerCase();
+
+    return status == 'cancelled' || status == 'canceled';
   }
 
   List<QueryDocumentSnapshot<Map<String, dynamic>>>
@@ -106,8 +107,6 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-
     return Scaffold(
       backgroundColor: bookingsBackground,
       appBar: AppBar(
@@ -130,98 +129,118 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
           children: [
             _buildFilters(),
             Expanded(
-              child: user == null
-                  ? _buildMessage(
+              child: StreamBuilder<User?>(
+                stream: FirebaseAuth.instance.authStateChanges(),
+                builder: (context, authSnapshot) {
+                  // Login state is still being checked.
+                  if (authSnapshot.connectionState ==
+                          ConnectionState.waiting &&
+                      !authSnapshot.hasData) {
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        color: bookingsOrange,
+                      ),
+                    );
+                  }
+
+                  final user = authSnapshot.data;
+
+                  if (user == null) {
+                    return _buildMessage(
                       icon: Icons.person_outline_rounded,
                       title: 'Login Required',
                       message:
                           'Please log in to view your bookings.',
-                    )
-                  : StreamBuilder<
-                      QuerySnapshot<Map<String, dynamic>>>(
-                      stream: _bookingStream(user.uid),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasError) {
-                          return _buildMessage(
-                            icon: Icons.error_outline_rounded,
-                            title: 'Could Not Load Bookings',
-                            message:
-                                'Please check your connection and try again.',
-                            action: TextButton.icon(
-                              onPressed: () => setState(() {}),
-                              icon: const Icon(
-                                Icons.refresh_rounded,
-                                color: bookingsOrange,
-                              ),
-                              label: const Text(
-                                'Refresh',
-                                style: TextStyle(
-                                  color: bookingsOrange,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            ),
-                          );
-                        }
+                    );
+                  }
 
-                        if (snapshot.connectionState ==
-                                ConnectionState.waiting &&
-                            !snapshot.hasData) {
-                          return const Center(
-                            child: CircularProgressIndicator(
+                  return StreamBuilder<
+                      QuerySnapshot<Map<String, dynamic>>>(
+                    key: ValueKey(user.uid),
+                    stream: _bookingStream(user.uid),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError) {
+                        return _buildMessage(
+                          icon: Icons.error_outline_rounded,
+                          title: 'Could Not Load Bookings',
+                          message:
+                              'Unable to load bookings. Please check your connection and try again.',
+                          action: TextButton.icon(
+                            onPressed: () {
+                              setState(() {});
+                            },
+                            icon: const Icon(
+                              Icons.refresh_rounded,
                               color: bookingsOrange,
                             ),
-                          );
-                        }
-
-                        final docs =
-                            snapshot.data?.docs ?? [];
-
-                        final bookings =
-                            _filteredBookings(docs);
-
-                        if (bookings.isEmpty) {
-                          return _buildEmptyState();
-                        }
-
-                        return RefreshIndicator(
-                          color: bookingsOrange,
-                          onRefresh: () async {
-                            await FirebaseFirestore.instance
-                                .collection('bookings')
-                                .where(
-                                  'customerId',
-                                  isEqualTo: user.uid,
-                                )
-                                .get(
-                                  const GetOptions(
-                                    source: Source.server,
-                                  ),
-                                );
-                          },
-                          child: ListView.builder(
-                            physics:
-                                const AlwaysScrollableScrollPhysics(),
-                            padding:
-                                const EdgeInsets.fromLTRB(
-                              16,
-                              10,
-                              16,
-                              24,
+                            label: const Text(
+                              'Refresh',
+                              style: TextStyle(
+                                color: bookingsOrange,
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
-                            itemCount: bookings.length,
-                            itemBuilder: (context, index) {
-                              final doc = bookings[index];
-
-                              return _BookingCard(
-                                bookingId: doc.id,
-                                data: doc.data(),
-                              );
-                            },
                           ),
                         );
-                      },
-                    ),
+                      }
+
+                      if (snapshot.connectionState ==
+                              ConnectionState.waiting &&
+                          !snapshot.hasData) {
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            color: bookingsOrange,
+                          ),
+                        );
+                      }
+
+                      final docs = snapshot.data?.docs ?? [];
+                      final bookings = _filteredBookings(docs);
+
+                      if (bookings.isEmpty) {
+                        return _buildEmptyState();
+                      }
+
+                      return RefreshIndicator(
+                        color: bookingsOrange,
+                        onRefresh: () async {
+                          await FirebaseFirestore.instance
+                              .collection('bookings')
+                              .where(
+                                'customerId',
+                                isEqualTo: user.uid,
+                              )
+                              .get(
+                                const GetOptions(
+                                  source: Source.server,
+                                ),
+                              );
+                        },
+                        child: ListView.builder(
+                          physics:
+                              const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.fromLTRB(
+                            16,
+                            10,
+                            16,
+                            24,
+                          ),
+                          itemCount: bookings.length,
+                          itemBuilder: (context, index) {
+                            final doc = bookings[index];
+
+                            return _BookingCard(
+                              key: ValueKey(doc.id),
+                              bookingId: doc.id,
+                              data: doc.data(),
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ],
         ),
@@ -275,7 +294,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   }
 
   Widget _buildEmptyState() {
-    final String message;
+    String message;
 
     switch (_selectedFilter) {
       case 1:
@@ -296,7 +315,6 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       icon: Icons.receipt_long_rounded,
       title: 'No Bookings Yet',
       message: message,
-      action: null,
     );
   }
 
@@ -358,6 +376,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
 class _BookingCard extends StatelessWidget {
   const _BookingCard({
+    super.key,
     required this.bookingId,
     required this.data,
   });
@@ -379,7 +398,8 @@ class _BookingCard extends StatelessWidget {
     if (date == null) return 'Schedule not available';
 
     final local = date.toLocal();
-    final hour = local.hour % 12 == 0 ? 12 : local.hour % 12;
+    final hour =
+        local.hour % 12 == 0 ? 12 : local.hour % 12;
     final minute = local.minute.toString().padLeft(2, '0');
     final period = local.hour >= 12 ? 'PM' : 'AM';
 
@@ -400,24 +420,23 @@ class _BookingCard extends StatelessWidget {
         ? Map<String, dynamic>.from(addressData)
         : <String, dynamic>{};
 
-    final petName = (pet['name'] ??
-            data['petName'] ??
-            'Your dog')
-        .toString();
+    final petName =
+        (pet['name'] ?? data['petName'] ?? 'Your dog')
+            .toString();
 
-    final serviceName = (data['serviceName'] ??
-            data['serviceType'] ??
-            'Dog Walk')
-        .toString();
+    final serviceName =
+        (data['serviceName'] ??
+                data['serviceType'] ??
+                'Dog Walk')
+            .toString();
 
-    final status =
-        (data['status'] ?? 'pending').toString();
-
+    final status = (data['status'] ?? 'pending').toString();
     final statusLower = status.toLowerCase();
 
     final statusColor = statusLower == 'completed'
         ? Colors.green
-        : statusLower == 'cancelled'
+        : (statusLower == 'cancelled' ||
+                statusLower == 'canceled')
             ? Colors.red
             : bookingsOrange;
 
@@ -428,8 +447,7 @@ class _BookingCard extends StatelessWidget {
       address['pincode'],
     ]
         .where((part) =>
-            part != null &&
-            part.toString().trim().isNotEmpty)
+            part != null && part.toString().trim().isNotEmpty)
         .join(', ');
 
     return Container(
@@ -452,7 +470,8 @@ class _BookingCard extends StatelessWidget {
                 height: 48,
                 width: 48,
                 decoration: BoxDecoration(
-                  color: bookingsOrange.withValues(alpha: 0.10),
+                  color:
+                      bookingsOrange.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: const Icon(
