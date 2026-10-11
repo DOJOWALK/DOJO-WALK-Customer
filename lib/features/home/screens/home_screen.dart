@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../booking/screens/booking_start_screen.dart';
-import '../../booking/screens/my_bookings_screen.dart';
 import '../../booking/screens/my_dogs_screen.dart';
 
 const Color dojoOrange = Color(0xFFFF7900);
@@ -25,7 +24,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final GlobalKey _servicesKey = GlobalKey();
 
-  int _selectedTab = 0;
   String _selectedAddress = 'Select your location';
   String _selectedCategory = 'All';
 
@@ -57,26 +55,9 @@ class _HomeScreenState extends State<HomeScreen> {
     if (service == 'My Dogs') {
       Navigator.push(
         context,
-        MaterialPageRoute(
+        MaterialPageRoute<void>(
           builder: (_) => const MyDogsScreen(),
         ),
-      );
-      return;
-    }
-
-    if (service == 'My Bookings') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const MyBookingsScreen(),
-        ),
-      );
-      return;
-    }
-
-    if (service == 'Profile') {
-      _showMessage(
-        'Profile and settings will be connected next.',
       );
       return;
     }
@@ -100,7 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     Navigator.push(
       context,
-      MaterialPageRoute(
+      MaterialPageRoute<void>(
         builder: (_) => BookingStartScreen(
           initialType: type,
         ),
@@ -234,7 +215,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool _matchesSearch(String text) {
     if (_searchText.isEmpty) return true;
-
     return text.toLowerCase().contains(_searchText);
   }
 
@@ -306,7 +286,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNavigation(),
     );
   }
 
@@ -379,9 +358,7 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.fromLTRB(18, 8, 18, 16),
       child: TextField(
         controller: _searchController,
-        onChanged: (_) {
-          setState(() {});
-        },
+        onChanged: (_) => setState(() {}),
         textInputAction: TextInputAction.search,
         decoration: InputDecoration(
           hintText: 'Search dog walking services...',
@@ -615,11 +592,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildCategoryFilters() {
-    const categories = [
-      'All',
-      'One-Time',
-      'Regular',
-    ];
+    const categories = ['All', 'One-Time', 'Regular'];
 
     return SizedBox(
       height: 47,
@@ -627,8 +600,7 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 18),
         scrollDirection: Axis.horizontal,
         itemCount: categories.length,
-        separatorBuilder: (_, __) =>
-            const SizedBox(width: 9),
+        separatorBuilder: (_, __) => const SizedBox(width: 9),
         itemBuilder: (context, index) {
           final category = categories[index];
           final selected = _selectedCategory == category;
@@ -720,8 +692,7 @@ class _HomeScreenState extends State<HomeScreen> {
             return _ServiceCard(
               icon: Icons.directions_walk_rounded,
               title: 'One-Time Walk',
-              subtitle:
-                  'A walk whenever your dog needs one.',
+              subtitle: 'A walk whenever your dog needs one.',
               badge: 'FLEXIBLE WALK',
               buttonText: 'BOOK NOW',
               onTap: () => _openService('One-Time Walk'),
@@ -743,8 +714,7 @@ class _HomeScreenState extends State<HomeScreen> {
           return _ServiceCard(
             icon: Icons.pets_rounded,
             title: 'My Dogs',
-            subtitle:
-                'Add and manage your dog’s information.',
+            subtitle: 'Add and manage your dog’s information.',
             badge: 'YOUR PETS',
             buttonText: 'MANAGE DOGS',
             onTap: () => _openService('My Dogs'),
@@ -828,108 +798,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildBottomNavigation() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 18,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 8,
-          ),
-          child: Row(
-            children: [
-              _navItem(
-                index: 0,
-                icon: Icons.home_rounded,
-                label: 'Home',
-              ),
-              _navItem(
-                index: 1,
-                icon: Icons.receipt_long_rounded,
-                label: 'My Bookings',
-              ),
-              _navItem(
-                index: 2,
-                icon: Icons.person_outline_rounded,
-                label: 'Profile',
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _navItem({
-    required int index,
-    required IconData icon,
-    required String label,
-  }) {
-    final selected = _selectedTab == index;
-
-    return Expanded(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: () {
-          if (index == 0) {
-            setState(() {
-              _selectedTab = 0;
-            });
-            return;
-          }
-
-          if (index == 1) {
-            setState(() {
-              _selectedTab = 1;
-            });
-            _openService('My Bookings');
-            return;
-          }
-
-          setState(() {
-            _selectedTab = 2;
-          });
-          _openService('Profile');
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 7),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 23,
-                color: selected ? dojoOrange : dojoMuted,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: selected
-                      ? FontWeight.w800
-                      : FontWeight.w500,
-                  color: selected ? dojoOrange : dojoMuted,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
