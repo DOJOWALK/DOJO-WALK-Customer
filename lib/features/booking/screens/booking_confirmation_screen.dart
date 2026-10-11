@@ -20,18 +20,33 @@ class BookingConfirmationScreen extends StatelessWidget {
   final Map<String, dynamic> pickupAddress;
   final Map<String, dynamic> schedule;
 
-  String get _walkTypeLabel {
-    return walkType == WalkBookingType.regular
-        ? 'Regular Walks'
-        : 'One-Time Walk';
-  }
+  bool get _isRegular => walkType == WalkBookingType.regular;
+
+  String get _walkTypeLabel =>
+      _isRegular ? 'Regular Walks' : 'One-Time Walk';
 
   String get _formattedDate {
-    final date = DateTime.parse(schedule['date'] as String);
+    final rawDate = schedule['date'];
+
+    if (rawDate == null) return 'Not selected';
+
+    final date = DateTime.tryParse(rawDate.toString());
+
+    if (date == null) return 'Not selected';
 
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
 
     return '${date.day} ${months[date.month - 1]} ${date.year}';
@@ -45,9 +60,23 @@ class BookingConfirmationScreen extends StatelessWidget {
       pickupAddress['city'],
       pickupAddress['pincode'],
     ]
-        .where((value) =>
-            value != null && value.toString().trim().isNotEmpty)
+        .where(
+          (value) =>
+              value != null && value.toString().trim().isNotEmpty,
+        )
         .join(', ');
+  }
+
+  void _submitBooking(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Booking submission setup pending. Firebase booking save '
+          'will be connected in the next step.',
+        ),
+        duration: Duration(seconds: 4),
+      ),
+    );
   }
 
   @override
@@ -56,8 +85,10 @@ class BookingConfirmationScreen extends StatelessWidget {
       backgroundColor: confirmationBackground,
       appBar: AppBar(
         backgroundColor: confirmationBackground,
+        foregroundColor: confirmationText,
+        elevation: 0,
         title: const Text(
-          'Booking Confirmation',
+          'Confirm Your Walk',
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
       ),
@@ -92,7 +123,8 @@ class BookingConfirmationScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    'Almost there!',
+                    'Review Your Booking',
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 25,
                       fontWeight: FontWeight.w900,
@@ -101,7 +133,8 @@ class BookingConfirmationScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Review your walk details before continuing.',
+                    'Please check all details before submitting your '
+                    'walk request.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
@@ -116,7 +149,7 @@ class BookingConfirmationScreen extends StatelessWidget {
             const SizedBox(height: 20),
 
             _sectionCard(
-              title: 'Your dog',
+              title: 'Your Dog',
               icon: Icons.pets_rounded,
               children: [
                 _detail('Name', _value(dogDetails['name'])),
@@ -124,37 +157,36 @@ class BookingConfirmationScreen extends StatelessWidget {
                 _detail('Age', _ageLabel(dogDetails['age'])),
                 _detail('Size', _value(dogDetails['size'])),
                 _detail('Gender', _value(dogDetails['gender'])),
+                if (_hasValue(dogDetails['notes']))
+                  _detail('Special notes', _value(dogDetails['notes'])),
               ],
             ),
 
             const SizedBox(height: 16),
 
             _sectionCard(
-              title: 'Walk details',
+              title: 'Walk Details',
               icon: Icons.directions_walk_rounded,
               children: [
                 _detail('Walk type', _walkTypeLabel),
                 _detail('Date', _formattedDate),
                 _detail('Preferred time', _value(schedule['time'])),
                 _detail('Duration', _value(schedule['duration'])),
-                if (schedule['isRegular'] == true)
-                  _detail(
-                    'Frequency',
-                    _value(schedule['frequency']),
-                  ),
-                if (schedule['frequency'] ==
-                    'Selected days each week')
-                  _detail(
-                    'Walks per week',
-                    '${schedule['walksPerWeek']} days',
-                  ),
+                if (_isRegular) ...[
+                  _detail('Frequency', _value(schedule['frequency'])),
+                  if (schedule['frequency'] == 'Selected days each week')
+                    _detail(
+                      'Walks per week',
+                      '${_value(schedule['walksPerWeek'])} days',
+                    ),
+                ],
               ],
             ),
 
             const SizedBox(height: 16),
 
             _sectionCard(
-              title: 'Pickup location',
+              title: 'Pickup Location',
               icon: Icons.location_on_rounded,
               children: [
                 _detail(
@@ -188,10 +220,9 @@ class BookingConfirmationScreen extends StatelessWidget {
                   SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Your booking is not confirmed yet. '
-                      'You will need to sign in and verify your '
-                      'mobile number before submitting the booking. '
-                      'Walker availability must also be checked.',
+                      'Your details are ready for review. Your booking '
+                      'is not submitted or confirmed yet. The booking '
+                      'submission system will be connected next.',
                       style: TextStyle(
                         fontSize: 12,
                         height: 1.6,
@@ -208,15 +239,7 @@ class BookingConfirmationScreen extends StatelessWidget {
             SizedBox(
               height: 54,
               child: ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Next step: mobile number login and OTP verification.',
-                      ),
-                    ),
-                  );
-                },
+                onPressed: () => _submitBooking(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: confirmationOrange,
                   foregroundColor: Colors.white,
@@ -228,10 +251,10 @@ class BookingConfirmationScreen extends StatelessWidget {
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.lock_outline_rounded),
+                    Icon(Icons.assignment_turned_in_outlined),
                     SizedBox(width: 9),
                     Text(
-                      'Continue to Login',
+                      'Submit Booking',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -258,7 +281,7 @@ class BookingConfirmationScreen extends StatelessWidget {
                   ),
                 ),
                 child: const Text(
-                  'Go Back',
+                  'Go Back and Edit',
                   style: TextStyle(fontWeight: FontWeight.w700),
                 ),
               ),
@@ -269,17 +292,17 @@ class BookingConfirmationScreen extends StatelessWidget {
     );
   }
 
+  static bool _hasValue(dynamic value) {
+    return value != null && value.toString().trim().isNotEmpty;
+  }
+
   static String _value(dynamic value) {
-    if (value == null || value.toString().trim().isEmpty) {
-      return 'Not provided';
-    }
+    if (!_hasValue(value)) return 'Not provided';
     return value.toString();
   }
 
   static String _ageLabel(dynamic age) {
-    if (age == null || age.toString().trim().isEmpty) {
-      return 'Not provided';
-    }
+    if (!_hasValue(age)) return 'Not provided';
     return '$age years';
   }
 
