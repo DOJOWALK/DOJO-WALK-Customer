@@ -1,3 +1,6 @@
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'booking_start_screen.dart';
@@ -6,7 +9,7 @@ const Color confirmationOrange = Color(0xFFFF7900);
 const Color confirmationBackground = Color(0xFFFFFAF5);
 const Color confirmationText = Color(0xFF202020);
 
-class BookingConfirmationScreen extends StatelessWidget {
+class BookingConfirmationScreen extends StatefulWidget {
   const BookingConfirmationScreen({
     super.key,
     required this.walkType,
@@ -20,62 +23,270 @@ class BookingConfirmationScreen extends StatelessWidget {
   final Map<String, dynamic> pickupAddress;
   final Map<String, dynamic> schedule;
 
-  bool get _isRegular => walkType == WalkBookingType.regular;
+  @override
+  State<BookingConfirmationScreen> createState() =>
+      _BookingConfirmationScreenState();
+}
+
+class _BookingConfirmationScreenState
+    extends State<BookingConfirmationScreen> {
+  bool _isSubmitting = false;
+
+  bool get _isRegular => widget.walkType == WalkBookingType.regular;
 
   String get _walkTypeLabel =>
       _isRegular ? 'Regular Walks' : 'One-Time Walk';
 
+  String _value(dynamic value) {
+    if (value == null || value.toString().trim().isEmpty) {
+      return 'Not provided';
+    }
+    return value.toString();
+  }
+
+  bool _hasValue(dynamic value) =>
+      value != null && value.toString().trim().isNotEmpty;
+
+  String _ageLabel(dynamic age) =>
+      _hasValue(age) ? '$age years' : 'Not provided';
+
   String get _formattedDate {
-    final rawDate = schedule['date'];
-
-    if (rawDate == null) return 'Not selected';
-
-    final date = DateTime.tryParse(rawDate.toString());
-
+    final date = _selectedDate;
     if (date == null) return 'Not selected';
 
     const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
     ];
 
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
+  DateTime? get _selectedDate {
+    final rawDate = widget.schedule['date'];
+    if (rawDate is DateTime) return rawDate;
+    if (rawDate == null) return null;
+    return DateTime.tryParse(rawDate.toString());
+  }
+
+  DateTime? _scheduledDateTime() {
+    final date = _selectedDate;
+    final rawTime = widget.schedule['time']?.toString().trim();
+
+    if (date == null || rawTime == null || rawTime.isEmpty) {
+      return null;
+    }
+
+    // Supports examples such as "7 AM", "7:00 AM", and "18:00".
+    final match = RegExp(
+      r'^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?$',
+      caseSensitive: false,
+    ).firstMatch(rawTime);
+
+    if (match == null) return null;
+
+    var hour = int.tryParse(match.group(1)!);
+    final minute = int.tryParse(match.group(2) ?? '0') ?? 0;
+    final period = match.group(3)?.toUpperCase();
+
+    if (hour == null || minute < 0 || minute > 59) return null;
+
+    if (period != null) {
+      if (hour < 1 || hour > 12) return null;
+      if (period == 'AM') {
+        hour = hour == 12 ? 0 : hour;
+      } else {
+        hour = hour == 12 ? 12 : hour + 12;
+      }
+    } else if (hour < 0 || hour > 23) {
+      return null;
+    }
+
+    return DateTime(
+      date.year,
+      date.month,
+      date.day,
+      hour,
+      minute,
+    );
+  }
+
   String get _formattedAddress {
     return [
-      pickupAddress['address'],
-      pickupAddress['area'],
-      pickupAddress['landmark'],
-      pickupAddress['city'],
-      pickupAddress['pincode'],
+      widget.pickupAddress['address'],
+      widget.pickupAddress['area'],
+      widget.pickupAddress['landmark'],
+      widget.pickupAddress['city'],
+      widget.pickupAddress['pincode'],
     ]
-        .where(
-          (value) =>
-              value != null && value.toString().trim().isNotEmpty,
-        )
+        .where((value) =>
+            value != null && value.toString().trim().isNotEmpty)
         .join(', ');
   }
 
-  void _submitBooking(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Booking submission setup pending. Firebase booking save '
-          'will be connected in the next step.',
+  Future<void> _submitBooking() async {
+    if (_isSubmitting) return;
+
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      _showMessage('Booking se pehle mobile OTP se login karein.');
+      return;
+    }
+
+    final petName = widget.dogDetails['name']?.toString().trim() ?? '';
+    final address = widget.pickupAddress['address']?.toString().trim() ?? '';
+    final scheduledAt = _scheduledDateTime();
+
+    if (petName.isEmpty) {
+      _showMessage('Please dog ka naam check karein.');
+      return;
+    }
+
+    if (address.isEmpty || _formattedAddress.isEmpty) {
+      _showMessage('Please pickup address check karein.');
+      return;
+    }
+
+    if (scheduledAt == null) {
+      _showMessage(
+        'Date ya time sahi format mein nahi hai. '
+        'Schedule screen par wapas jaakar check karein.',
+      );
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      final bookingRef =
+          FirebaseFirestore.instance.collection('bookings').doc();
+
+      final bookingData = <String, dynamic>{
+        'bookingId': bookingRef.id,
+        'customerId': user.uid,
+
+        // Existing Firestore Rules allow "scheduled".
+        'walkType': 'scheduled',
+
+        // Distinguishes the two customer booking plans.
+        'bookingPlan': _isRegular ? 'regular' : 'one_time',
+        'serviceType': _isRegular ? 'regular_walk' : 'temporary_walk',
+        'serviceName': _isRegular ? 'Regular Walks' : 'One-Time Walk',
+
+        'petName': petName,
+        'petDetails': Map<String, dynamic>.from(widget.dogDetails),
+
+        // Current flow collects the address in this booking flow.
+        'pickupAddressId': 'booking_address',
+        'pickupAddress':
+            Map<String, dynamic>.from(widget.pickupAddress),
+
+        'scheduledAt': Timestamp.fromDate(scheduledAt),
+        'duration': widget.schedule['duration']?.toString() ?? '',
+        'preferredTime': widget.schedule['time']?.toString() ?? '',
+
+        if (_isRegular) ...{
+          'frequency': widget.schedule['frequency']?.toString() ?? '',
+          'walksPerWeek': widget.schedule['walksPerWeek'],
+        },
+
+        'status': 'pending',
+        'walkerId': null,
+        'cancelRequest': null,
+        'createdAt': FieldValue.serverTimestamp(),
+      };
+
+      // Only writes to bookings. No direct client write to walk_requests.
+      await bookingRef.set(bookingData);
+
+      if (!mounted) return;
+
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          icon: const Icon(
+            Icons.check_circle_rounded,
+            color: confirmationOrange,
+            size: 58,
+          ),
+          title: const Text(
+            'Booking Submitted!',
+            textAlign: TextAlign.center,
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Aapki booking request Firebase mein save ho gayi hai.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 14),
+              const Text(
+                'Booking ID',
+                style: TextStyle(color: Colors.black54),
+              ),
+              const SizedBox(height: 5),
+              SelectableText(
+                bookingRef.id,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: confirmationOrange,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'Walker assign hone tak booking pending rahegi.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: Colors.black54),
+              ),
+            ],
+          ),
+          actions: [
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: confirmationOrange,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                },
+                child: const Text('Done'),
+              ),
+            ),
+          ],
         ),
-        duration: Duration(seconds: 4),
-      ),
+      );
+    } on FirebaseException catch (error) {
+      if (!mounted) return;
+
+      final message = error.code == 'permission-denied'
+          ? 'Firebase Rules ne booking save karne se roka. '
+              'Firestore Rules aur booking fields check karne honge.'
+          : 'Booking save nahi hui: ${error.message ?? error.code}';
+
+      _showMessage(message);
+    } catch (error) {
+      if (!mounted) return;
+      _showMessage('Kuch problem hui. Dobara try karein.');
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
     );
   }
 
@@ -102,9 +313,7 @@ class BookingConfirmationScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: const Color(0xFFEEEEEE),
-                ),
+                border: Border.all(color: const Color(0xFFEEEEEE)),
               ),
               child: Column(
                 children: [
@@ -145,54 +354,46 @@ class BookingConfirmationScreen extends StatelessWidget {
                 ],
               ),
             ),
-
             const SizedBox(height: 20),
-
             _sectionCard(
               title: 'Your Dog',
               icon: Icons.pets_rounded,
               children: [
-                _detail('Name', _value(dogDetails['name'])),
-                _detail('Breed', _value(dogDetails['breed'])),
-                _detail('Age', _ageLabel(dogDetails['age'])),
-                _detail('Size', _value(dogDetails['size'])),
-                _detail('Gender', _value(dogDetails['gender'])),
-                if (_hasValue(dogDetails['notes']))
-                  _detail('Special notes', _value(dogDetails['notes'])),
+                _detail('Name', _value(widget.dogDetails['name'])),
+                _detail('Breed', _value(widget.dogDetails['breed'])),
+                _detail('Age', _ageLabel(widget.dogDetails['age'])),
+                _detail('Size', _value(widget.dogDetails['size'])),
+                _detail('Gender', _value(widget.dogDetails['gender'])),
+                if (_hasValue(widget.dogDetails['notes']))
+                  _detail('Special notes', _value(widget.dogDetails['notes'])),
               ],
             ),
-
             const SizedBox(height: 16),
-
             _sectionCard(
               title: 'Walk Details',
               icon: Icons.directions_walk_rounded,
               children: [
                 _detail('Walk type', _walkTypeLabel),
                 _detail('Date', _formattedDate),
-                _detail('Preferred time', _value(schedule['time'])),
-                _detail('Duration', _value(schedule['duration'])),
+                _detail('Preferred time', _value(widget.schedule['time'])),
+                _detail('Duration', _value(widget.schedule['duration'])),
                 if (_isRegular) ...[
-                  _detail('Frequency', _value(schedule['frequency'])),
-                  if (schedule['frequency'] == 'Selected days each week')
+                  _detail('Frequency', _value(widget.schedule['frequency'])),
+                  if (widget.schedule['frequency'] ==
+                      'Selected days each week')
                     _detail(
                       'Walks per week',
-                      '${_value(schedule['walksPerWeek'])} days',
+                      '${_value(widget.schedule['walksPerWeek'])} days',
                     ),
                 ],
               ],
             ),
-
             const SizedBox(height: 16),
-
             _sectionCard(
               title: 'Pickup Location',
               icon: Icons.location_on_rounded,
               children: [
-                _detail(
-                  'Address type',
-                  _value(pickupAddress['label']),
-                ),
+                _detail('Address type', _value(widget.pickupAddress['label'])),
                 _detail(
                   'Full address',
                   _formattedAddress.isEmpty
@@ -201,9 +402,7 @@ class BookingConfirmationScreen extends StatelessWidget {
                 ),
               ],
             ),
-
             const SizedBox(height: 18),
-
             Container(
               padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
@@ -213,16 +412,14 @@ class BookingConfirmationScreen extends StatelessWidget {
               child: const Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Icons.info_outline_rounded,
-                    color: confirmationOrange,
-                  ),
+                  Icon(Icons.info_outline_rounded,
+                      color: confirmationOrange),
                   SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Your details are ready for review. Your booking '
-                      'is not submitted or confirmed yet. The booking '
-                      'submission system will be connected next.',
+                      'Submit karne par booking request save hogi. '
+                      'Walker assignment aur final confirmation alag '
+                      'steps hain.',
                       style: TextStyle(
                         fontSize: 12,
                         height: 1.6,
@@ -233,49 +430,53 @@ class BookingConfirmationScreen extends StatelessWidget {
                 ],
               ),
             ),
-
             const SizedBox(height: 22),
-
             SizedBox(
               height: 54,
               child: ElevatedButton(
-                onPressed: () => _submitBooking(context),
+                onPressed: _isSubmitting ? null : _submitBooking,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: confirmationOrange,
                   foregroundColor: Colors.white,
+                  disabledBackgroundColor: Colors.orange.shade200,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),
                   ),
                 ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.assignment_turned_in_outlined),
-                    SizedBox(width: 9),
-                    Text(
-                      'Submit Booking',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
+                child: _isSubmitting
+                    ? const SizedBox(
+                        width: 23,
+                        height: 23,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.assignment_turned_in_outlined),
+                          SizedBox(width: 9),
+                          Text(
+                            'Submit Booking',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
               ),
             ),
-
             const SizedBox(height: 10),
-
             SizedBox(
               height: 50,
               child: OutlinedButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: _isSubmitting ? null : () => Navigator.pop(context),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: confirmationText,
-                  side: const BorderSide(
-                    color: Color(0xFFDDDDDD),
-                  ),
+                  side: const BorderSide(color: Color(0xFFDDDDDD)),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),
                   ),
@@ -290,20 +491,6 @@ class BookingConfirmationScreen extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  static bool _hasValue(dynamic value) {
-    return value != null && value.toString().trim().isNotEmpty;
-  }
-
-  static String _value(dynamic value) {
-    if (!_hasValue(value)) return 'Not provided';
-    return value.toString();
-  }
-
-  static String _ageLabel(dynamic age) {
-    if (!_hasValue(age)) return 'Not provided';
-    return '$age years';
   }
 
   static Widget _sectionCard({
