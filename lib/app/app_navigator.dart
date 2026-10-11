@@ -24,6 +24,14 @@ class _AppNavigatorState extends State<AppNavigator> {
     const ProfileScreen(),
   ];
 
+  void _selectTab(int index) {
+    if (_selectedIndex == index) return;
+
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -84,11 +92,7 @@ class _AppNavigatorState extends State<AppNavigator> {
 
     return Expanded(
       child: InkWell(
-        onTap: () {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
+        onTap: () => _selectTab(index),
         borderRadius: BorderRadius.circular(14),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 7),
