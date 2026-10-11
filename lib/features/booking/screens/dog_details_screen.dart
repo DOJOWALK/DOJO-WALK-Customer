@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import 'booking_start_screen.dart';
@@ -88,7 +87,6 @@ class _DogDetailsScreenState extends State<DogDetailsScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
             children: [
-              // Progress indicator
               Row(
                 children: [
                   _progressStep('1', 'Service', true),
@@ -165,9 +163,11 @@ class _DogDetailsScreenState extends State<DogDetailsScreen> {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter your dog’s name';
                   }
+
                   if (value.trim().length > 50) {
                     return 'Name must be under 50 characters';
                   }
+
                   return null;
                 },
               ),
@@ -212,7 +212,7 @@ class _DogDetailsScreenState extends State<DogDetailsScreen> {
               _label('Dog size *'),
 
               DropdownButtonFormField<String>(
-                value: _size,
+                initialValue: _size,
                 isExpanded: true,
                 decoration: _decoration('Select dog size'),
                 items: const [
@@ -245,7 +245,7 @@ class _DogDetailsScreenState extends State<DogDetailsScreen> {
               _label('Gender'),
 
               DropdownButtonFormField<String>(
-                value: _gender,
+                initialValue: _gender,
                 isExpanded: true,
                 decoration: _decoration('Select gender'),
                 items: const [
