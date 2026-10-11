@@ -396,7 +396,7 @@ class MyDogsScreen extends StatelessWidget {
 
                 Navigator.pop(sheetContext);
 
-                ScaffoldMessenger.of(this.context).showSnackBar(
+                ScaffoldMessenger.of(sheetContext).showSnackBar(
                   SnackBar(
                     content: Text(
                       dogId == null
