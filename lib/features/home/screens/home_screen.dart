@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../booking/screens/booking_start_screen.dart';
+import '../../booking/screens/my_bookings_screen.dart';
 
 const Color dojoOrange = Color(0xFFFF7900);
 const Color dojoBackground = Color(0xFFFFFAF5);
@@ -60,8 +61,11 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     if (service == 'My Bookings') {
-      _showMessage(
-        'My Bookings will show your booking history.',
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const MyBookingsScreen(),
+        ),
       );
       return;
     }
@@ -150,8 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
               TextField(
                 controller: controller,
                 autofocus: true,
-                textCapitalization:
-                    TextCapitalization.words,
+                textCapitalization: TextCapitalization.words,
                 decoration: InputDecoration(
                   hintText: 'Enter area or address',
                   prefixIcon: const Icon(
@@ -878,28 +881,22 @@ class _HomeScreenState extends State<HomeScreen> {
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
         onTap: () {
-          setState(() {
-            _selectedTab = index;
-          });
-
           if (index == 0) {
+            setState(() {
+              _selectedTab = 0;
+            });
             return;
           }
 
           if (index == 1) {
             _openService('My Bookings');
-          } else {
-            _openService('Profile');
+            return;
           }
 
-          setState(() {
-            _selectedTab = 0;
-          });
+          _openService('Profile');
         },
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: 7,
-          ),
+          padding: const EdgeInsets.symmetric(vertical: 7),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
