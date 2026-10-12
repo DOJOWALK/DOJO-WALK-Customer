@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../services/walk_pricing_service.dart';
 import 'booking_start_screen.dart';
-import 'booking_confirmation_screen.dart';
+import 'dog_pickup_details_screen.dart';
 
 const Color scheduleOrange = Color(0xFFFF7900);
 const Color scheduleBackground = Color(0xFFFFFAF5);
@@ -24,28 +24,50 @@ class WalkScheduleScreen extends StatefulWidget {
   const WalkScheduleScreen({
     super.key,
     required this.walkType,
-    required this.dogDetails,
-    required this.pickupAddress,
   });
 
   final WalkBookingType walkType;
-  final Map<String, dynamic> dogDetails;
-  final Map<String, dynamic> pickupAddress;
 
   @override
   State<WalkScheduleScreen> createState() =>
       _WalkScheduleScreenState();
 }
 
-class _WalkScheduleScreenState
-    extends State<WalkScheduleScreen> {
-  int _walkCount = 2;
+class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
+  int _walkCount = 1;
+  DateTime _selectedDate = DateTime.now().add(
+    const Duration(days: 1),
+  );
 
   final List<_WalkSlot> _slots = [
     _WalkSlot(time: const TimeOfDay(hour: 7, minute: 0)),
     _WalkSlot(time: const TimeOfDay(hour: 18, minute: 0)),
     _WalkSlot(time: const TimeOfDay(hour: 21, minute: 0)),
   ];
+
+  bool get _isRegular =>
+      widget.walkType == WalkBookingType.regular;
+
+  bool get _isChooseDates =>
+      widget.walkType == WalkBookingType.chooseDates;
+
+  String get _screenHeading {
+    if (_isRegular) return "Build your dog's daily routine";
+    if (_isChooseDates) return 'Choose your walk date and time';
+    return 'Plan your one-time walk';
+  }
+
+  String get _planTitle {
+    if (_isRegular) return 'Daily Walk Plan';
+    if (_isChooseDates) return 'Selected Date Walk';
+    return 'One-Time Walk';
+  }
+
+  String get _planSubtitle {
+    if (_isRegular) return 'Repeats every day · Fixed routine';
+    if (_isChooseDates) return 'For your selected date';
+    return 'A single booking · No daily repeat';
+  }
 
   String _formatTime(TimeOfDay time) {
     final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
@@ -62,6 +84,12 @@ class _WalkScheduleScreenState
     if (hour >= 12 && hour < 16) return 'Afternoon';
     if (hour >= 16 && hour < 20) return 'Evening';
     return 'Night';
+  }
+
+  String _formatDate(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    return '$day/$month/${date.year}';
   }
 
   List<TimeOfDay> _suggestedTimes(int index) {
@@ -87,12 +115,43 @@ class _WalkScheduleScreenState
       TimeOfDay(hour: 20, minute: 0),
       TimeOfDay(hour: 21, minute: 0),
       TimeOfDay(hour: 22, minute: 0),
-      TimeOfDay(hour: 23, minute: 0),
     ];
   }
 
-  bool _sameTime(TimeOfDay a, TimeOfDay b) {
-    return a.hour == b.hour && a.minute == b.minute;
+  bool _sameTime(TimeOfDay a, TimeOfDay b) =>
+      a.hour == b.hour && a.minute == b.minute;
+
+  Future<void> _chooseDate() async {
+    final today = DateUtils.dateOnly(DateTime.now());
+
+    final selected = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate.isBefore(today)
+          ? today
+          : _selectedDate,
+      firstDate: today,
+      lastDate: today.add(const Duration(days: 365)),
+      helpText: 'Choose walk date',
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: scheduleOrange,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: scheduleText,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (selected == null || !mounted) return;
+
+    setState(() {
+      _selectedDate = selected;
+    });
   }
 
   Future<void> _chooseCustomTime(int index) async {
@@ -129,48 +188,46 @@ class _WalkScheduleScreenState
 
     final result = await showDialog<int>(
       context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Custom walk duration'),
-          content: TextField(
-            controller: controller,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Duration in minutes',
-              hintText: 'Example: 35',
-              suffixText: 'min',
-            ),
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Custom walk duration'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Duration in minutes',
+            hintText: 'Example: 35',
+            suffixText: 'min',
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: scheduleOrange,
             ),
-            FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: scheduleOrange,
-              ),
-              onPressed: () {
-                final value = int.tryParse(controller.text.trim());
+            onPressed: () {
+              final value = int.tryParse(controller.text.trim());
 
-                if (value == null || value < 1 || value > 240) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Enter a duration between 1 and 240 minutes.',
-                      ),
+              if (value == null || value < 1 || value > 240) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Enter a duration between 1 and 240 minutes.',
                     ),
-                  );
-                  return;
-                }
+                  ),
+                );
+                return;
+              }
 
-                Navigator.pop(dialogContext, value);
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        );
-      },
+              Navigator.pop(dialogContext, value);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
     );
 
     controller.dispose();
@@ -182,38 +239,38 @@ class _WalkScheduleScreenState
     });
   }
 
-  int get _totalMinutes {
-    return _slots
-        .take(_walkCount)
-        .fold(0, (total, slot) => total + slot.durationMinutes);
-  }
+  int get _totalMinutes => _slots
+      .take(_walkCount)
+      .fold(0, (total, slot) => total + slot.durationMinutes);
 
-  int? get _dailyPrice {
-    return WalkPricingService.dailyEstimate(
-      _slots
-          .take(_walkCount)
-          .map((slot) => slot.durationMinutes)
-          .toList(),
-    );
-  }
+  int? get _dailyPrice => WalkPricingService.dailyEstimate(
+        _slots
+            .take(_walkCount)
+            .map((slot) => slot.durationMinutes)
+            .toList(),
+      );
 
-  void _continueToReview() {
-    final times = _slots
-        .take(_walkCount)
+  void _continueToDogDetails() {
+    final selectedSlots = _slots.take(_walkCount).toList();
+    final times = selectedSlots
         .map((slot) => _formatTime(slot.time))
         .toList();
 
-    // Preserve the existing schedule keys and add the multi-walk data.
-    final Map<String, dynamic> schedule = {
-      'date': DateTime.now(),
+    final schedule = <String, dynamic>{
+      'date': DateTime(
+        _selectedDate.year,
+        _selectedDate.month,
+        _selectedDate.day,
+      ),
+      'selectedDate': _formatDate(_selectedDate),
       'time': times.first,
-      'duration': _slots.first.durationMinutes,
-      'isRegular': widget.walkType == WalkBookingType.regular,
-      'frequency': 'Daily',
-      'walksPerWeek': 7,
+      'duration': selectedSlots.first.durationMinutes,
+      'isRegular': _isRegular,
+      'frequency': _isRegular ? 'Daily' : 'One-Time',
+      'walksPerWeek': _isRegular ? 7 : 0,
       'walkCount': _walkCount,
-      'walks': _slots.take(_walkCount).map((slot) {
-        return {
+      'walks': selectedSlots.map((slot) {
+        return <String, dynamic>{
           'time': _formatTime(slot.time),
           'startHour': slot.time.hour,
           'startMinute': slot.time.minute,
@@ -228,13 +285,10 @@ class _WalkScheduleScreenState
       'totalDurationMinutes': _totalMinutes,
     };
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => WalkScheduleReviewScreen(
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => DogPickupDetailsScreen(
           walkType: widget.walkType,
-          dogDetails: widget.dogDetails,
-          pickupAddress: widget.pickupAddress,
           schedule: schedule,
         ),
       ),
@@ -261,12 +315,15 @@ class _WalkScheduleScreenState
       selectedColor: const Color(0xFFFFE8D5),
       backgroundColor: Colors.white,
       side: BorderSide(
-        color: selected ? scheduleOrange : const Color(0xFFE8E1DA),
+        color: selected
+            ? scheduleOrange
+            : const Color(0xFFE8E1DA),
       ),
       labelStyle: TextStyle(
         fontSize: 12,
-        color: selected ? const Color(0xFFC65C00) : scheduleText,
-        fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+        color: selected
+            ? const Color(0xFFC65C00)
+            : scheduleText,
       ),
       onSelected: (_) {
         setState(() {
@@ -284,6 +341,7 @@ class _WalkScheduleScreenState
     );
 
     return Container(
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -305,32 +363,22 @@ class _WalkScheduleScreenState
                   ),
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF0E3),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  _timeLabel(slot.time),
-                  style: const TextStyle(
-                    color: Color(0xFFC65C00),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
+              Text(
+                _timeLabel(slot.time),
+                style: const TextStyle(
+                  color: Color(0xFFC65C00),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 14),
-          _sectionTitle('1. Choose start time'),
+          _sectionTitle('Choose start time'),
           const SizedBox(height: 7),
           Wrap(
             spacing: 5,
-            runSpacing: 0,
+            runSpacing: 5,
             children: [
               ...suggestions.map((time) => _timeChip(index, time)),
               ActionChip(
@@ -341,81 +389,45 @@ class _WalkScheduleScreenState
                 ),
                 label: const Text('Custom Time'),
                 backgroundColor: const Color(0xFFFFF0E3),
-                side: BorderSide(
-                  color: suggestions.any(
-                    (time) => _sameTime(time, slot.time),
-                  )
-                      ? const Color(0xFFE8E1DA)
-                      : scheduleOrange,
-                ),
-                labelStyle: const TextStyle(
-                  color: Color(0xFFC65C00),
-                  fontSize: 12,
-                ),
                 onPressed: () => _chooseCustomTime(index),
               ),
             ],
           ),
           const SizedBox(height: 14),
-          _sectionTitle('2. Choose walk duration'),
+          _sectionTitle('Choose walk duration'),
           const SizedBox(height: 7),
           Wrap(
             spacing: 7,
             runSpacing: 7,
-            children: [20, 30, 45, 60].map((minutes) {
-              final selected = slot.durationMinutes == minutes;
+            children: [
+              ...[20, 30, 45, 60].map((minutes) {
+                final selected = slot.durationMinutes == minutes;
 
-              return ChoiceChip(
-                label: Text('$minutes min'),
-                selected: selected,
-                selectedColor: const Color(0xFFFFE8D5),
-                backgroundColor: Colors.white,
-                side: BorderSide(
-                  color: selected
-                      ? scheduleOrange
-                      : const Color(0xFFE8E1DA),
-                ),
-                labelStyle: TextStyle(
-                  fontSize: 12,
-                  color: selected
-                      ? const Color(0xFFC65C00)
-                      : scheduleText,
-                ),
-                onSelected: (_) {
-                  setState(() {
-                    slot.durationMinutes = minutes;
-                  });
-                },
-              );
-            }).toList()
-              ..add(
-                ActionChip(
-                  label: const Text('Custom'),
-                  backgroundColor: slot.durationMinutes != 20 &&
-                          slot.durationMinutes != 30 &&
-                          slot.durationMinutes != 45 &&
-                          slot.durationMinutes != 60
-                      ? const Color(0xFFFFE8D5)
-                      : Colors.white,
+                return ChoiceChip(
+                  label: Text('$minutes min'),
+                  selected: selected,
+                  selectedColor: const Color(0xFFFFE8D5),
+                  backgroundColor: Colors.white,
                   side: BorderSide(
-                    color: slot.durationMinutes != 20 &&
-                            slot.durationMinutes != 30 &&
-                            slot.durationMinutes != 45 &&
-                            slot.durationMinutes != 60
+                    color: selected
                         ? scheduleOrange
                         : const Color(0xFFE8E1DA),
                   ),
-                  labelStyle: const TextStyle(
-                    color: Color(0xFFC65C00),
-                    fontSize: 12,
-                  ),
-                  onPressed: () => _chooseCustomDuration(index),
-                ),
+                  onSelected: (_) {
+                    setState(() {
+                      slot.durationMinutes = minutes;
+                    });
+                  },
+                );
+              }),
+              ActionChip(
+                label: const Text('Custom'),
+                backgroundColor: const Color(0xFFFFF0E3),
+                onPressed: () => _chooseCustomDuration(index),
               ),
+            ],
           ),
-          const SizedBox(height: 12),
-          const Divider(height: 1, color: Color(0xFFF1E3D6)),
-          const SizedBox(height: 10),
+          const Divider(height: 26),
           Row(
             children: [
               const Expanded(
@@ -432,195 +444,12 @@ class _WalkScheduleScreenState
                 style: const TextStyle(
                   color: scheduleText,
                   fontWeight: FontWeight.w700,
-                  fontSize: 16,
+                  fontSize: 15,
                 ),
               ),
             ],
           ),
         ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: scheduleBackground,
-      appBar: AppBar(
-        backgroundColor: scheduleBackground,
-        foregroundColor: scheduleText,
-        elevation: 0,
-        title: const Text(
-          'Walk Schedule',
-          style: TextStyle(fontWeight: FontWeight.w700),
-        ),
-      ),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-          children: [
-            const Text(
-              "Build your dog's daily routine",
-              style: TextStyle(
-                color: scheduleMuted,
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFF1E3D6)),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.repeat, color: scheduleOrange, size: 25),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Daily Walk Plan',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            color: scheduleText,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Repeats every day · Fixed routine',
-                          style: TextStyle(
-                            color: scheduleMuted,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            _sectionTitle('How many walks per day?'),
-            const SizedBox(height: 9),
-            Row(
-              children: [1, 2, 3].map((count) {
-                final selected = _walkCount == count;
-
-                return Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      right: count == 3 ? 0 : 8,
-                    ),
-                    child: OutlinedButton(
-                      onPressed: () {
-                        setState(() {
-                          _walkCount = count;
-                        });
-                      },
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: selected
-                            ? const Color(0xFFFFE8D5)
-                            : Colors.white,
-                        foregroundColor: selected
-                            ? const Color(0xFFC65C00)
-                            : scheduleText,
-                        side: BorderSide(
-                          color: selected
-                              ? scheduleOrange
-                              : const Color(0xFFE8E1DA),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      child: Text(
-                        '$count ${count == 1 ? 'Walk' : 'Walks'}',
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 16),
-            ...List.generate(_walkCount, _walkCard),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: scheduleOrange),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Daily Price Estimate',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: scheduleText,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  _summaryRow('Walks per day', '$_walkCount'),
-                  const SizedBox(height: 8),
-                  _summaryRow(
-                    'Total walking time',
-                    '$_totalMinutes minutes/day',
-                  ),
-                  const Divider(height: 24),
-                  _summaryRow(
-                    'Total per day',
-                    _dailyPrice == null ? 'Price to be confirmed' : '₹$_dailyPrice',
-                    emphasize: true,
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    '₹149 is the draft price for a 30-minute walk. '
-                    'Other durations need approved rates. '
-                    'Booking depends on walker availability.',
-                    style: TextStyle(
-                      color: scheduleMuted,
-                      fontSize: 11,
-                      height: 1.4,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              height: 52,
-              child: FilledButton(
-                onPressed: _continueToReview,
-                style: FilledButton.styleFrom(
-                  backgroundColor: scheduleOrange,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: const Text(
-                  'Continue to Review',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 15,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              'Schedule selection does not confirm booking or payment.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: scheduleMuted, fontSize: 11),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -657,206 +486,212 @@ class _WalkScheduleScreenState
       ],
     );
   }
-}
-
-class WalkScheduleReviewScreen extends StatelessWidget {
-  const WalkScheduleReviewScreen({
-    super.key,
-    required this.walkType,
-    required this.dogDetails,
-    required this.pickupAddress,
-    required this.schedule,
-  });
-
-  final WalkBookingType walkType;
-  final Map<String, dynamic> dogDetails;
-  final Map<String, dynamic> pickupAddress;
-  final Map<String, dynamic> schedule;
 
   @override
   Widget build(BuildContext context) {
-    final walks = (schedule['walks'] as List<dynamic>? ?? []);
-    final dailyPrice = schedule['dailyPrice'];
-    final totalMinutes = schedule['totalDurationMinutes'] ?? 0;
-
     return Scaffold(
       backgroundColor: scheduleBackground,
       appBar: AppBar(
         backgroundColor: scheduleBackground,
         foregroundColor: scheduleText,
         elevation: 0,
-        title: const Text('Review Walk Schedule'),
+        title: const Text(
+          'Walk Schedule',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFF1E3D6)),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+          children: [
+            Text(
+              _screenHeading,
+              style: const TextStyle(
+                color: scheduleMuted,
+                fontSize: 14,
+              ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Your Daily Walk Plan',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 18,
-                    color: scheduleText,
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFF1E3D6)),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    _isRegular ? Icons.repeat : Icons.pets,
+                    color: scheduleOrange,
+                    size: 25,
                   ),
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Repeats every day · Fixed routine',
-                  style: TextStyle(color: scheduleMuted, fontSize: 12),
-                ),
-                const SizedBox(height: 16),
-                ...walks.asMap().entries.map((entry) {
-                  final walk = Map<String, dynamic>.from(entry.value as Map);
-
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Row(
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(
-                          Icons.schedule,
-                          color: scheduleOrange,
-                          size: 20,
+                        Text(
+                          _planTitle,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            color: scheduleText,
+                          ),
                         ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Walk ${(entry.key + 1).toString().padLeft(2, '0')} · ${walk['period'] ?? ''}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  color: scheduleText,
-                                ),
-                              ),
-                              const SizedBox(height: 3),
-                              Text(
-                                '${walk['time']} · ${walk['duration']} minutes',
-                                style: const TextStyle(
-                                  color: scheduleMuted,
-                                  fontSize: 13,
-                                ),
-                              ),
-                              Text(
-                                walk['price'] == null
-                                    ? 'Price to be confirmed'
-                                    : '₹${walk['price']} per walk',
-                                style: const TextStyle(
-                                  color: scheduleText,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
+                        const SizedBox(height: 4),
+                        Text(
+                          _planSubtitle,
+                          style: const TextStyle(
+                            color: scheduleMuted,
+                            fontSize: 12,
                           ),
                         ),
                       ],
                     ),
-                  );
-                }),
-                const Divider(height: 24),
-                _reviewRow('Total walking time', '$totalMinutes minutes/day'),
-                const SizedBox(height: 10),
-                _reviewRow(
-                  'Estimated daily total',
-                  dailyPrice == null ? 'Price to be confirmed' : '₹$dailyPrice',
-                  emphasize: true,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFF1E3D6)),
-            ),
-            child: const Text(
-              'Next: review your booking details. The final schedule '
-              'depends on walker availability. Payment is handled separately.',
-              style: TextStyle(
-                color: scheduleMuted,
-                fontSize: 13,
-                height: 1.5,
+                  ),
+                ],
               ),
             ),
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            height: 52,
-            child: FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: scheduleOrange,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+            if (!_isRegular) ...[
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: _chooseDate,
+                icon: const Icon(
+                  Icons.calendar_month,
+                  color: scheduleOrange,
+                ),
+                label: Text(
+                  'Walk date: ${_formatDate(_selectedDate)}',
+                  style: const TextStyle(color: scheduleText),
                 ),
               ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => BookingConfirmationScreen(
-                      walkType: walkType,
-                      dogDetails: dogDetails,
-                      pickupAddress: pickupAddress,
-                      schedule: schedule,
+            ],
+            const SizedBox(height: 20),
+            _sectionTitle('How many walks per day?'),
+            const SizedBox(height: 9),
+            Row(
+              children: [1, 2, 3].map((count) {
+                final selected = _walkCount == count;
+
+                return Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      right: count == 3 ? 0 : 8,
+                    ),
+                    child: OutlinedButton(
+                      onPressed: () {
+                        setState(() {
+                          _walkCount = count;
+                        });
+                      },
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: selected
+                            ? const Color(0xFFFFE8D5)
+                            : Colors.white,
+                        foregroundColor: selected
+                            ? const Color(0xFFC65C00)
+                            : scheduleText,
+                        side: BorderSide(
+                          color: selected
+                              ? scheduleOrange
+                              : const Color(0xFFE8E1DA),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                        ),
+                      ),
+                      child: Text(
+                        '$count ${count == 1 ? 'Walk' : 'Walks'}',
+                        style: const TextStyle(fontSize: 12),
+                      ),
                     ),
                   ),
                 );
-              },
-              child: const Text(
-                'Continue',
-                style: TextStyle(fontWeight: FontWeight.w700),
+              }).toList(),
+            ),
+            const SizedBox(height: 16),
+            ...List.generate(_walkCount, _walkCard),
+            const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: scheduleOrange),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Price Estimate',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: scheduleText,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  _summaryRow('Walks per day', '$_walkCount'),
+                  const SizedBox(height: 8),
+                  _summaryRow(
+                    'Total walking time',
+                    '$_totalMinutes minutes/day',
+                  ),
+                  const Divider(height: 24),
+                  _summaryRow(
+                    _isRegular ? 'Estimated daily total' : 'Estimated total',
+                    _dailyPrice == null
+                        ? 'Price to be confirmed'
+                        : '₹$_dailyPrice',
+                    emphasize: true,
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    '₹149 is the draft price for a 30-minute walk. '
+                    'Other durations need approved rates. '
+                    'Booking depends on walker availability.',
+                    style: TextStyle(
+                      color: scheduleMuted,
+                      fontSize: 11,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 20),
+            SizedBox(
+              height: 52,
+              child: FilledButton(
+                onPressed: _continueToDogDetails,
+                style: FilledButton.styleFrom(
+                  backgroundColor: scheduleOrange,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: const Text(
+                  'Continue to Dog & Pickup Details',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'Schedule selection does not confirm booking or payment.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: scheduleMuted,
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
       ),
-    );
-  }
-
-  Widget _reviewRow(
-    String label,
-    String value, {
-    bool emphasize = false,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: scheduleMuted,
-              fontSize: 13,
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Flexible(
-          child: Text(
-            value,
-            textAlign: TextAlign.end,
-            style: TextStyle(
-              color: emphasize ? scheduleOrange : scheduleText,
-              fontWeight: FontWeight.w700,
-              fontSize: emphasize ? 15 : 13,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
