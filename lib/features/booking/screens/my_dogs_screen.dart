@@ -7,8 +7,84 @@ const Color dogsBackground = Color(0xFFFFFAF5);
 const Color dogsText = Color(0xFF202020);
 const Color dogsMuted = Color(0xFF777777);
 
+const List<String> dogBreeds = [
+  'Labrador Retriever',
+  'Golden Retriever',
+  'German Shepherd',
+  'Beagle',
+  'Pug',
+  'Poodle',
+  'Rottweiler',
+  'Shih Tzu',
+  'Dachshund',
+  'Doberman',
+  'Boxer',
+  'Siberian Husky',
+  'Indian Pariah / Indie',
+  'Mixed Breed',
+  'Other',
+];
+
+const List<String> dogAges = [
+  'Under 1 year',
+  '1 year',
+  '2 years',
+  '3 years',
+  '4 years',
+  '5 years',
+  '6 years',
+  '7 years',
+  '8 years',
+  '9 years',
+  '10 years',
+  '11 years',
+  '12 years',
+  '13 years',
+  '14 years',
+  '15+ years',
+];
+
+const List<String> dogSizes = [
+  'Small',
+  'Medium',
+  'Large',
+  'Extra Large',
+];
+
+const List<String> dogGenders = [
+  'Male',
+  'Female',
+];
+
+const List<String> dogBehaviours = [
+  'Friendly',
+  'Calm',
+  'Active / Energetic',
+  'Shy / Nervous',
+  'Pulls on leash',
+  'Reactive toward dogs',
+  'Barks frequently',
+  'Needs experienced walker',
+];
+
+const List<String> dogCareOptions = [
+  'Senior dog',
+  'Puppy',
+  'Injury / Recovery',
+  'Medication needed',
+  'Feeding instructions',
+  'Extra supervision',
+];
+
 class MyDogsScreen extends StatelessWidget {
   const MyDogsScreen({super.key});
+
+  CollectionReference<Map<String, dynamic>> _pets(String uid) {
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('pets');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,23 +95,248 @@ class MyDogsScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: dogsBackground,
         elevation: 0,
+        iconTheme: const IconThemeData(color: dogsText),
         title: const Text(
           'My Dogs',
           style: TextStyle(
             color: dogsText,
-            fontWeight: FontWeight.w900,
             fontSize: 23,
+            fontWeight: FontWeight.w900,
           ),
         ),
-        iconTheme: const IconThemeData(color: dogsText),
       ),
       body: user == null
-          ? _buildLoginMessage()
-          : _buildDogsList(user.uid),
+          ? _emptyState(
+              icon: Icons.lock_outline_rounded,
+              title: 'Login Required',
+              subtitle: 'Please log in to manage your dogs.',
+            )
+          : StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: _pets(user.uid)
+                  .orderBy('createdAt', descending: true)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return _emptyState(
+                    icon: Icons.cloud_off_rounded,
+                    title: 'Unable to load dogs',
+                    subtitle:
+                        'Please check your connection and Firestore permissions.',
+                  );
+                }
+
+                if (snapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      color: dogsOrange,
+                    ),
+                  );
+                }
+
+                final docs = snapshot.data?.docs ?? [];
+
+                if (docs.isEmpty) {
+                  return _emptyState(
+                    icon: Icons.pets_rounded,
+                    title: 'No Dogs Added Yet',
+                    subtitle:
+                        'Add your dog once and select it for future bookings.',
+                  );
+                }
+
+                return ListView(
+                  padding: const EdgeInsets.fromLTRB(18, 18, 18, 110),
+                  children: [
+                    Text(
+                      '${docs.length} ${docs.length == 1 ? 'Dog' : 'Dogs'}',
+                      style: const TextStyle(
+                        color: dogsMuted,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    ...docs.map((doc) {
+                      final data = doc.data();
+                      final name =
+                          (data['name'] ?? 'My Dog').toString();
+                      final breed =
+                          (data['breed'] ?? 'Breed not added').toString();
+                      final age = (data['age'] ?? '').toString();
+                      final size = (data['size'] ?? '').toString();
+                      final gender =
+                          (data['gender'] ?? '').toString();
+                      final behaviour = _stringList(data['behaviour']);
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 14),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: const Color(0xFFEEEEEE),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  width: 58,
+                                  height: 58,
+                                  decoration: BoxDecoration(
+                                    color: dogsOrange.withValues(
+                                      alpha: 0.12,
+                                    ),
+                                    borderRadius:
+                                        BorderRadius.circular(16),
+                                  ),
+                                  child: const Icon(
+                                    Icons.pets_rounded,
+                                    color: dogsOrange,
+                                    size: 31,
+                                  ),
+                                ),
+                                const SizedBox(width: 13),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        name,
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w900,
+                                          color: dogsText,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        breed,
+                                        style: const TextStyle(
+                                          color: dogsMuted,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        [
+                                          if (age.isNotEmpty) age,
+                                          if (size.isNotEmpty) size,
+                                          if (gender.isNotEmpty) gender,
+                                        ].join(' • '),
+                                        style: const TextStyle(
+                                          color: dogsMuted,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                PopupMenuButton<String>(
+                                  onSelected: (action) {
+                                    if (action == 'edit') {
+                                      _openDogForm(
+                                        context,
+                                        user.uid,
+                                        _pets(user.uid),
+                                        dogId: doc.id,
+                                        existingData: data,
+                                      );
+                                    } else if (action == 'delete') {
+                                      _deleteDog(
+                                        context,
+                                        _pets(user.uid),
+                                        doc.id,
+                                        name,
+                                      );
+                                    }
+                                  },
+                                  itemBuilder: (_) => const [
+                                    PopupMenuItem(
+                                      value: 'edit',
+                                      child: Text('Edit Details'),
+                                    ),
+                                    PopupMenuItem(
+                                      value: 'delete',
+                                      child: Text('Delete Dog'),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            if (behaviour.isNotEmpty) ...[
+                              const SizedBox(height: 14),
+                              const Text(
+                                'Behaviour',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  color: dogsText,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 7,
+                                runSpacing: 7,
+                                children: behaviour
+                                    .map(
+                                      (item) => _tag(item),
+                                    )
+                                    .toList(),
+                              ),
+                            ],
+                            if (_stringList(data['specialCare'])
+                                .isNotEmpty) ...[
+                              const SizedBox(height: 12),
+                              const Text(
+                                'Special Care',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  color: dogsText,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 7,
+                                runSpacing: 7,
+                                children: _stringList(data['specialCare'])
+                                    .map((item) => _tag(item))
+                                    .toList(),
+                              ),
+                            ],
+                            if ((data['notes'] ?? '')
+                                .toString()
+                                .trim()
+                                .isNotEmpty) ...[
+                              const SizedBox(height: 12),
+                              Text(
+                                'Previous notes: ${data['notes']}',
+                                style: const TextStyle(
+                                  color: dogsMuted,
+                                  fontSize: 12,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      );
+                    }),
+                  ],
+                );
+              },
+            ),
       floatingActionButton: user == null
           ? null
           : FloatingActionButton.extended(
-              onPressed: () => _openDogForm(context),
+              onPressed: () => _openDogForm(
+                context,
+                user.uid,
+                _pets(user.uid),
+              ),
               backgroundColor: dogsOrange,
               foregroundColor: Colors.white,
               icon: const Icon(Icons.add_rounded),
@@ -47,232 +348,36 @@ class MyDogsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLoginMessage() {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(28),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.lock_outline_rounded,
-              size: 58,
-              color: dogsOrange,
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Login Required',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w900,
-                color: dogsText,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Please log in to manage your dogs.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: dogsMuted,
-                fontSize: 14,
-              ),
-            ),
-          ],
+  static List<String> _stringList(dynamic value) {
+    if (value is List) {
+      return value
+          .map((item) => item.toString())
+          .where((item) => item.trim().isNotEmpty)
+          .toSet()
+          .toList();
+    }
+    return [];
+  }
+
+  static Widget _tag(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: dogsOrange.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: dogsText,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
   }
 
-  CollectionReference<Map<String, dynamic>> _pets(String uid) {
-    return FirebaseFirestore.instance
-        .collection('users')
-        .doc(uid)
-        .collection('pets');
-  }
-
-  Widget _buildDogsList(String uid) {
-    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: _pets(uid).orderBy('createdAt', descending: true).snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return _message(
-            icon: Icons.cloud_off_rounded,
-            title: 'Unable to load dogs',
-            subtitle:
-                'Please check your internet connection and Firestore permissions.',
-          );
-        }
-
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(color: dogsOrange),
-          );
-        }
-
-        final documents = snapshot.data?.docs ?? [];
-
-        if (documents.isEmpty) {
-          return _message(
-            icon: Icons.pets_rounded,
-            title: 'No Dogs Added Yet',
-            subtitle:
-                'Add your dog’s details to make future bookings easier.',
-          );
-        }
-
-        return ListView(
-          padding: const EdgeInsets.fromLTRB(18, 18, 18, 100),
-          children: [
-            Text(
-              '${documents.length} ${documents.length == 1 ? 'Dog' : 'Dogs'}',
-              style: const TextStyle(
-                fontSize: 14,
-                color: dogsMuted,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 14),
-            ...documents.map((document) {
-              final data = document.data();
-
-              return _dogCard(
-                context: context,
-                uid: uid,
-                dogId: document.id,
-                data: data,
-              );
-            }),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _dogCard({
-    required BuildContext context,
-    required String uid,
-    required String dogId,
-    required Map<String, dynamic> data,
-  }) {
-    final name = (data['name'] ?? 'My Dog').toString();
-    final breed = (data['breed'] ?? '').toString();
-    final age = (data['age'] ?? '').toString();
-    final size = (data['size'] ?? '').toString();
-    final gender = (data['gender'] ?? '').toString();
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFEEEEEE)),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                height: 62,
-                width: 62,
-                decoration: BoxDecoration(
-                  color: dogsOrange.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(17),
-                ),
-                child: const Icon(
-                  Icons.pets_rounded,
-                  size: 32,
-                  color: dogsOrange,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                        color: dogsText,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      breed.isEmpty ? 'Breed not added' : breed,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: dogsMuted,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      [
-                        if (age.isNotEmpty) '$age years',
-                        if (size.isNotEmpty) size,
-                        if (gender.isNotEmpty &&
-                            gender != 'Not specified')
-                          gender,
-                      ].join(' • '),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: dogsMuted,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              PopupMenuButton<String>(
-                onSelected: (value) {
-                  if (value == 'edit') {
-                    _openDogForm(
-                      context,
-                      dogId: dogId,
-                      existingData: data,
-                    );
-                  } else if (value == 'delete') {
-                    _confirmDelete(context, uid, dogId, name);
-                  }
-                },
-                itemBuilder: (_) => const [
-                  PopupMenuItem(
-                    value: 'edit',
-                    child: Text('Edit Dog'),
-                  ),
-                  PopupMenuItem(
-                    value: 'delete',
-                    child: Text('Delete Dog'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          if ((data['notes'] ?? '').toString().trim().isNotEmpty) ...[
-            const SizedBox(height: 14),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: dogsBackground,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                data['notes'].toString(),
-                style: const TextStyle(
-                  color: dogsMuted,
-                  fontSize: 12,
-                  height: 1.5,
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _message({
+  Widget _emptyState({
     required IconData icon,
     required String title,
     required String subtitle,
@@ -283,32 +388,23 @@ class MyDogsScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              height: 105,
-              width: 105,
-              decoration: BoxDecoration(
-                color: dogsOrange.withValues(alpha: 0.10),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, size: 48, color: dogsOrange),
-            ),
-            const SizedBox(height: 22),
+            Icon(icon, size: 58, color: dogsOrange),
+            const SizedBox(height: 16),
             Text(
               title,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                color: dogsText,
                 fontSize: 21,
                 fontWeight: FontWeight.w900,
+                color: dogsText,
               ),
             ),
-            const SizedBox(height: 9),
+            const SizedBox(height: 8),
             Text(
               subtitle,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: dogsMuted,
-                fontSize: 14,
                 height: 1.5,
               ),
             ),
@@ -319,291 +415,411 @@ class MyDogsScreen extends StatelessWidget {
   }
 
   Future<void> _openDogForm(
-    BuildContext context, {
+    BuildContext pageContext,
+    String uid,
+    CollectionReference<Map<String, dynamic>> collection, {
     String? dogId,
     Map<String, dynamic>? existingData,
   }) async {
-    final user = FirebaseAuth.instance.currentUser;
-
-    if (user == null) return;
-
     final formKey = GlobalKey<FormState>();
     final nameController = TextEditingController(
       text: (existingData?['name'] ?? '').toString(),
     );
-    final breedController = TextEditingController(
-      text: (existingData?['breed'] ?? '').toString(),
-    );
-    final ageController = TextEditingController(
-      text: (existingData?['age'] ?? '').toString(),
-    );
-    final notesController = TextEditingController(
-      text: (existingData?['notes'] ?? '').toString(),
-    );
 
+    String breed = (existingData?['breed'] ?? '').toString();
+    String age = _normalizeAge(existingData?['age']);
     String size = (existingData?['size'] ?? 'Medium').toString();
-    String gender =
-        (existingData?['gender'] ?? 'Not specified').toString();
+    String gender = (existingData?['gender'] ?? 'Male').toString();
 
-    if (!['Small', 'Medium', 'Large', 'Extra Large'].contains(size)) {
-      size = 'Medium';
-    }
+    final selectedBehaviour =
+        _stringList(existingData?['behaviour']);
+    final selectedCare = _stringList(existingData?['specialCare']);
 
-    if (!['Not specified', 'Male', 'Female'].contains(gender)) {
-      gender = 'Not specified';
+    // Keep an existing breed available even if it is not in our list.
+    final breeds = [...dogBreeds];
+    if (breed.isNotEmpty && !breeds.contains(breed)) {
+      breeds.insert(0, breed);
     }
+    if (!breeds.contains(breed)) breed = '';
+
+    if (!dogAges.contains(age)) age = '';
+    if (!dogSizes.contains(size)) size = 'Medium';
+    if (!dogGenders.contains(gender)) gender = 'Male';
 
     bool saving = false;
 
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: dogsBackground,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
-      ),
-      builder: (sheetContext) {
-        return StatefulBuilder(
-          builder: (context, setSheetState) {
-            Future<void> saveDog() async {
-              if (saving) return;
+    try {
+      await showModalBottomSheet<void>(
+        context: pageContext,
+        isScrollControlled: true,
+        backgroundColor: dogsBackground,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(26),
+          ),
+        ),
+        builder: (sheetContext) {
+          return StatefulBuilder(
+            builder: (sheetContext, setSheetState) {
+              Future<void> saveDog() async {
+                if (saving) return;
+                if (!formKey.currentState!.validate()) return;
 
-              if (!formKey.currentState!.validate()) return;
+                setSheetState(() => saving = true);
 
-              setSheetState(() => saving = true);
+                final data = <String, dynamic>{
+                  'name': nameController.text.trim(),
+                  'breed': breed,
+                  'age': age,
+                  'size': size,
+                  'gender': gender,
+                  'behaviour': List<String>.from(selectedBehaviour),
+                  'specialCare': List<String>.from(selectedCare),
+                  // Keep the legacy field for compatibility with
+                  // older records and other screens.
+                  'notes': (existingData?['notes'] ?? '').toString(),
+                  'updatedAt': FieldValue.serverTimestamp(),
+                };
 
-              final data = <String, dynamic>{
-                'name': nameController.text.trim(),
-                'breed': breedController.text.trim(),
-                'age': ageController.text.trim(),
-                'size': size,
-                'gender': gender,
-                'notes': notesController.text.trim(),
-                'updatedAt': FieldValue.serverTimestamp(),
-              };
+                try {
+                  if (dogId == null) {
+                    data['createdAt'] = FieldValue.serverTimestamp();
+                    await collection.add(data);
+                  } else {
+                    await collection.doc(dogId).update(data);
+                  }
 
-              try {
-                final collection = _pets(user.uid);
+                  if (!pageContext.mounted) return;
 
-                if (dogId == null) {
-                  data['createdAt'] = FieldValue.serverTimestamp();
-                  await collection.add(data);
-                } else {
-                  await collection.doc(dogId).update(data);
-                }
+                  Navigator.of(sheetContext).pop();
 
-                if (!context.mounted) return;
-
-                Navigator.pop(sheetContext);
-
-                ScaffoldMessenger.of(sheetContext).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      dogId == null
-                          ? 'Dog added successfully.'
-                          : 'Dog details updated.',
+                  ScaffoldMessenger.of(pageContext).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        dogId == null
+                            ? 'Dog added successfully.'
+                            : 'Dog details updated.',
+                      ),
+                      backgroundColor: dogsOrange,
                     ),
-                    backgroundColor: dogsOrange,
-                  ),
-                );
-              } catch (error) {
-                setSheetState(() => saving = false);
+                  );
+                } catch (error) {
+                  setSheetState(() => saving = false);
 
-                ScaffoldMessenger.of(sheetContext).showSnackBar(
-                  SnackBar(
-                    content: Text('Could not save dog: $error'),
-                  ),
-                );
+                  ScaffoldMessenger.of(pageContext).showSnackBar(
+                    SnackBar(
+                      content: Text('Could not save dog: $error'),
+                    ),
+                  );
+                }
               }
-            }
 
-            return Padding(
-              padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 22,
-                bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 24,
-              ),
-              child: Form(
-                key: formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        dogId == null ? 'Add Your Dog' : 'Edit Dog',
-                        style: const TextStyle(
-                          fontSize: 23,
-                          fontWeight: FontWeight.w900,
-                          color: dogsText,
+              return Padding(
+                padding: EdgeInsets.only(
+                  left: 20,
+                  right: 20,
+                  top: 22,
+                  bottom:
+                      MediaQuery.of(sheetContext).viewInsets.bottom + 24,
+                ),
+                child: Form(
+                  key: formKey,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          dogId == null ? 'Add Your Dog' : 'Edit Dog Details',
+                          style: const TextStyle(
+                            fontSize: 23,
+                            fontWeight: FontWeight.w900,
+                            color: dogsText,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      _fieldLabel('Dog Name *'),
-                      TextFormField(
-                        controller: nameController,
-                        textCapitalization: TextCapitalization.words,
-                        decoration: _inputDecoration('e.g. Bruno'),
-                        validator: (value) {
-                          final name = value?.trim() ?? '';
-
-                          if (name.isEmpty) {
-                            return 'Please enter your dog’s name';
-                          }
-
-                          if (name.length > 50) {
-                            return 'Name must be under 50 characters';
-                          }
-
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 15),
-                      _fieldLabel('Breed'),
-                      TextFormField(
-                        controller: breedController,
-                        textCapitalization: TextCapitalization.words,
-                        decoration: _inputDecoration('e.g. Labrador or Indie'),
-                      ),
-                      const SizedBox(height: 15),
-                      _fieldLabel('Age in years'),
-                      TextFormField(
-                        controller: ageController,
-                        keyboardType: TextInputType.number,
-                        decoration: _inputDecoration('e.g. 2'),
-                        validator: (value) {
-                          final text = value?.trim() ?? '';
-
-                          if (text.isEmpty) return null;
-
-                          final age = int.tryParse(text);
-
-                          if (age == null || age < 0 || age > 40) {
-                            return 'Enter a whole number from 0 to 40';
-                          }
-
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 15),
-                      _fieldLabel('Dog Size'),
-                      DropdownButtonFormField<String>(
-                        initialValue: size,
-                        isExpanded: true,
-                        decoration: _inputDecoration('Select size'),
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'Small',
-                            child: Text('Small'),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Select your dog’s details so the walker knows how to care for them.',
+                          style: TextStyle(
+                            color: dogsMuted,
+                            height: 1.4,
                           ),
-                          DropdownMenuItem(
-                            value: 'Medium',
-                            child: Text('Medium'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Large',
-                            child: Text('Large'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Extra Large',
-                            child: Text('Extra Large'),
-                          ),
-                        ],
-                        onChanged: (value) {
-                          if (value != null) {
-                            setSheetState(() => size = value);
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 15),
-                      _fieldLabel('Gender'),
-                      DropdownButtonFormField<String>(
-                        initialValue: gender,
-                        isExpanded: true,
-                        decoration: _inputDecoration('Select gender'),
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'Not specified',
-                            child: Text('Prefer not to specify'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Male',
-                            child: Text('Male'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Female',
-                            child: Text('Female'),
-                          ),
-                        ],
-                        onChanged: (value) {
-                          if (value != null) {
-                            setSheetState(() => gender = value);
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 15),
-                      _fieldLabel('Special Instructions'),
-                      TextFormField(
-                        controller: notesController,
-                        maxLines: 3,
-                        maxLength: 300,
-                        decoration: _inputDecoration(
-                          'Behaviour, leash needs or care instructions',
                         ),
-                      ),
-                      const SizedBox(height: 18),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: ElevatedButton(
-                          onPressed: saving ? null : saveDog,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: dogsOrange,
-                            foregroundColor: Colors.white,
-                            disabledBackgroundColor:
-                                dogsOrange.withValues(alpha: 0.5),
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
+                        const SizedBox(height: 22),
+
+                        _label('Dog Name *'),
+                        TextFormField(
+                          controller: nameController,
+                          textCapitalization: TextCapitalization.words,
+                          maxLength: 50,
+                          decoration: _decoration('e.g. Bruno'),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Please enter your dog’s name';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 14),
+
+                        _label('Breed *'),
+                        DropdownButtonFormField<String>(
+                          initialValue: breed.isEmpty ? null : breed,
+                          isExpanded: true,
+                          decoration: _decoration('Select breed'),
+                          items: breeds
+                              .map(
+                                (item) => DropdownMenuItem(
+                                  value: item,
+                                  child: Text(item),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            if (value != null) {
+                              setSheetState(() => breed = value);
+                            }
+                          },
+                          validator: (value) => value == null ||
+                                  value.isEmpty
+                              ? 'Please select a breed'
+                              : null,
+                        ),
+                        const SizedBox(height: 14),
+
+                        _label('Age *'),
+                        DropdownButtonFormField<String>(
+                          initialValue: age.isEmpty ? null : age,
+                          isExpanded: true,
+                          decoration: _decoration('Select age'),
+                          items: dogAges
+                              .map(
+                                (item) => DropdownMenuItem(
+                                  value: item,
+                                  child: Text(item),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            if (value != null) {
+                              setSheetState(() => age = value);
+                            }
+                          },
+                          validator: (value) => value == null ||
+                                  value.isEmpty
+                              ? 'Please select age'
+                              : null,
+                        ),
+                        const SizedBox(height: 14),
+
+                        _label('Size *'),
+                        DropdownButtonFormField<String>(
+                          initialValue: size,
+                          isExpanded: true,
+                          decoration: _decoration('Select size'),
+                          items: dogSizes
+                              .map(
+                                (item) => DropdownMenuItem(
+                                  value: item,
+                                  child: Text(item),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            if (value != null) {
+                              setSheetState(() => size = value);
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 14),
+
+                        _label('Gender *'),
+                        DropdownButtonFormField<String>(
+                          initialValue: gender,
+                          isExpanded: true,
+                          decoration: _decoration('Select gender'),
+                          items: dogGenders
+                              .map(
+                                (item) => DropdownMenuItem(
+                                  value: item,
+                                  child: Text(item),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            if (value != null) {
+                              setSheetState(() => gender = value);
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 22),
+
+                        _label('Behaviour *'),
+                        const Text(
+                          'Select all that apply.',
+                          style: TextStyle(
+                            color: dogsMuted,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        ...dogBehaviours.map(
+                          (item) => CheckboxListTile(
+                            contentPadding: EdgeInsets.zero,
+                            dense: true,
+                            activeColor: dogsOrange,
+                            controlAffinity:
+                                ListTileControlAffinity.leading,
+                            title: Text(
+                              item,
+                              style: const TextStyle(
+                                color: dogsText,
+                                fontSize: 14,
+                              ),
+                            ),
+                            value: selectedBehaviour.contains(item),
+                            onChanged: (checked) {
+                              setSheetState(() {
+                                if (checked == true) {
+                                  selectedBehaviour.add(item);
+                                } else {
+                                  selectedBehaviour.remove(item);
+                                }
+                              });
+                            },
+                          ),
+                        ),
+                        if (selectedBehaviour.isEmpty)
+                          const Padding(
+                            padding: EdgeInsets.only(bottom: 8),
+                            child: Text(
+                              'Select at least one behaviour.',
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontSize: 12,
+                              ),
                             ),
                           ),
-                          child: saving
-                              ? const SizedBox(
-                                  height: 22,
-                                  width: 22,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : Text(
-                                  dogId == null ? 'Save Dog' : 'Update Dog',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
+                        const SizedBox(height: 14),
+
+                        _label('Special Care (Optional)'),
+                        const Text(
+                          'Select any care requirements.',
+                          style: TextStyle(
+                            color: dogsMuted,
+                            fontSize: 12,
+                          ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        ...dogCareOptions.map(
+                          (item) => CheckboxListTile(
+                            contentPadding: EdgeInsets.zero,
+                            dense: true,
+                            activeColor: dogsOrange,
+                            controlAffinity:
+                                ListTileControlAffinity.leading,
+                            title: Text(
+                              item,
+                              style: const TextStyle(
+                                color: dogsText,
+                                fontSize: 14,
+                              ),
+                            ),
+                            value: selectedCare.contains(item),
+                            onChanged: (checked) {
+                              setSheetState(() {
+                                if (checked == true) {
+                                  selectedCare.add(item);
+                                } else {
+                                  selectedCare.remove(item);
+                                }
+                              });
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+
+                        SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: ElevatedButton(
+                            onPressed: saving
+                                ? null
+                                : () {
+                                    if (selectedBehaviour.isEmpty) {
+                                      ScaffoldMessenger.of(pageContext)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Please select at least one behaviour.',
+                                          ),
+                                        ),
+                                      );
+                                      return;
+                                    }
+                                    saveDog();
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: dogsOrange,
+                              foregroundColor: Colors.white,
+                              disabledBackgroundColor:
+                                  dogsOrange.withValues(alpha: 0.5),
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            child: saving
+                                ? const SizedBox(
+                                    height: 22,
+                                    width: 22,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Text(
+                                    dogId == null
+                                        ? 'Save Dog'
+                                        : 'Update Dog',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
-        );
-      },
-    );
-
-    nameController.dispose();
-    breedController.dispose();
-    ageController.dispose();
-    notesController.dispose();
+              );
+            },
+          );
+        },
+      );
+    } finally {
+      nameController.dispose();
+    }
   }
 
-  Future<void> _confirmDelete(
+  String _normalizeAge(dynamic raw) {
+    if (raw == null) return '';
+    final value = raw.toString().trim();
+
+    if (dogAges.contains(value)) return value;
+
+    final number = int.tryParse(value);
+    if (number == null) return '';
+
+    if (number <= 0) return 'Under 1 year';
+    if (number >= 15) return '15+ years';
+    return '$number ${number == 1 ? 'year' : 'years'}';
+  }
+
+  Future<void> _deleteDog(
     BuildContext context,
-    String uid,
+    CollectionReference<Map<String, dynamic>> collection,
     String dogId,
     String dogName,
   ) async {
@@ -612,7 +828,7 @@ class MyDogsScreen extends StatelessWidget {
       builder: (dialogContext) => AlertDialog(
         title: const Text('Delete Dog?'),
         content: Text(
-          'Are you sure you want to delete $dogName?',
+          'Are you sure you want to delete $dogName from My Dogs?',
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
@@ -636,7 +852,7 @@ class MyDogsScreen extends StatelessWidget {
     if (confirmed != true || !context.mounted) return;
 
     try {
-      await _pets(uid).doc(dogId).delete();
+      await collection.doc(dogId).delete();
 
       if (!context.mounted) return;
 
@@ -655,7 +871,7 @@ class MyDogsScreen extends StatelessWidget {
     }
   }
 
-  Widget _fieldLabel(String text) {
+  static Widget _label(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 7),
       child: Text(
@@ -669,7 +885,7 @@ class MyDogsScreen extends StatelessWidget {
     );
   }
 
-  InputDecoration _inputDecoration(String hint) {
+  static InputDecoration _decoration(String hint) {
     return InputDecoration(
       hintText: hint,
       filled: true,
