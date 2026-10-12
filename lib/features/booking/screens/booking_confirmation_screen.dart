@@ -47,8 +47,29 @@ class _BookingConfirmationScreenState
   bool _hasValue(dynamic value) =>
       value != null && value.toString().trim().isNotEmpty;
 
-  String _ageLabel(dynamic age) =>
-      _hasValue(age) ? '$age years' : 'Not provided';
+  List<String> _stringList(dynamic value) {
+    if (value is List) {
+      return value
+          .map((item) => item.toString().trim())
+          .where((item) => item.isNotEmpty)
+          .toList();
+    }
+    return [];
+  }
+
+  String _ageLabel(dynamic age) {
+    if (!_hasValue(age)) return 'Not provided';
+
+    final value = age.toString().trim();
+
+    // New records already contain labels such as "2 years".
+    // Older records may contain only a number such as "2".
+    if (RegExp(r'^\d+$').hasMatch(value)) {
+      return value == '1' ? '1 year' : '$value years';
+    }
+
+    return value;
+  }
 
   DateTime? get _selectedDate {
     final rawDate = widget.schedule['date'];
@@ -173,20 +194,14 @@ class _BookingConfirmationScreenState
       final bookingData = <String, dynamic>{
         'bookingId': bookingRef.id,
         'customerId': user.uid,
-
-        // Keep the existing booking value for compatibility.
         'walkType': 'scheduled',
-
         'bookingPlan': _isRegular ? 'regular' : 'one_time',
         'serviceType': _isRegular ? 'regular_walk' : 'temporary_walk',
         'serviceName': _walkTypeLabel,
-
         'petName': petName,
-
-        // NEW: link the booking to the saved dog document.
         'dogId': dogId,
 
-        // Keep the snapshot so old booking details remain readable.
+        // Includes breed, age, behaviour, special care and legacy notes.
         'petDetails': Map<String, dynamic>.from(widget.dogDetails),
 
         'pickupAddressId': 'booking_address',
@@ -253,7 +268,10 @@ class _BookingConfirmationScreenState
               const Text(
                 'Walker assign hone tak booking pending rahegi.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: Colors.black54),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.black54,
+                ),
               ),
             ],
           ),
@@ -304,6 +322,9 @@ class _BookingConfirmationScreenState
 
   @override
   Widget build(BuildContext context) {
+    final behaviour = _stringList(widget.dogDetails['behaviour']);
+    final specialCare = _stringList(widget.dogDetails['specialCare']);
+
     return Scaffold(
       backgroundColor: confirmationBackground,
       appBar: AppBar(
@@ -377,9 +398,16 @@ class _BookingConfirmationScreenState
                 _detail('Age', _ageLabel(widget.dogDetails['age'])),
                 _detail('Size', _value(widget.dogDetails['size'])),
                 _detail('Gender', _value(widget.dogDetails['gender'])),
+
+                if (behaviour.isNotEmpty)
+                  _listDetail('Behaviour', behaviour),
+
+                if (specialCare.isNotEmpty)
+                  _listDetail('Special care', specialCare),
+
                 if (_hasValue(widget.dogDetails['notes']))
                   _detail(
-                    'Special notes',
+                    'Older notes',
                     _value(widget.dogDetails['notes']),
                   ),
               ],
@@ -392,8 +420,14 @@ class _BookingConfirmationScreenState
               children: [
                 _detail('Walk type', _walkTypeLabel),
                 _detail('Date', _formattedDate),
-                _detail('Preferred time', _value(widget.schedule['time'])),
-                _detail('Duration', _value(widget.schedule['duration'])),
+                _detail(
+                  'Preferred time',
+                  _value(widget.schedule['time']),
+                ),
+                _detail(
+                  'Duration',
+                  _value(widget.schedule['duration']),
+                ),
                 if (_isRegular) ...[
                   _detail(
                     'Frequency',
@@ -586,6 +620,57 @@ class _BookingConfirmationScreenState
                 color: confirmationText,
                 height: 1.4,
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Widget _listDetail(String label, List<String> values) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 112,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 13,
+                color: Colors.black54,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: values.map((value) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF1E5),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: const Color(0xFFFFD5B0),
+                    ),
+                  ),
+                  child: Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: confirmationText,
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
           ),
         ],
