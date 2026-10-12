@@ -21,7 +21,10 @@ class MyAddressesScreen extends StatelessWidget {
     if (user == null) {
       return Scaffold(
         backgroundColor: addressBackground,
-        appBar: AppBar(title: const Text('Saved Addresses')),
+        appBar: AppBar(
+          backgroundColor: addressBackground,
+          title: const Text('Saved Addresses'),
+        ),
         body: const Center(
           child: Padding(
             padding: EdgeInsets.all(24),
@@ -53,15 +56,25 @@ class MyAddressesScreen extends StatelessWidget {
         stream: service.watchAddresses(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return _message(
-              'Could not load addresses.\nPlease check your connection and try again.',
+            return _centerMessage(
+              'Could not load addresses.\n'
+              'Please check your connection and try again.',
+              retry: () {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const MyAddressesScreen(),
+                  ),
+                );
+              },
             );
           }
 
           if (snapshot.connectionState == ConnectionState.waiting &&
               !snapshot.hasData) {
             return const Center(
-              child: CircularProgressIndicator(color: addressOrange),
+              child: CircularProgressIndicator(
+                color: addressOrange,
+              ),
             );
           }
 
@@ -79,11 +92,15 @@ class MyAddressesScreen extends StatelessWidget {
                 child: const Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.location_on_rounded, color: addressOrange),
+                    Icon(
+                      Icons.location_on_rounded,
+                      color: addressOrange,
+                    ),
                     SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Save your pickup locations for faster dog-walk bookings.',
+                        'Save your pickup locations for faster '
+                        'dog-walk bookings.',
                         style: TextStyle(
                           color: addressText,
                           height: 1.45,
@@ -246,7 +263,7 @@ class MyAddressesScreen extends StatelessWidget {
           ),
           const SizedBox(height: 13),
           Text(
-            details,
+            details.isEmpty ? 'Address details not available' : details,
             style: const TextStyle(
               color: addressText,
               fontSize: 13,
@@ -271,29 +288,35 @@ class MyAddressesScreen extends StatelessWidget {
             children: [
               if (!address.isDefault)
                 TextButton.icon(
-                  onPressed: () async {
-                    try {
-                      await service.setDefaultAddress(address.id);
-                    } catch (_) {
-                      if (context.mounted) {
-                        _showMessage(context, 'Could not update default address.');
-                      }
-                    }
-                  },
-                  icon: const Icon(Icons.check_circle_outline, size: 18),
+                  onPressed: () => _setDefault(
+                    context,
+                    service,
+                    address,
+                  ),
+                  icon: const Icon(
+                    Icons.check_circle_outline,
+                    size: 18,
+                  ),
                   label: const Text('Set Default'),
                 ),
               TextButton.icon(
-                onPressed: () => _openForm(context, address: address),
+                onPressed: () => _openForm(
+                  context,
+                  address: address,
+                ),
                 icon: const Icon(Icons.edit_outlined, size: 18),
                 label: const Text('Edit'),
               ),
               TextButton.icon(
-                onPressed: () => _confirmDelete(context, service, address),
+                onPressed: () => _confirmDelete(
+                  context,
+                  service,
+                  address,
+                ),
                 icon: const Icon(Icons.delete_outline, size: 18),
                 label: const Text('Delete'),
                 style: TextButton.styleFrom(
-                  foregroundColor: Colors.red.shade700,
+                  foregroundColor: Colors.red,
                 ),
               ),
             ],
@@ -307,11 +330,50 @@ class MyAddressesScreen extends StatelessWidget {
     BuildContext context, {
     SavedAddress? address,
   }) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => AddressFormScreen(address: address),
-      ),
-    );
+    try {
+      final result = await Navigator.of(context).push<String>(
+        MaterialPageRoute<String>(
+          builder: (_) => AddressFormScreen(address: address),
+        ),
+      );
+
+      if (!context.mounted || result == null) return;
+
+      _showMessage(
+        context,
+        address == null
+            ? 'Address saved successfully.'
+            : 'Address updated successfully.',
+      );
+    } catch (error) {
+      if (context.mounted) {
+        _showMessage(
+          context,
+          'Could not save address. Please try again.',
+        );
+      }
+    }
+  }
+
+  Future<void> _setDefault(
+    BuildContext context,
+    AddressService service,
+    SavedAddress address,
+  ) async {
+    try {
+      await service.setDefaultAddress(address.id);
+
+      if (context.mounted) {
+        _showMessage(context, '${address.label} set as default.');
+      }
+    } catch (error) {
+      if (context.mounted) {
+        _showMessage(
+          context,
+          'Could not update default address. Please try again.',
+        );
+      }
+    }
   }
 
   Future<void> _confirmDelete(
@@ -348,37 +410,59 @@ class MyAddressesScreen extends StatelessWidget {
 
     try {
       await service.deleteAddress(address.id);
+
       if (context.mounted) {
         _showMessage(context, 'Address deleted.');
       }
-    } catch (_) {
+    } catch (error) {
       if (context.mounted) {
-        _showMessage(context, 'Could not delete address. Please try again.');
+        _showMessage(
+          context,
+          'Could not delete address. Please try again.',
+        );
       }
     }
   }
+}
 
-  Widget _message(String message) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Text(
-          message,
-          textAlign: TextAlign.center,
-          style: const TextStyle(color: addressMuted, height: 1.5),
-        ),
+Widget _centerMessage(
+  String message, {
+  VoidCallback? retry,
+}) {
+  return Center(
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: addressMuted,
+              height: 1.5,
+            ),
+          ),
+          if (retry != null) ...[
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: retry,
+              child: const Text('Retry'),
+            ),
+          ],
+        ],
+      ),
+    ),
+  );
+}
+
+void _showMessage(BuildContext context, String message) {
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
       ),
     );
-  }
-
-  void _showMessage(BuildContext context, String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-  }
 }
