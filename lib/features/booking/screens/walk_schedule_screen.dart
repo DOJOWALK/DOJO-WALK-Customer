@@ -35,9 +35,8 @@ class WalkScheduleScreen extends StatefulWidget {
 
 class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
   int _walkCount = 1;
-  DateTime _selectedDate = DateTime.now().add(
-    const Duration(days: 1),
-  );
+
+  DateTime _selectedDate = DateUtils.dateOnly(DateTime.now());
 
   final List<_WalkSlot> _slots = [
     _WalkSlot(time: const TimeOfDay(hour: 7, minute: 0)),
@@ -51,22 +50,20 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
   bool get _isChooseDates =>
       widget.walkType == WalkBookingType.chooseDates;
 
-  String get _screenHeading {
-    if (_isRegular) return "Build your dog's daily routine";
-    if (_isChooseDates) return 'Choose your walk date and time';
-    return 'Plan your one-time walk';
-  }
-
   String get _planTitle {
     if (_isRegular) return 'Daily Walk Plan';
-    if (_isChooseDates) return 'Selected Date Walk';
+    if (_isChooseDates) return 'Choose-Date Walk';
     return 'One-Time Walk';
   }
 
   String get _planSubtitle {
-    if (_isRegular) return 'Repeats every day · Fixed routine';
-    if (_isChooseDates) return 'For your selected date';
-    return 'A single booking · No daily repeat';
+    if (_isRegular) {
+      return 'Repeats daily, including Sunday';
+    }
+    if (_isChooseDates) {
+      return 'Walks on your selected date';
+    }
+    return 'A one-time walk request';
   }
 
   String _formatTime(TimeOfDay time) {
@@ -74,7 +71,13 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
     final minute = time.minute.toString().padLeft(2, '0');
     final period = time.period == DayPeriod.am ? 'AM' : 'PM';
 
-    return '${hour.toString().padLeft(2, '0')}:$minute $period';
+    return '$hour:$minute $period';
+  }
+
+  String _formatDate(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    return '$day/$month/${date.year}';
   }
 
   String _timeLabel(TimeOfDay time) {
@@ -84,12 +87,6 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
     if (hour >= 12 && hour < 16) return 'Afternoon';
     if (hour >= 16 && hour < 20) return 'Evening';
     return 'Night';
-  }
-
-  String _formatDate(DateTime date) {
-    final day = date.day.toString().padLeft(2, '0');
-    final month = date.month.toString().padLeft(2, '0');
-    return '$day/$month/${date.year}';
   }
 
   List<TimeOfDay> _suggestedTimes(int index) {
@@ -121,17 +118,28 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
   bool _sameTime(TimeOfDay a, TimeOfDay b) =>
       a.hour == b.hour && a.minute == b.minute;
 
+  int get _totalMinutes => _slots
+      .take(_walkCount)
+      .fold(0, (total, slot) => total + slot.durationMinutes);
+
+  int? get _dailyPrice => WalkPricingService.dailyEstimate(
+        _slots
+            .take(_walkCount)
+            .map((slot) => slot.durationMinutes)
+            .toList(),
+      );
+
   Future<void> _chooseDate() async {
     final today = DateUtils.dateOnly(DateTime.now());
 
     final selected = await showDatePicker(
       context: context,
-      initialDate: _selectedDate.isBefore(today)
-          ? today
-          : _selectedDate,
+      initialDate: _selectedDate.isBefore(today) ? today : _selectedDate,
       firstDate: today,
       lastDate: today.add(const Duration(days: 365)),
-      helpText: 'Choose walk date',
+      helpText: _isRegular
+          ? 'Choose plan start date'
+          : 'Choose walk date',
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -150,7 +158,7 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
     if (selected == null || !mounted) return;
 
     setState(() {
-      _selectedDate = selected;
+      _selectedDate = DateUtils.dateOnly(selected);
     });
   }
 
@@ -158,7 +166,7 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
     final selected = await showTimePicker(
       context: context,
       initialTime: _slots[index].time,
-      helpText: 'Choose your walk start time',
+      helpText: 'Choose walk start time',
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -239,18 +247,48 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
     });
   }
 
-  int get _totalMinutes => _slots
-      .take(_walkCount)
-      .fold(0, (total, slot) => total + slot.durationMinutes);
+  bool _hasOverlappingWalks() {
+    final slots = _slots.take(_walkCount).toList()
+      ..sort((a, b) {
+        final aMinutes = a.time.hour * 60 + a.time.minute;
+        final bMinutes = b.time.hour * 60 + b.time.minute;
+        return aMinutes.compareTo(bMinutes);
+      });
 
-  int? get _dailyPrice => WalkPricingService.dailyEstimate(
-        _slots
-            .take(_walkCount)
-            .map((slot) => slot.durationMinutes)
-            .toList(),
-      );
+    for (var i = 0; i < slots.length - 1; i++) {
+      final currentStart =
+          slots[i].time.hour * 60 + slots[i].time.minute;
+      final currentEnd = currentStart + slots[i].durationMinutes;
+      final nextStart =
+          slots[i + 1].time.hour * 60 + slots[i + 1].time.minute;
+
+      if (currentEnd > nextStart) return true;
+    }
+
+    return false;
+  }
 
   void _continueToDogDetails() {
+    if (_selectedDate.isBefore(DateUtils.dateOnly(DateTime.now()))) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select today or a future date.'),
+        ),
+      );
+      return;
+    }
+
+    if (_hasOverlappingWalks()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Walk timings overlap. Please change the time or duration.',
+          ),
+        ),
+      );
+      return;
+    }
+
     final selectedSlots = _slots.take(_walkCount).toList();
     final times = selectedSlots
         .map((slot) => _formatTime(slot.time))
@@ -315,15 +353,11 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
       selectedColor: const Color(0xFFFFE8D5),
       backgroundColor: Colors.white,
       side: BorderSide(
-        color: selected
-            ? scheduleOrange
-            : const Color(0xFFE8E1DA),
+        color: selected ? scheduleOrange : const Color(0xFFE8E1DA),
       ),
       labelStyle: TextStyle(
         fontSize: 12,
-        color: selected
-            ? const Color(0xFFC65C00)
-            : scheduleText,
+        color: selected ? const Color(0xFFC65C00) : scheduleText,
       ),
       onSelected: (_) {
         setState(() {
@@ -505,7 +539,11 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
           children: [
             Text(
-              _screenHeading,
+              _isRegular
+                  ? "Build your dog's daily routine"
+                  : _isChooseDates
+                      ? 'Choose your walk date and time'
+                      : 'Plan your one-time walk',
               style: const TextStyle(
                 color: scheduleMuted,
                 fontSize: 14,
@@ -552,20 +590,19 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
                 ],
               ),
             ),
-            if (!_isRegular) ...[
-              const SizedBox(height: 16),
-              OutlinedButton.icon(
-                onPressed: _chooseDate,
-                icon: const Icon(
-                  Icons.calendar_month,
-                  color: scheduleOrange,
-                ),
-                label: Text(
-                  'Walk date: ${_formatDate(_selectedDate)}',
-                  style: const TextStyle(color: scheduleText),
-                ),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: _chooseDate,
+              icon: const Icon(
+                Icons.calendar_month,
+                color: scheduleOrange,
               ),
-            ],
+              label: Text(
+                '${_isRegular ? 'Plan start date' : 'Walk date'}: '
+                '${_formatDate(_selectedDate)}',
+                style: const TextStyle(color: scheduleText),
+              ),
+            ),
             const SizedBox(height: 20),
             _sectionTitle('How many walks per day?'),
             const SizedBox(height: 9),
@@ -596,9 +633,7 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
                               ? scheduleOrange
                               : const Color(0xFFE8E1DA),
                         ),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 12,
-                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       child: Text(
                         '$count ${count == 1 ? 'Walk' : 'Walks'}',
@@ -647,9 +682,9 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    '₹149 is the draft price for a 30-minute walk. '
-                    'Other durations need approved rates. '
-                    'Booking depends on walker availability.',
+                    'Current draft rate: ₹149 per 30-minute walk. '
+                    'Other durations require approved rates. '
+                    'This is a price estimate, not a payment.',
                     style: TextStyle(
                       color: scheduleMuted,
                       fontSize: 11,
@@ -682,7 +717,7 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
             ),
             const SizedBox(height: 10),
             const Text(
-              'Schedule selection does not confirm booking or payment.',
+              'Your booking request is not confirmed at this step.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: scheduleMuted,
