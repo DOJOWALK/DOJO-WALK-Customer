@@ -50,6 +50,13 @@ class _BookingConfirmationScreenState
   String _ageLabel(dynamic age) =>
       _hasValue(age) ? '$age years' : 'Not provided';
 
+  DateTime? get _selectedDate {
+    final rawDate = widget.schedule['date'];
+    if (rawDate is DateTime) return rawDate;
+    if (rawDate == null) return null;
+    return DateTime.tryParse(rawDate.toString());
+  }
+
   String get _formattedDate {
     final date = _selectedDate;
     if (date == null) return 'Not selected';
@@ -62,13 +69,6 @@ class _BookingConfirmationScreenState
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
-  DateTime? get _selectedDate {
-    final rawDate = widget.schedule['date'];
-    if (rawDate is DateTime) return rawDate;
-    if (rawDate == null) return null;
-    return DateTime.tryParse(rawDate.toString());
-  }
-
   DateTime? _scheduledDateTime() {
     final date = _selectedDate;
     final rawTime = widget.schedule['time']?.toString().trim();
@@ -77,7 +77,6 @@ class _BookingConfirmationScreenState
       return null;
     }
 
-    // Supports examples such as "7 AM", "7:00 AM", and "18:00".
     final match = RegExp(
       r'^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?$',
       caseSensitive: false,
@@ -136,10 +135,19 @@ class _BookingConfirmationScreenState
 
     final petName = widget.dogDetails['name']?.toString().trim() ?? '';
     final address = widget.pickupAddress['address']?.toString().trim() ?? '';
+    final dogId = widget.dogDetails['dogId']?.toString().trim() ?? '';
     final scheduledAt = _scheduledDateTime();
 
     if (petName.isEmpty) {
       _showMessage('Please dog ka naam check karein.');
+      return;
+    }
+
+    if (dogId.isEmpty) {
+      _showMessage(
+        'Selected dog ki saved ID nahi mili. '
+        'Dog selection screen par wapas jaakar dog select karein.',
+      );
       return;
     }
 
@@ -166,18 +174,21 @@ class _BookingConfirmationScreenState
         'bookingId': bookingRef.id,
         'customerId': user.uid,
 
-        // Existing Firestore Rules allow "scheduled".
+        // Keep the existing booking value for compatibility.
         'walkType': 'scheduled',
 
-        // Distinguishes the two customer booking plans.
         'bookingPlan': _isRegular ? 'regular' : 'one_time',
         'serviceType': _isRegular ? 'regular_walk' : 'temporary_walk',
-        'serviceName': _isRegular ? 'Regular Walks' : 'One-Time Walk',
+        'serviceName': _walkTypeLabel,
 
         'petName': petName,
+
+        // NEW: link the booking to the saved dog document.
+        'dogId': dogId,
+
+        // Keep the snapshot so old booking details remain readable.
         'petDetails': Map<String, dynamic>.from(widget.dogDetails),
 
-        // Current flow collects the address in this booking flow.
         'pickupAddressId': 'booking_address',
         'pickupAddress':
             Map<String, dynamic>.from(widget.pickupAddress),
@@ -197,7 +208,6 @@ class _BookingConfirmationScreenState
         'createdAt': FieldValue.serverTimestamp(),
       };
 
-      // Only writes to bookings. No direct client write to walk_requests.
       await bookingRef.set(bookingData);
 
       if (!mounted) return;
@@ -274,7 +284,7 @@ class _BookingConfirmationScreenState
           : 'Booking save nahi hui: ${error.message ?? error.code}';
 
       _showMessage(message);
-    } catch (error) {
+    } catch (_) {
       if (!mounted) return;
       _showMessage('Kuch problem hui. Dobara try karein.');
     } finally {
@@ -285,6 +295,8 @@ class _BookingConfirmationScreenState
   }
 
   void _showMessage(String message) {
+    if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
@@ -355,6 +367,7 @@ class _BookingConfirmationScreenState
               ),
             ),
             const SizedBox(height: 20),
+
             _sectionCard(
               title: 'Your Dog',
               icon: Icons.pets_rounded,
@@ -365,10 +378,14 @@ class _BookingConfirmationScreenState
                 _detail('Size', _value(widget.dogDetails['size'])),
                 _detail('Gender', _value(widget.dogDetails['gender'])),
                 if (_hasValue(widget.dogDetails['notes']))
-                  _detail('Special notes', _value(widget.dogDetails['notes'])),
+                  _detail(
+                    'Special notes',
+                    _value(widget.dogDetails['notes']),
+                  ),
               ],
             ),
             const SizedBox(height: 16),
+
             _sectionCard(
               title: 'Walk Details',
               icon: Icons.directions_walk_rounded,
@@ -378,7 +395,10 @@ class _BookingConfirmationScreenState
                 _detail('Preferred time', _value(widget.schedule['time'])),
                 _detail('Duration', _value(widget.schedule['duration'])),
                 if (_isRegular) ...[
-                  _detail('Frequency', _value(widget.schedule['frequency'])),
+                  _detail(
+                    'Frequency',
+                    _value(widget.schedule['frequency']),
+                  ),
                   if (widget.schedule['frequency'] ==
                       'Selected days each week')
                     _detail(
@@ -389,11 +409,15 @@ class _BookingConfirmationScreenState
               ],
             ),
             const SizedBox(height: 16),
+
             _sectionCard(
               title: 'Pickup Location',
               icon: Icons.location_on_rounded,
               children: [
-                _detail('Address type', _value(widget.pickupAddress['label'])),
+                _detail(
+                  'Address type',
+                  _value(widget.pickupAddress['label']),
+                ),
                 _detail(
                   'Full address',
                   _formattedAddress.isEmpty
@@ -403,6 +427,7 @@ class _BookingConfirmationScreenState
               ],
             ),
             const SizedBox(height: 18),
+
             Container(
               padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
@@ -412,8 +437,10 @@ class _BookingConfirmationScreenState
               child: const Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.info_outline_rounded,
-                      color: confirmationOrange),
+                  Icon(
+                    Icons.info_outline_rounded,
+                    color: confirmationOrange,
+                  ),
                   SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -431,6 +458,7 @@ class _BookingConfirmationScreenState
               ),
             ),
             const SizedBox(height: 22),
+
             SizedBox(
               height: 54,
               child: ElevatedButton(
@@ -470,10 +498,13 @@ class _BookingConfirmationScreenState
               ),
             ),
             const SizedBox(height: 10),
+
             SizedBox(
               height: 50,
               child: OutlinedButton(
-                onPressed: _isSubmitting ? null : () => Navigator.pop(context),
+                onPressed: _isSubmitting
+                    ? null
+                    : () => Navigator.pop(context),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: confirmationText,
                   side: const BorderSide(color: Color(0xFFDDDDDD)),
