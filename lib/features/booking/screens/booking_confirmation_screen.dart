@@ -38,6 +38,22 @@ class _BookingConfirmationScreenState
       widget.walkType == WalkBookingType.regular ||
       widget.schedule['isRegular'] == true;
 
+  String get _dogName =>
+      (widget.dogDetails['name'] ??
+              widget.dogDetails['petName'] ??
+              '')
+          .toString()
+          .trim();
+
+  String get _dogId =>
+      (widget.dogDetails['dogId'] ?? '').toString().trim();
+
+  String get _dogBreed =>
+      (widget.dogDetails['breed'] ?? 'Not provided').toString();
+
+  String get _dogGender =>
+      (widget.dogDetails['gender'] ?? 'Not provided').toString();
+
   List<Map<String, dynamic>> get _walks {
     final raw = widget.schedule['walks'];
 
@@ -50,9 +66,8 @@ class _BookingConfirmationScreenState
 
     return [
       {
-        'time': widget.schedule['time'] ?? 'Not selected',
+        'time': widget.schedule['time'] ?? '',
         'duration': widget.schedule['duration'] ?? 30,
-        'price': widget.schedule['price'],
       }
     ];
   }
@@ -66,88 +81,28 @@ class _BookingConfirmationScreenState
   }
 
   int? _price(Map<String, dynamic> walk) {
-    final value = walk['price'];
-    if (value is num) return value.toInt();
+    final configured = walk['price'];
+    if (configured is num) return configured.toInt();
 
-    // Draft rate for a 30-minute walk.
+    // Only the configured 30-minute rate is known.
     if (_duration(walk) == 30) return 149;
-
     return null;
   }
 
-  int get _dailyPrice {
-    final configured = widget.schedule['dailyPrice'];
-    if (configured is num) return configured.toInt();
-
+  int? get _dailyPrice {
     final prices = _walks.map(_price).toList();
-    if (prices.any((price) => price == null)) return 0;
-
+    if (prices.isEmpty || prices.any((price) => price == null)) {
+      return null;
+    }
     return prices.fold<int>(0, (sum, price) => sum + price!);
   }
 
-  String get _dogName =>
-      (widget.dogDetails['name'] ??
-              widget.dogDetails['petName'] ??
-              'Your Dog')
-          .toString();
-
-  String get _dogBreed =>
-      (widget.dogDetails['breed'] ?? 'Not provided').toString();
-
-  String get _dogAge {
-    final value = widget.dogDetails['age'] ??
-        widget.dogDetails['ageYears'] ??
-        widget.dogDetails['dob'];
-    return value?.toString() ?? 'Not provided';
-  }
-
-  String get _dogGender =>
-      (widget.dogDetails['gender'] ?? 'Not provided').toString();
-
-  String _formatDate() {
-    final raw =
-        widget.schedule['selectedDate'] ?? widget.schedule['date'];
-
-    if (raw == null) return 'Not selected';
-
-    DateTime? date;
-    if (raw is Timestamp) {
-      date = raw.toDate();
-    } else {
-      date = DateTime.tryParse(raw.toString());
-    }
-
-    if (date == null) return raw.toString();
-
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
-  }
-
-  String _formatTime(String raw) {
-    final value = raw.trim();
-    final match = RegExp(
-      r'^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?$',
-      caseSensitive: false,
-    ).firstMatch(value);
-
-    if (match == null) return value;
-
-    var hour = int.parse(match.group(1)!);
-    final minute = match.group(2) ?? '00';
-    var period = match.group(3)?.toUpperCase();
-
-    if (period == null) {
-      period = hour >= 12 ? 'PM' : 'AM';
-      hour %= 12;
-      if (hour == 0) hour = 12;
-    }
-
-    return '${hour == 0 ? 12 : hour}:$minute $period';
-  }
+  String get _addressId =>
+      (widget.pickupAddress['addressId'] ??
+              widget.pickupAddress['pickupAddressId'] ??
+              '')
+          .toString()
+          .trim();
 
   String _addressText() {
     final parts = <String>[];
@@ -172,39 +127,77 @@ class _BookingConfirmationScreenState
     return parts.join(', ');
   }
 
-  String _walkTypeName() {
-    if (_isRegular) return 'Regular Daily Walk';
-    if (widget.walkType == WalkBookingType.chooseDates) {
-      return 'Choose Dates Walk';
+  DateTime? _selectedDate() {
+    final raw = widget.schedule['date'] ??
+        widget.schedule['selectedDate'];
+
+    if (raw is Timestamp) return raw.toDate();
+    if (raw is DateTime) return raw;
+
+    if (raw != null) {
+      final value = raw.toString().trim();
+
+      final parsed = DateTime.tryParse(value);
+      if (parsed != null) return parsed;
+
+      // Supports dd/MM/yyyy from the schedule screen.
+      final match =
+          RegExp(r'^(\d{1,2})/(\d{1,2})/(\d{4})$')
+              .firstMatch(value);
+      if (match != null) {
+        return DateTime(
+          int.parse(match.group(3)!),
+          int.parse(match.group(2)!),
+          int.parse(match.group(1)!),
+        );
+      }
     }
-    return 'One-Time Walk';
+
+    return null;
   }
 
-  Map<String, dynamic> _petDetails() {
-    return {
-      ...widget.dogDetails,
-      'dogId': widget.dogDetails['dogId'],
-      'name': _dogName,
-      'breed': _dogBreed,
-      'gender': _dogGender,
-    };
+  String _formatDate() {
+    final date = _selectedDate();
+    if (date == null) return 'Not selected';
+
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+
+    return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
-  List<Map<String, dynamic>> _savedWalks() {
-    return _walks.map((walk) {
-      return {
-        ...walk,
-        'time': walk['time']?.toString() ?? 'Not selected',
-        'duration': _duration(walk),
-        'price': _price(walk),
-      };
-    }).toList();
+  String _formatTime(String raw) {
+    final value = raw.trim();
+    final match = RegExp(
+      r'^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?$',
+      caseSensitive: false,
+    ).firstMatch(value);
+
+    if (match == null) return value.isEmpty ? 'Not selected' : value;
+
+    var hour = int.parse(match.group(1)!);
+    final minute = match.group(2) ?? '00';
+    var period = match.group(3)?.toUpperCase();
+
+    if (period == null) {
+      period = hour >= 12 ? 'PM' : 'AM';
+      hour %= 12;
+      if (hour == 0) hour = 12;
+    }
+
+    if (hour == 0) hour = 12;
+    return '$hour:$minute $period';
   }
 
-  void _message(String text) {
+  String get _planName =>
+      _isRegular ? 'Regular Daily Walk' : 'One-Time Walk';
+
+  void _message(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(text)),
+      SnackBar(content: Text(message)),
     );
   }
 
@@ -217,15 +210,13 @@ class _BookingConfirmationScreenState
       return;
     }
 
-    final dogId = widget.dogDetails['dogId']?.toString() ?? '';
-    if (dogId.isEmpty || _dogName == 'Your Dog') {
-      _message('Please apne dog ki saved details select karein.');
+    if (_dogId.isEmpty || _dogName.isEmpty) {
+      _message('Please apna saved dog select karein.');
       return;
     }
 
-    final address = _addressText();
-    if (address.isEmpty) {
-      _message('Please pickup address select karein.');
+    if (_addressId.isEmpty || _addressText().isEmpty) {
+      _message('Please valid pickup address select karein.');
       return;
     }
 
@@ -234,92 +225,92 @@ class _BookingConfirmationScreenState
       return;
     }
 
+    final date = _selectedDate();
+    if (date == null) {
+      _message('Please walk ki date select karein.');
+      return;
+    }
+
+    for (final walk in _walks) {
+      final time = (walk['time'] ?? '').toString().trim();
+      if (time.isEmpty || _duration(walk) <= 0) {
+        _message('Har walk ka valid time aur duration select karein.');
+        return;
+      }
+    }
+
     setState(() => _isSubmitting = true);
 
     try {
       final firestore = FirebaseFirestore.instance;
-      final bookingRef = firestore.collection('bookings').doc();
-      final requestRef = firestore.collection('walk_requests').doc();
 
-      final now = DateTime.now();
-      final rawDate =
-          widget.schedule['selectedDate'] ?? widget.schedule['date'];
+      // Recheck that the selected dog still exists.
+      final petDoc = await firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('pets')
+          .doc(_dogId)
+          .get();
 
-      DateTime selectedDate = now;
-      if (rawDate is Timestamp) {
-        selectedDate = rawDate.toDate();
-      } else if (rawDate != null) {
-        selectedDate = DateTime.tryParse(rawDate.toString()) ?? now;
+      if (!petDoc.exists) {
+        throw StateError(
+          'Selected dog ab saved list mein nahi hai. Dobara select karein.',
+        );
       }
 
+      final savedDog = petDoc.data() ?? <String, dynamic>{};
+      final dogName = (savedDog['name'] ??
+              savedDog['petName'] ??
+              _dogName)
+          .toString()
+          .trim();
+
+      if (dogName.isEmpty) {
+        throw StateError('Dog ka naam available nahi hai.');
+      }
+
+      final bookingRef = firestore.collection('bookings').doc();
       final firstWalk = _walks.first;
-      final savedWalks = _savedWalks();
+      final selectedDate = DateTime(date.year, date.month, date.day);
 
       final pickup = <String, dynamic>{
         ...widget.pickupAddress,
-        'address': address,
+        'address': _addressText(),
       };
 
-      final totalDuration =
-          _walks.fold<int>(0, (sum, walk) => sum + _duration(walk));
-
+      // Keep only the fields accepted by the current booking rules.
       final bookingData = <String, dynamic>{
         'bookingId': bookingRef.id,
         'customerId': user.uid,
         'walkType': 'scheduled',
         'bookingPlan': _isRegular ? 'regular' : 'one_time',
-        'serviceType':
-            _isRegular ? 'regular_walk' : 'temporary_walk',
-        'serviceName': _walkTypeName(),
-        'petName': _dogName,
-        'dogId': dogId,
-        'petDetails': _petDetails(),
-        'pickupAddressId':
-            widget.pickupAddress['addressId'] ?? '',
+        'serviceType': _isRegular ? 'regular_walk' : 'temporary_walk',
+        'serviceName': _planName,
+        'petName': dogName,
+        'dogId': _dogId,
+        'petDetails': {
+          ...savedDog,
+          'dogId': _dogId,
+          'name': dogName,
+          'breed': savedDog['breed'] ?? _dogBreed,
+          'gender': savedDog['gender'] ?? _dogGender,
+        },
+        'pickupAddressId': _addressId,
         'pickupAddress': pickup,
         'scheduledAt': Timestamp.fromDate(selectedDate),
-        'scheduleDate': Timestamp.fromDate(selectedDate),
-        'duration': _duration(firstWalk),
-        'preferredTime':
-            firstWalk['time']?.toString() ?? 'Not selected',
-        'walks': savedWalks,
-        'walkCount': _walks.length,
-        'totalDurationMinutes': totalDuration,
-        'dailyPrice': _dailyPrice,
-        'weeklyPrice': _isRegular ? _dailyPrice * 7 : _dailyPrice,
-        'monthlyPrice': _isRegular ? _dailyPrice * 30 : _dailyPrice,
-        'frequency': _isRegular
-            ? (widget.schedule['frequency'] ?? 'Daily')
-            : null,
-        'walksPerWeek': _isRegular ? 7 : null,
-        'includesSunday': _isRegular,
-        'walkerId': null,
+        'duration': '${_duration(firstWalk)} minutes',
+        'preferredTime': firstWalk['time'].toString(),
         'status': 'pending',
-        'paymentStatus': 'pending',
-        'paymentId': null,
+        'walkerId': null,
         'cancelRequest': null,
         'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
+        if (_isRegular) 'frequency': 'Daily',
+        if (_isRegular) 'walksPerWeek': 7,
       };
 
-      final requestData = <String, dynamic>{
-        'bookingId': bookingRef.id,
-        'customerId': user.uid,
-        'dogId': dogId,
-        'petName': _dogName,
-        'serviceType':
-            _isRegular ? 'regular_walk' : 'temporary_walk',
-        'pickupAddress': pickup,
-        'walks': savedWalks,
-        'status': 'pending',
-        'walkerId': null,
-        'createdAt': FieldValue.serverTimestamp(),
-      };
-
-      final batch = firestore.batch();
-      batch.set(bookingRef, bookingData);
-      batch.set(requestRef, requestData);
-      await batch.commit();
+      // Do not write to walk_requests from the customer app:
+      // the current Firestore rules deny client writes there.
+      await bookingRef.set(bookingData);
 
       if (!mounted) return;
       setState(() {
@@ -368,14 +359,18 @@ class _BookingConfirmationScreenState
           ],
         ),
       );
+    } on StateError catch (e) {
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+      _message(e.message);
     } on FirebaseException catch (e) {
       if (!mounted) return;
       setState(() => _isSubmitting = false);
 
       _message(
         e.code == 'permission-denied'
-            ? 'Booking save nahi ho saki. Firebase permissions check karein.'
-            : 'Booking save nahi ho saki. Please dobara try karein.',
+            ? 'Booking save nahi hui. Firebase Rules aur required user fields check karne honge.'
+            : 'Booking save nahi hui. Please dobara try karein.',
       );
     } catch (_) {
       if (!mounted) return;
@@ -406,21 +401,14 @@ class _BookingConfirmationScreenState
             _sectionCard(
               icon: Icons.pets,
               title: 'Your Dog',
-              trailing: _editLabel(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _detail('Name', _dogName),
                   _detail('Breed', _dogBreed),
-                  _detail('Age', _dogAge),
                   _detail('Gender', _dogGender),
-                  if ((widget.dogDetails['specialCare'] ??
-                          widget.dogDetails['specialCareInstructions']) !=
-                      null)
-                    _detail(
-                      'Special care',
-                      '${widget.dogDetails['specialCare'] ?? widget.dogDetails['specialCareInstructions']}',
-                    ),
+                  if (widget.dogDetails['age'] != null)
+                    _detail('Age', '${widget.dogDetails['age']}'),
                 ],
               ),
             ),
@@ -431,79 +419,37 @@ class _BookingConfirmationScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _detail('Plan', _walkTypeName()),
-                  _detail('Date', _formatDate()),
+                  _detail('Plan', _planName),
+                  _detail('Start date', _formatDate()),
                   if (_isRegular)
                     const Padding(
-                      padding: EdgeInsets.only(bottom: 10),
+                      padding: EdgeInsets.only(bottom: 8),
                       child: Text(
-                        'Every day, Monday to Sunday',
-                        style: TextStyle(
-                          color: confirmationMuted,
-                          fontSize: 13,
-                        ),
+                        'Daily, Monday to Sunday',
+                        style: TextStyle(color: confirmationMuted),
                       ),
                     ),
                   ..._walks.asMap().entries.map((entry) {
                     final index = entry.key;
                     final walk = entry.value;
                     final price = _price(walk);
-                    final time = walk['time']?.toString() ??
-                        'Not selected';
-
-                    return Container(
-                      margin: const EdgeInsets.only(top: 8),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: confirmationBackground,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFF0E2D5)),
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(
+                        Icons.schedule,
+                        color: confirmationOrange,
                       ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(
-                            index == 0
-                                ? Icons.wb_sunny_outlined
-                                : Icons.schedule,
-                            color: confirmationOrange,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Walk ${index + 1}',
-                                  style: const TextStyle(
-                                    color: confirmationText,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  _formatTime(time),
-                                  style: const TextStyle(
-                                    color: confirmationMuted,
-                                  ),
-                                ),
-                                Text(
-                                  '${_duration(walk)} minutes',
-                                  style: const TextStyle(
-                                    color: confirmationMuted,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Text(
-                            price == null ? 'Price pending' : '₹$price',
-                            style: const TextStyle(
-                              color: confirmationOrange,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
+                      title: Text('Walk ${index + 1}'),
+                      subtitle: Text(
+                        '${_formatTime('${walk['time'] ?? ''}')} · '
+                        '${_duration(walk)} minutes',
+                      ),
+                      trailing: Text(
+                        price == null ? 'Price pending' : '₹$price',
+                        style: const TextStyle(
+                          color: confirmationOrange,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     );
                   }),
@@ -514,7 +460,6 @@ class _BookingConfirmationScreenState
             _sectionCard(
               icon: Icons.location_on_outlined,
               title: 'Pickup Location',
-              trailing: _editLabel(),
               child: Text(
                 address.isEmpty ? 'Address not available' : address,
                 style: const TextStyle(
@@ -528,62 +473,31 @@ class _BookingConfirmationScreenState
               icon: Icons.receipt_long,
               title: 'Price Summary',
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _priceRow(
-                    'Per day · ${_walks.length} walk(s)',
-                    _dailyPrice,
+                  Text(
+                    _dailyPrice == null
+                        ? 'Selected walk price needs confirmation.'
+                        : 'Estimated selected-walk total: ₹$_dailyPrice',
+                    style: const TextStyle(
+                      color: confirmationText,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  if (_isRegular) ...[
-                    const SizedBox(height: 12),
-                    _priceRow('Per week · 7 days', _dailyPrice * 7),
-                    const SizedBox(height: 12),
-                    _priceRow('30 days', _dailyPrice * 30, bold: true),
-                  ],
-                  const SizedBox(height: 10),
+                  if (_isRegular)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8),
+                      child: Text(
+                        'Regular plan ka final weekly/monthly amount confirmation ke baad bataya jayega.',
+                        style: TextStyle(color: confirmationMuted),
+                      ),
+                    ),
+                  const SizedBox(height: 8),
                   const Text(
-                    'Final amount is based on the selected walks and configured pricing.',
+                    'Final price booking confirmation se pehle confirm hoga.',
                     style: TextStyle(
                       color: confirmationMuted,
                       fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 14),
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFF0E2D5)),
-              ),
-              child: const Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.check_circle_outline,
-                    color: Color(0xFF218838),
-                    size: 25,
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Ready to Submit',
-                          style: TextStyle(
-                            color: confirmationText,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Please apni booking details check kar lein.',
-                          style: TextStyle(color: confirmationMuted),
-                        ),
-                      ],
                     ),
                   ),
                 ],
@@ -598,15 +512,14 @@ class _BookingConfirmationScreenState
                 style: FilledButton.styleFrom(
                   backgroundColor: confirmationOrange,
                   foregroundColor: Colors.white,
-                  disabledBackgroundColor: const Color(0xFFFFC28F),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
                 icon: _isSubmitting
                     ? const SizedBox(
-                        height: 20,
                         width: 20,
+                        height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           color: Colors.white,
@@ -619,10 +532,7 @@ class _BookingConfirmationScreenState
                       : _submitted
                           ? 'Request Submitted'
                           : 'Submit Booking Request',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -635,13 +545,9 @@ class _BookingConfirmationScreenState
                 foregroundColor: confirmationOrange,
                 side: const BorderSide(color: confirmationOrange),
                 minimumSize: const Size.fromHeight(50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
               ),
               child: const Text('Go Back & Edit'),
             ),
-            const SizedBox(height: 20),
           ],
         ),
       ),
@@ -652,7 +558,6 @@ class _BookingConfirmationScreenState
     required IconData icon,
     required String title,
     required Widget child,
-    Widget? trailing,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -678,7 +583,6 @@ class _BookingConfirmationScreenState
                   ),
                 ),
               ),
-              if (trailing != null) trailing,
             ],
           ),
           const SizedBox(height: 14),
@@ -711,44 +615,6 @@ class _BookingConfirmationScreenState
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _priceRow(
-    String label,
-    int amount, {
-    bool bold = false,
-  }) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            label,
-            style: TextStyle(
-              color: confirmationText,
-              fontWeight: bold ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-        ),
-        Text(
-          '₹$amount',
-          style: TextStyle(
-            color: confirmationOrange,
-            fontSize: bold ? 18 : 15,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _editLabel() {
-    return const Text(
-      'Edit',
-      style: TextStyle(
-        color: confirmationOrange,
-        fontWeight: FontWeight.w600,
       ),
     );
   }
