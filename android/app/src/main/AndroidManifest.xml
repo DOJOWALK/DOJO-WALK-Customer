@@ -1,7 +1,7 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- DOJO WALK: Location permissions -->
+    <!-- DOJO WALK location permissions -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
@@ -10,10 +10,10 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 
-        <!-- Google Maps API key -->
+        <!-- Google Maps API key supplied securely during build -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="${AIzaSyAN_uLRs9SN_27PRd3MpR7ZEmdqP1Oq3d4}" />
+            android:value="${GOOGLE_MAPS_API_KEY}" />
 
         <activity
             android:name=".MainActivity"
