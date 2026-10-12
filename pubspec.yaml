@@ -1,3 +1,4 @@
+
 name: dojo_walk_customer
 description: DOJO WALK customer app for easy and reliable dog walking.
 publish_to: "none"
@@ -12,9 +13,16 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
+
+  # Firebase
   firebase_core: ^3.15.1
   firebase_auth: ^5.6.2
   cloud_firestore: ^5.6.11
+
+  # Google Maps and location
+  google_maps_flutter: ^2.13.1
+  geolocator: ^14.0.2
+  geocoding: ^4.0.0
 
 dev_dependencies:
   flutter_test:
@@ -24,3 +32,4 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  
