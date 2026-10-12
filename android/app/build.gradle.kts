@@ -1,6 +1,4 @@
 
-import com.android.build.api.dsl.ApplicationExtension
-
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -29,8 +27,8 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
 
+        // Read Google Maps API key from the build environment.
         val mapsApiKey = System.getenv("GOOGLE_MAPS_API_KEY") ?: ""
-
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = mapsApiKey
     }
 
