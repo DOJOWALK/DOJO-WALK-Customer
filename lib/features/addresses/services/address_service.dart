@@ -1,4 +1,3 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -16,17 +15,16 @@ class AddressService {
 
   String get _uid {
     final user = _auth.currentUser;
+
     if (user == null) {
       throw StateError('Please sign in to manage addresses.');
     }
+
     return user.uid;
   }
 
   CollectionReference<Map<String, dynamic>> get _addresses =>
-      _firestore
-          .collection('users')
-          .doc(_uid)
-          .collection('addresses');
+      _firestore.collection('users').doc(_uid).collection('addresses');
 
   Stream<List<SavedAddress>> watchAddresses() {
     return _addresses.snapshots().map((snapshot) {
@@ -41,6 +39,7 @@ class AddressService {
 
         final aTime = a.createdAt?.millisecondsSinceEpoch ?? 0;
         final bTime = b.createdAt?.millisecondsSinceEpoch ?? 0;
+
         return bTime.compareTo(aTime);
       });
 
@@ -51,9 +50,22 @@ class AddressService {
   Future<List<SavedAddress>> getAddresses() async {
     final snapshot = await _addresses.get();
 
-    return snapshot.docs
+    final addresses = snapshot.docs
         .map((doc) => SavedAddress.fromMap(doc.id, doc.data()))
         .toList();
+
+    addresses.sort((a, b) {
+      if (a.isDefault != b.isDefault) {
+        return a.isDefault ? -1 : 1;
+      }
+
+      final aTime = a.createdAt?.millisecondsSinceEpoch ?? 0;
+      final bTime = b.createdAt?.millisecondsSinceEpoch ?? 0;
+
+      return bTime.compareTo(aTime);
+    });
+
+    return addresses;
   }
 
   Future<String> saveAddress(
@@ -61,36 +73,31 @@ class AddressService {
     bool makeDefault = false,
   }) async {
     final collection = _addresses;
-    final batch = _firestore.batch();
-
     final isNew = address.id.isEmpty;
     final ref = isNew ? collection.doc() : collection.doc(address.id);
 
-    bool shouldBeDefault = makeDefault || address.isDefault;
+    final existingSnapshot = isNew ? null : await ref.get();
 
-    if (!isNew && !makeDefault) {
-      final existing = await ref.get();
-
-      if (!existing.exists) {
-        throw StateError('This address no longer exists.');
-      }
-
-      // Preserve the current default state when editing.
-      shouldBeDefault =
-          existing.data()?['isDefault'] == true || address.isDefault;
+    if (!isNew && !(existingSnapshot?.exists ?? false)) {
+      throw StateError('This address no longer exists.');
     }
 
-    if (isNew) {
-      final existingAddresses = await collection.get();
-      if (existingAddresses.docs.isEmpty) {
-        shouldBeDefault = true;
-      }
-    }
+    final allAddresses = await collection.get();
+
+    // Editing keeps the existing default state unless the caller
+    // explicitly changes it through makeDefault or address.isDefault.
+    final existingIsDefault =
+        existingSnapshot?.data()?['isDefault'] == true;
+
+    final shouldBeDefault = makeDefault ||
+        address.isDefault ||
+        (isNew && allAddresses.docs.isEmpty) ||
+        (!isNew && existingIsDefault);
+
+    final batch = _firestore.batch();
 
     if (shouldBeDefault) {
-      final existingAddresses = await collection.get();
-
-      for (final doc in existingAddresses.docs) {
+      for (final doc in allAddresses.docs) {
         if (doc.id != ref.id && doc.data()['isDefault'] == true) {
           batch.update(doc.reference, {
             'isDefault': false,
@@ -105,6 +112,7 @@ class AddressService {
         .toMap(includeCreatedAt: isNew);
 
     batch.set(ref, data, SetOptions(merge: true));
+
     await batch.commit();
 
     return ref.id;
@@ -137,36 +145,36 @@ class AddressService {
     final selected = collection.doc(addressId);
     final selectedSnapshot = await selected.get();
 
-    if (!selectedSnapshot.exists) return;
+    if (!selectedSnapshot.exists) {
+      return;
+    }
 
-    final wasDefault =
-        selectedSnapshot.data()?['isDefault'] == true;
-
+    final wasDefault = selectedSnapshot.data()?['isDefault'] == true;
     final snapshot = await collection.get();
+
+    final remaining =
+        snapshot.docs.where((doc) => doc.id != addressId).toList();
+
     final batch = _firestore.batch();
 
     batch.delete(selected);
 
-    if (wasDefault) {
-      final remaining =
-          snapshot.docs.where((doc) => doc.id != addressId).toList();
+    if (wasDefault && remaining.isNotEmpty) {
+      remaining.sort((a, b) {
+        final aTime = (a.data()['createdAt'] as Timestamp?)
+                ?.millisecondsSinceEpoch ??
+            0;
+        final bTime = (b.data()['createdAt'] as Timestamp?)
+                ?.millisecondsSinceEpoch ??
+            0;
 
-      if (remaining.isNotEmpty) {
-        remaining.sort((a, b) {
-          final aTime = (a.data()['createdAt'] as Timestamp?)
-                  ?.millisecondsSinceEpoch ??
-              0;
-          final bTime = (b.data()['createdAt'] as Timestamp?)
-                  ?.millisecondsSinceEpoch ??
-              0;
-          return bTime.compareTo(aTime);
-        });
+        return bTime.compareTo(aTime);
+      });
 
-        batch.update(remaining.first.reference, {
-          'isDefault': true,
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-      }
+      batch.update(remaining.first.reference, {
+        'isDefault': true,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
     }
 
     await batch.commit();
