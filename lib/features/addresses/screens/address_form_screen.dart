@@ -52,7 +52,6 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
   bool _resolvingAddress = false;
   bool _locationConfirmed = false;
   bool _isDefault = false;
-  bool _isMapReady = false;
 
   bool get _isEditing => widget.address != null;
 
@@ -134,14 +133,18 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
     final controller = _mapController;
 
     if (controller != null) {
-      await controller.animateCamera(
-        CameraUpdate.newCameraPosition(
-          CameraPosition(
-            target: target,
-            zoom: 17,
+      try {
+        await controller.animateCamera(
+          CameraUpdate.newCameraPosition(
+            CameraPosition(
+              target: target,
+              zoom: 17,
+            ),
           ),
-        ),
-      );
+        );
+      } catch (_) {
+        // Keep the selected coordinates even if animation fails.
+      }
     }
 
     await _resolveAddress(target);
@@ -151,7 +154,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
     final query = _searchController.text.trim();
 
     if (query.isEmpty) {
-      _showMessage('Search for an address or area first.');
+      _showMessage('पहले address या area लिखें।');
       return;
     }
 
@@ -162,8 +165,10 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
     try {
       final locations = await locationFromAddress(query);
 
+      if (!mounted) return;
+
       if (locations.isEmpty) {
-        _showMessage('Address location was not found.');
+        _showMessage('इस address की location नहीं मिली।');
         return;
       }
 
@@ -174,7 +179,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
       );
     } catch (_) {
       _showMessage(
-        'Address search failed. Please try another address.',
+        'Address search नहीं हुआ। दूसरा address लिखकर कोशिश करें।',
       );
     } finally {
       if (mounted) {
@@ -184,6 +189,8 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
   }
 
   Future<void> _getCurrentLocation() async {
+    if (_resolvingAddress || _saving) return;
+
     setState(() => _resolvingAddress = true);
 
     try {
@@ -191,7 +198,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
           await Geolocator.isLocationServiceEnabled();
 
       if (!serviceEnabled) {
-        _showMessage('Please turn on your phone location.');
+        _showMessage('फोन की Location चालू करें।');
         return;
       }
 
@@ -202,13 +209,13 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
       }
 
       if (permission == LocationPermission.denied) {
-        _showMessage('Location permission is required.');
+        _showMessage('Location permission जरूरी है।');
         return;
       }
 
       if (permission == LocationPermission.deniedForever) {
         _showMessage(
-          'Enable location permission in phone settings.',
+          'Phone Settings में जाकर Location permission चालू करें।',
         );
         return;
       }
@@ -219,12 +226,14 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
         ),
       );
 
+      if (!mounted) return;
+
       await _moveMapTo(
         LatLng(position.latitude, position.longitude),
       );
     } catch (_) {
       _showMessage(
-        'Unable to get your location. Please try again.',
+        'Current location नहीं मिल सकी। दोबारा कोशिश करें।',
       );
     } finally {
       if (mounted) {
@@ -290,7 +299,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
         ].where((value) => value.isNotEmpty).join(', ');
       });
     } catch (_) {
-      // Address fields remain editable if geocoding fails.
+      // User can manually complete all address fields.
     }
   }
 
@@ -307,20 +316,22 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
 
   String? _pincodeValidator(String? value) {
     if (!RegExp(r'^\d{6}$').hasMatch(value?.trim() ?? '')) {
-      return 'Enter a valid 6-digit PIN code.';
+      return 'सही 6-digit PIN code लिखें।';
     }
 
     return null;
   }
 
   Future<void> _saveAddress() async {
+    if (_saving) return;
+
     FocusScope.of(context).unfocus();
 
     if (!_formKey.currentState!.validate()) return;
 
     if (!_locationConfirmed) {
       _showMessage(
-        'Search an address, use current location, or move the map.',
+        'Address search करें, current location चुनें या map को move करें।',
       );
       return;
     }
@@ -337,8 +348,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
         landmark: _landmarkController.text.trim(),
         city: _cityController.text.trim(),
         pincode: _pincodeController.text.trim(),
-        pickupInstructions:
-            _instructionsController.text.trim(),
+        pickupInstructions: _instructionsController.text.trim(),
         latitude: _selectedLocation.latitude,
         longitude: _selectedLocation.longitude,
         isDefault: _isDefault,
@@ -353,11 +363,11 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
 
       if (!mounted) return;
 
-      // Returns true so the previous screen can refresh its address list.
+      // The previous screen refreshes its saved-address list.
       Navigator.of(context).pop(true);
     } catch (error) {
       _showMessage(
-        'Address could not be saved. Please try again.',
+        'Address save नहीं हुआ। Internet जाँचकर दोबारा कोशिश करें।',
       );
     } finally {
       if (mounted) {
@@ -426,9 +436,11 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
         color: selected ? Colors.white : Colors.black87,
         fontWeight: FontWeight.w600,
       ),
-      onSelected: (_) {
-        setState(() => _label = label);
-      },
+      onSelected: _saving
+          ? null
+          : (_) {
+              setState(() => _label = label);
+            },
     );
   }
 
@@ -495,7 +507,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                         ),
                         const SizedBox(width: 8),
                         IconButton.filled(
-                          onPressed: _resolvingAddress
+                          onPressed: _resolvingAddress || _saving
                               ? null
                               : _searchAddress,
                           style: IconButton.styleFrom(
@@ -523,7 +535,6 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                               ),
                               onMapCreated: (controller) {
                                 _mapController = controller;
-                                _isMapReady = true;
                               },
                               onCameraMove: (position) {
                                 _selectedLocation = position.target;
@@ -555,7 +566,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                                 heroTag: 'addressCurrentLocation',
                                 backgroundColor: Colors.white,
                                 foregroundColor: addressOrange,
-                                onPressed: _resolvingAddress
+                                onPressed: _resolvingAddress || _saving
                                     ? null
                                     : _getCurrentLocation,
                                 child: const Icon(Icons.my_location),
@@ -718,9 +729,11 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
 
                     CheckboxListTile(
                       value: _isDefault,
-                      onChanged: (value) {
-                        setState(() => _isDefault = value ?? false);
-                      },
+                      onChanged: _saving
+                          ? null
+                          : (value) {
+                              setState(() => _isDefault = value ?? false);
+                            },
                       activeColor: addressOrange,
                       contentPadding: EdgeInsets.zero,
                       title: const Text(
@@ -748,9 +761,8 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                           SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              'Check the pickup point before saving. '
-                              'Its coordinates will be stored with '
-                              'the address.',
+                              'Save करने से पहले map पर pickup point जाँचें। '
+                              'उसकी coordinates address के साथ save होंगी।',
                               style: TextStyle(height: 1.4),
                             ),
                           ),
