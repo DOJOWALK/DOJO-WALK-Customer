@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -62,16 +63,16 @@ class _PickupAddressScreenState extends State<PickupAddressScreen> {
         (address) => address.id == _selectedAddressId,
       );
 
+      final defaultAddress = addresses.where(
+        (address) => address.isDefault,
+      );
+
       setState(() {
         _addresses = addresses;
 
         if (!selectedStillExists) {
-          final defaultAddresses = addresses.where(
-            (address) => address.isDefault,
-          );
-
-          _selectedAddressId = defaultAddresses.isNotEmpty
-              ? defaultAddresses.first.id
+          _selectedAddressId = defaultAddress.isNotEmpty
+              ? defaultAddress.first.id
               : null;
         }
 
@@ -81,6 +82,7 @@ class _PickupAddressScreenState extends State<PickupAddressScreen> {
       if (!mounted) return;
 
       setState(() => _loading = false);
+
       _showMessage(
         'Saved addresses लोड नहीं हुए। Internet और login जाँचें।',
       );
@@ -95,30 +97,43 @@ class _PickupAddressScreenState extends State<PickupAddressScreen> {
       return;
     }
 
+    // Remember existing IDs so we can select a newly created address.
+    final previousIds = _addresses.map((address) => address.id).toSet();
+
     setState(() => _openingForm = true);
 
     try {
-      await Navigator.of(context).push<void>(
-        MaterialPageRoute<void>(
+      final result = await Navigator.of(context).push<bool>(
+        MaterialPageRoute<bool>(
           builder: (_) => const AddressFormScreen(),
         ),
       );
 
       if (!mounted) return;
 
-      // AddressFormScreen saves the address and pops back.
-      // Reload the list so the newly saved address appears.
-      await _loadAddresses();
+      // Refresh whether the form saved a new address or was cancelled.
+      await _refreshAddresses();
 
       if (!mounted) return;
 
-      // If there is exactly one address, select it automatically.
-      // If there are several, let the customer choose.
-      if (_addresses.length == 1) {
-        setState(() {
-          _selectedAddressId = _addresses.first.id;
-        });
+      if (result == true) {
+        SavedAddress? newlyAdded;
+
+        for (final address in _addresses) {
+          if (!previousIds.contains(address.id)) {
+            newlyAdded = address;
+            break;
+          }
+        }
+
+        if (newlyAdded != null) {
+          setState(() {
+            _selectedAddressId = newlyAdded!.id;
+          });
+        }
       }
+    } catch (_) {
+      _showMessage('Address खोलने या refresh करने में समस्या हुई।');
     } finally {
       if (mounted) {
         setState(() => _openingForm = false);
@@ -126,7 +141,40 @@ class _PickupAddressScreenState extends State<PickupAddressScreen> {
     }
   }
 
+  Future<void> _refreshAddresses() async {
+    try {
+      final addresses = await _addressService.getAddresses();
+
+      if (!mounted) return;
+
+      setState(() {
+        _addresses = addresses;
+        _loading = false;
+
+        final selectedStillExists = addresses.any(
+          (address) => address.id == _selectedAddressId,
+        );
+
+        if (!selectedStillExists) {
+          final defaults = addresses.where(
+            (address) => address.isDefault,
+          );
+
+          _selectedAddressId =
+              defaults.isNotEmpty ? defaults.first.id : null;
+        }
+      });
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() => _loading = false);
+      _showMessage('Address list refresh नहीं हो सकी।');
+    }
+  }
+
   void _continue() {
+    if (_loading) return;
+
     SavedAddress? selected;
 
     for (final address in _addresses) {
@@ -141,29 +189,20 @@ class _PickupAddressScreenState extends State<PickupAddressScreen> {
       return;
     }
 
-    if (selected.latitude == null || selected.longitude == null) {
+    if (selected.latitude == null ||
+        selected.longitude == null) {
       _showMessage(
-        'इस address की map location उपलब्ध नहीं है। '
-        'Address को edit करके location चुनें।',
+        'इस address की map location नहीं है। '
+        'Address edit करके location चुनें।',
       );
       return;
     }
 
-    // Create a snapshot so later edits to the saved address
-    // do not change the address details already passed to booking.
+    // Snapshot booking details so future address edits do not
+    // alter the address details already passed to this booking.
     final pickupAddress = <String, dynamic>{
       'addressId': selected.id,
-      'label': selected.label,
-      'address': selected.flatHouse,
-      'flatHouse': selected.flatHouse,
-      'buildingSociety': selected.buildingSociety,
-      'area': selected.area,
-      'landmark': selected.landmark,
-      'city': selected.city,
-      'pincode': selected.pincode,
-      'pickupInstructions': selected.pickupInstructions,
-      'latitude': selected.latitude,
-      'longitude': selected.longitude,
+      ...selected.toBookingSnapshot(),
     };
 
     Navigator.of(context).push(
@@ -180,12 +219,14 @@ class _PickupAddressScreenState extends State<PickupAddressScreen> {
   void _showMessage(String message) {
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
   }
 
   @override
@@ -241,13 +282,11 @@ class _PickupAddressScreenState extends State<PickupAddressScreen> {
                     )
                   : RefreshIndicator(
                       color: addressOrange,
-                      onRefresh: _loadAddresses,
+                      onRefresh: _refreshAddresses,
                       child: ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.fromLTRB(
-                          18,
-                          12,
-                          18,
-                          24,
+                          18, 12, 18, 24,
                         ),
                         children: [
                           const Text(
@@ -269,14 +308,16 @@ class _PickupAddressScreenState extends State<PickupAddressScreen> {
                             ),
                           ),
                           const SizedBox(height: 20),
+
                           if (_addresses.isEmpty)
                             _emptyAddressCard()
                           else
                             ..._addresses.map(_addressCard),
+
                           const SizedBox(height: 14),
+
                           OutlinedButton.icon(
-                            onPressed:
-                                _openingForm ? null : _addAddress,
+                            onPressed: _openingForm ? null : _addAddress,
                             icon: _openingForm
                                 ? const SizedBox(
                                     height: 18,
@@ -310,6 +351,7 @@ class _PickupAddressScreenState extends State<PickupAddressScreen> {
                       ),
                     ),
             ),
+
             Container(
               padding: const EdgeInsets.fromLTRB(18, 12, 18, 16),
               decoration: const BoxDecoration(
@@ -452,6 +494,7 @@ class _PickupAddressScreenState extends State<PickupAddressScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
+
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -489,7 +532,9 @@ class _PickupAddressScreenState extends State<PickupAddressScreen> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        details.isEmpty ? 'Address details missing' : details,
+                        details.isEmpty
+                            ? 'Address details missing'
+                            : details,
                         style: const TextStyle(
                           color: Colors.black54,
                           fontSize: 13,
@@ -509,6 +554,7 @@ class _PickupAddressScreenState extends State<PickupAddressScreen> {
                     ],
                   ),
                 ),
+
                 const SizedBox(width: 8),
                 Icon(
                   selected
