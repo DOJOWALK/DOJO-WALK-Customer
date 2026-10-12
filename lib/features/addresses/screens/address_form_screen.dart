@@ -44,7 +44,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
     77.2090,
   );
 
-  LatLng _selectedLocation = _initialLocation;
+  late LatLng _selectedLocation;
 
   String _label = 'Home';
 
@@ -52,12 +52,15 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
   bool _resolvingAddress = false;
   bool _locationConfirmed = false;
   bool _isDefault = false;
+  bool _mapMovementStarted = false;
 
   bool get _isEditing => widget.address != null;
 
   @override
   void initState() {
     super.initState();
+
+    _selectedLocation = _initialLocation;
     _loadExistingAddress();
   }
 
@@ -143,7 +146,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
           ),
         );
       } catch (_) {
-        // Keep the selected coordinates even if animation fails.
+        // Coordinates remain selected even if animation fails.
       }
     }
 
@@ -151,6 +154,8 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
   }
 
   Future<void> _searchAddress() async {
+    if (_saving || _resolvingAddress) return;
+
     final query = _searchController.text.trim();
 
     if (query.isEmpty) {
@@ -274,9 +279,8 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
           .toList();
 
       final area = areaParts.join(', ');
-      final city = cityCandidates.isNotEmpty
-          ? cityCandidates.first
-          : '';
+      final city =
+          cityCandidates.isNotEmpty ? cityCandidates.first : '';
       final pincode = place.postalCode?.trim() ?? '';
 
       setState(() {
@@ -299,7 +303,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
         ].where((value) => value.isNotEmpty).join(', ');
       });
     } catch (_) {
-      // User can manually complete all address fields.
+      // The customer can complete the address fields manually.
     }
   }
 
@@ -323,7 +327,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
   }
 
   Future<void> _saveAddress() async {
-    if (_saving) return;
+    if (_saving || _resolvingAddress) return;
 
     FocusScope.of(context).unfocus();
 
@@ -331,7 +335,8 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
 
     if (!_locationConfirmed) {
       _showMessage(
-        'Address search करें, current location चुनें या map को move करें।',
+        'Address search करें, current location चुनें '
+        'या map पर pickup point चुनें।',
       );
       return;
     }
@@ -356,16 +361,16 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
         updatedAt: widget.address?.updatedAt,
       );
 
-      await _addressService.saveAddress(
+      final savedAddressId = await _addressService.saveAddress(
         address,
         makeDefault: _isDefault,
       );
 
       if (!mounted) return;
 
-      // The previous screen refreshes its saved-address list.
-      Navigator.of(context).pop(true);
-    } catch (error) {
+      // Return the Firestore document ID to the previous screen.
+      Navigator.of(context).pop(savedAddressId);
+    } catch (_) {
       _showMessage(
         'Address save नहीं हुआ। Internet जाँचकर दोबारा कोशिश करें।',
       );
@@ -507,9 +512,10 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                         ),
                         const SizedBox(width: 8),
                         IconButton.filled(
-                          onPressed: _resolvingAddress || _saving
-                              ? null
-                              : _searchAddress,
+                          onPressed:
+                              _resolvingAddress || _saving
+                                  ? null
+                                  : _searchAddress,
                           style: IconButton.styleFrom(
                             backgroundColor: addressOrange,
                             foregroundColor: Colors.white,
@@ -536,11 +542,20 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                               onMapCreated: (controller) {
                                 _mapController = controller;
                               },
+                              onCameraMoveStarted: () {
+                                _mapMovementStarted = true;
+                              },
                               onCameraMove: (position) {
                                 _selectedLocation = position.target;
-                                _locationConfirmed = true;
                               },
                               onCameraIdle: () {
+                                if (_mapMovementStarted && mounted) {
+                                  setState(() {
+                                    _locationConfirmed = true;
+                                  });
+                                }
+
+                                _mapMovementStarted = false;
                                 _resolveAddress(_selectedLocation);
                               },
                               myLocationEnabled: false,
@@ -566,9 +581,10 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                                 heroTag: 'addressCurrentLocation',
                                 backgroundColor: Colors.white,
                                 foregroundColor: addressOrange,
-                                onPressed: _resolvingAddress || _saving
-                                    ? null
-                                    : _getCurrentLocation,
+                                onPressed:
+                                    _resolvingAddress || _saving
+                                        ? null
+                                        : _getCurrentLocation,
                                 child: const Icon(Icons.my_location),
                               ),
                             ),
@@ -732,7 +748,9 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                       onChanged: _saving
                           ? null
                           : (value) {
-                              setState(() => _isDefault = value ?? false);
+                              setState(() {
+                                _isDefault = value ?? false;
+                              });
                             },
                       activeColor: addressOrange,
                       contentPadding: EdgeInsets.zero,
@@ -789,7 +807,9 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                   width: double.infinity,
                   height: 54,
                   child: ElevatedButton(
-                    onPressed: _saving ? null : _saveAddress,
+                    onPressed: _saving || _resolvingAddress
+                        ? null
+                        : _saveAddress,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: addressOrange,
                       foregroundColor: Colors.white,
