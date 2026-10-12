@@ -1,4 +1,3 @@
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
@@ -20,7 +19,8 @@ class AddressFormScreen extends StatefulWidget {
   });
 
   @override
-  State<AddressFormScreen> createState() => _AddressFormScreenState();
+  State<AddressFormScreen> createState() =>
+      _AddressFormScreenState();
 }
 
 class _AddressFormScreenState extends State<AddressFormScreen> {
@@ -35,9 +35,9 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
   final _pincodeController = TextEditingController();
   final _instructionsController = TextEditingController();
 
-  GoogleMapController? _mapController;
-
   final AddressService _addressService = AddressService();
+
+  GoogleMapController? _mapController;
 
   static const LatLng _initialLocation = LatLng(
     28.6139,
@@ -52,22 +52,20 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
   bool _resolvingAddress = false;
   bool _locationConfirmed = false;
   bool _isDefault = false;
+  bool _isMapReady = false;
 
   bool get _isEditing => widget.address != null;
 
   @override
   void initState() {
     super.initState();
-
     _loadExistingAddress();
   }
 
   void _loadExistingAddress() {
     final address = widget.address;
 
-    if (address == null) {
-      return;
-    }
+    if (address == null) return;
 
     _label = address.label;
     _flatHouseController.text = address.flatHouse;
@@ -77,7 +75,6 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
     _cityController.text = address.city;
     _pincodeController.text = address.pincode;
     _instructionsController.text = address.pickupInstructions;
-
     _isDefault = address.isDefault;
 
     if (address.latitude != null &&
@@ -86,7 +83,6 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
         address.latitude!,
         address.longitude!,
       );
-
       _locationConfirmed = true;
     }
 
@@ -114,114 +110,17 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
     super.dispose();
   }
 
-  Future<void> _searchAddress() async {
-    final query = _searchController.text.trim();
+  void _showMessage(String message) {
+    if (!mounted) return;
 
-    if (query.isEmpty) {
-      _showMessage('Please enter an address to search.');
-      return;
-    }
-
-    FocusScope.of(context).unfocus();
-
-    setState(() {
-      _resolvingAddress = true;
-    });
-
-    try {
-      final locations = await locationFromAddress(query);
-
-      if (locations.isEmpty) {
-        _showMessage('Address location was not found.');
-        return;
-      }
-
-      final location = locations.first;
-
-      final target = LatLng(
-        location.latitude,
-        location.longitude,
-      );
-
-      await _moveMapTo(target);
-
-      await _resolveAddress(target);
-    } catch (error) {
-      _showMessage(
-        'Address search failed. Please try another address.',
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _resolvingAddress = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _getCurrentLocation() async {
-    setState(() {
-      _resolvingAddress = true;
-    });
-
-    try {
-      final serviceEnabled =
-          await Geolocator.isLocationServiceEnabled();
-
-      if (!serviceEnabled) {
-        _showMessage(
-          'Please turn on your phone location.',
-        );
-        return;
-      }
-
-      LocationPermission permission =
-          await Geolocator.checkPermission();
-
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-
-      if (permission == LocationPermission.denied) {
-        _showMessage(
-          'Location permission is required.',
-        );
-        return;
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        _showMessage(
-          'Please enable location permission in phone settings.',
-        );
-        return;
-      }
-
-      final position =
-          await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          behavior: SnackBarBehavior.floating,
         ),
       );
-
-      final target = LatLng(
-        position.latitude,
-        position.longitude,
-      );
-
-      await _moveMapTo(target);
-
-      await _resolveAddress(target);
-    } catch (error) {
-      _showMessage(
-        'Unable to get current location. Please try again.',
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _resolvingAddress = false;
-        });
-      }
-    }
   }
 
   Future<void> _moveMapTo(LatLng target) async {
@@ -232,14 +131,106 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
       _locationConfirmed = true;
     });
 
-    await _mapController?.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(
-          target: target,
-          zoom: 17,
+    final controller = _mapController;
+
+    if (controller != null) {
+      await controller.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: target,
+            zoom: 17,
+          ),
         ),
-      ),
-    );
+      );
+    }
+
+    await _resolveAddress(target);
+  }
+
+  Future<void> _searchAddress() async {
+    final query = _searchController.text.trim();
+
+    if (query.isEmpty) {
+      _showMessage('Search for an address or area first.');
+      return;
+    }
+
+    FocusScope.of(context).unfocus();
+
+    setState(() => _resolvingAddress = true);
+
+    try {
+      final locations = await locationFromAddress(query);
+
+      if (locations.isEmpty) {
+        _showMessage('Address location was not found.');
+        return;
+      }
+
+      final result = locations.first;
+
+      await _moveMapTo(
+        LatLng(result.latitude, result.longitude),
+      );
+    } catch (_) {
+      _showMessage(
+        'Address search failed. Please try another address.',
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _resolvingAddress = false);
+      }
+    }
+  }
+
+  Future<void> _getCurrentLocation() async {
+    setState(() => _resolvingAddress = true);
+
+    try {
+      final serviceEnabled =
+          await Geolocator.isLocationServiceEnabled();
+
+      if (!serviceEnabled) {
+        _showMessage('Please turn on your phone location.');
+        return;
+      }
+
+      var permission = await Geolocator.checkPermission();
+
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      if (permission == LocationPermission.denied) {
+        _showMessage('Location permission is required.');
+        return;
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        _showMessage(
+          'Enable location permission in phone settings.',
+        );
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+
+      await _moveMapTo(
+        LatLng(position.latitude, position.longitude),
+      );
+    } catch (_) {
+      _showMessage(
+        'Unable to get your location. Please try again.',
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _resolvingAddress = false);
+      }
+    }
   }
 
   Future<void> _resolveAddress(LatLng location) async {
@@ -249,13 +240,11 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
         location.longitude,
       );
 
-      if (!mounted || placemarks.isEmpty) {
-        return;
-      }
+      if (!mounted || placemarks.isEmpty) return;
 
       final place = placemarks.first;
 
-      final area = [
+      final areaParts = [
         place.subLocality,
         place.thoroughfare,
       ]
@@ -263,7 +252,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
           .map((value) => value.trim())
           .where((value) => value.isNotEmpty)
           .toSet()
-          .join(', ');
+          .toList();
 
       final cityCandidates = [
         place.locality,
@@ -272,12 +261,13 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
       ]
           .whereType<String>()
           .map((value) => value.trim())
-          .where((value) => value.isNotEmpty);
+          .where((value) => value.isNotEmpty)
+          .toList();
 
-      final city = cityCandidates.isEmpty
-          ? ''
-          : cityCandidates.first;
-
+      final area = areaParts.join(', ');
+      final city = cityCandidates.isNotEmpty
+          ? cityCandidates.first
+          : '';
       final pincode = place.postalCode?.trim() ?? '';
 
       setState(() {
@@ -299,55 +289,8 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
           pincode,
         ].where((value) => value.isNotEmpty).join(', ');
       });
-    } catch (error) {
-      // Reverse geocoding may fail even when map coordinates are valid.
-      // The user can enter the address manually.
-    }
-  }
-
-  Future<void> _onMapCameraIdle() async {
-    final controller = _mapController;
-
-    if (controller == null) return;
-
-    try {
-      final cameraPosition = await controller.getLatLng(
-        const ScreenCoordinate(
-          x: 1,
-          y: 1,
-        ),
-      );
-
-      // The fixed centre pin determines the selected location below.
-      // The actual centre is read from the camera target instead.
-      if (!mounted) return;
-
-      final visibleRegion = await controller.getVisibleRegion();
-
-      final center = LatLng(
-        (visibleRegion.northeast.latitude +
-                visibleRegion.southwest.latitude) /
-            2,
-        (visibleRegion.northeast.longitude +
-                visibleRegion.southwest.longitude) /
-            2,
-      );
-
-      // Avoid using screen-coordinate values as the selected address.
-      // The camera target is the authoritative map selection.
-      final target = center;
-
-      setState(() {
-        _selectedLocation = target;
-        _locationConfirmed = true;
-      });
-
-      await _resolveAddress(target);
-
-      // Keep analyzer from flagging the API result as unused.
-      cameraPosition.latitude;
-    } catch (error) {
-      // The user can still choose the location using GPS or search.
+    } catch (_) {
+      // Address fields remain editable if geocoding fails.
     }
   }
 
@@ -363,9 +306,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
   }
 
   String? _pincodeValidator(String? value) {
-    final pincode = value?.trim() ?? '';
-
-    if (!RegExp(r'^\d{6}$').hasMatch(pincode)) {
+    if (!RegExp(r'^\d{6}$').hasMatch(value?.trim() ?? '')) {
       return 'Enter a valid 6-digit PIN code.';
     }
 
@@ -375,30 +316,16 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
   Future<void> _saveAddress() async {
     FocusScope.of(context).unfocus();
 
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     if (!_locationConfirmed) {
       _showMessage(
-        'Please select the pickup location on the map.',
+        'Search an address, use current location, or move the map.',
       );
       return;
     }
 
-    if (_selectedLocation.latitude < -90 ||
-        _selectedLocation.latitude > 90 ||
-        _selectedLocation.longitude < -180 ||
-        _selectedLocation.longitude > 180) {
-      _showMessage(
-        'Please select a valid location.',
-      );
-      return;
-    }
-
-    setState(() {
-      _saving = true;
-    });
+    setState(() => _saving = true);
 
     try {
       final address = SavedAddress(
@@ -416,7 +343,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
         longitude: _selectedLocation.longitude,
         isDefault: _isDefault,
         createdAt: widget.address?.createdAt,
-        updatedAt: null,
+        updatedAt: widget.address?.updatedAt,
       );
 
       await _addressService.saveAddress(
@@ -426,6 +353,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
 
       if (!mounted) return;
 
+      // Returns true so the previous screen can refresh its address list.
       Navigator.of(context).pop(true);
     } catch (error) {
       _showMessage(
@@ -433,25 +361,9 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
       );
     } finally {
       if (mounted) {
-        setState(() {
-          _saving = false;
-        });
+        setState(() => _saving = false);
       }
     }
-  }
-
-  void _showMessage(String message) {
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Colors.black87,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
   }
 
   Widget _buildTextField({
@@ -497,6 +409,29 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
     );
   }
 
+  Widget _buildLabelChip(String label, IconData icon) {
+    final selected = _label == label;
+
+    return ChoiceChip(
+      label: Text(label),
+      avatar: Icon(
+        icon,
+        size: 18,
+        color: selected ? Colors.white : addressOrange,
+      ),
+      selected: selected,
+      selectedColor: addressOrange,
+      backgroundColor: Colors.white,
+      labelStyle: TextStyle(
+        color: selected ? Colors.white : Colors.black87,
+        fontWeight: FontWeight.w600,
+      ),
+      onSelected: (_) {
+        setState(() => _label = label);
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -507,9 +442,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
         elevation: 0,
         title: Text(
           _isEditing ? 'Edit Address' : 'Add New Address',
-          style: const TextStyle(
-            fontWeight: FontWeight.w700,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
       body: SafeArea(
@@ -522,16 +455,16 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                   padding: const EdgeInsets.all(16),
                   children: [
                     const Text(
-                      'Where should the walker pick up your dog?',
+                      'Pickup Address',
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 22,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'Search your address or move the map to select '
-                      'the exact pickup location.',
+                      'Search your address or move the map to '
+                      'choose the pickup point.',
                       style: TextStyle(
                         color: Colors.black54,
                         height: 1.4,
@@ -539,7 +472,6 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                     ),
                     const SizedBox(height: 18),
 
-                    // Address search
                     Row(
                       children: [
                         Expanded(
@@ -548,7 +480,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                             textInputAction: TextInputAction.search,
                             onSubmitted: (_) => _searchAddress(),
                             decoration: InputDecoration(
-                              hintText: 'Search area or address',
+                              hintText: 'Search address or area',
                               prefixIcon: const Icon(
                                 Icons.search,
                                 color: addressOrange,
@@ -556,8 +488,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                               filled: true,
                               fillColor: Colors.white,
                               border: OutlineInputBorder(
-                                borderRadius:
-                                    BorderRadius.circular(14),
+                                borderRadius: BorderRadius.circular(14),
                               ),
                             ),
                           ),
@@ -578,7 +509,6 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
 
                     const SizedBox(height: 12),
 
-                    // Map with a fixed centre pin
                     ClipRRect(
                       borderRadius: BorderRadius.circular(18),
                       child: SizedBox(
@@ -587,21 +517,20 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                           alignment: Alignment.center,
                           children: [
                             GoogleMap(
-                              initialCameraPosition:
-                                  CameraPosition(
+                              initialCameraPosition: CameraPosition(
                                 target: _selectedLocation,
                                 zoom: 15,
                               ),
                               onMapCreated: (controller) {
                                 _mapController = controller;
+                                _isMapReady = true;
                               },
                               onCameraMove: (position) {
-                                _selectedLocation =
-                                    position.target;
+                                _selectedLocation = position.target;
                                 _locationConfirmed = true;
                               },
                               onCameraIdle: () {
-                                _onMapCameraIdle();
+                                _resolveAddress(_selectedLocation);
                               },
                               myLocationEnabled: false,
                               myLocationButtonEnabled: false,
@@ -611,9 +540,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                             ),
                             const IgnorePointer(
                               child: Padding(
-                                padding: EdgeInsets.only(
-                                  bottom: 30,
-                                ),
+                                padding: EdgeInsets.only(bottom: 30),
                                 child: Icon(
                                   Icons.location_pin,
                                   size: 46,
@@ -631,9 +558,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                                 onPressed: _resolvingAddress
                                     ? null
                                     : _getCurrentLocation,
-                                child: const Icon(
-                                  Icons.my_location,
-                                ),
+                                child: const Icon(Icons.my_location),
                               ),
                             ),
                             if (_resolvingAddress)
@@ -645,25 +570,21 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                                   padding: const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
-                                    borderRadius:
-                                        BorderRadius.circular(10),
+                                    borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: const Row(
                                     children: [
                                       SizedBox(
-                                        width: 18,
                                         height: 18,
-                                        child:
-                                            CircularProgressIndicator(
+                                        width: 18,
+                                        child: CircularProgressIndicator(
                                           strokeWidth: 2,
                                           color: addressOrange,
                                         ),
                                       ),
                                       SizedBox(width: 10),
                                       Expanded(
-                                        child: Text(
-                                          'Finding address...',
-                                        ),
+                                        child: Text('Finding address...'),
                                       ),
                                     ],
                                   ),
@@ -678,17 +599,21 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
 
                     Row(
                       children: [
-                        const Icon(
-                          Icons.check_circle,
+                        Icon(
+                          _locationConfirmed
+                              ? Icons.check_circle
+                              : Icons.info_outline,
                           size: 18,
-                          color: Colors.green,
+                          color: _locationConfirmed
+                              ? Colors.green
+                              : Colors.orange,
                         ),
                         const SizedBox(width: 7),
                         Expanded(
                           child: Text(
                             _locationConfirmed
                                 ? 'Pickup location selected'
-                                : 'Select a location on the map',
+                                : 'Select your pickup location',
                             style: const TextStyle(
                               fontWeight: FontWeight.w600,
                             ),
@@ -765,8 +690,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                     _buildTextField(
                       label: 'Pickup Instructions',
                       controller: _instructionsController,
-                      hint:
-                          'e.g. Call when you reach the gate',
+                      hint: 'e.g. Call when you reach the gate',
                       maxLines: 3,
                     ),
 
@@ -779,7 +703,6 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-
                     const SizedBox(height: 12),
 
                     Wrap(
@@ -787,10 +710,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                       children: [
                         _buildLabelChip('Home', Icons.home),
                         _buildLabelChip('Work', Icons.work),
-                        _buildLabelChip(
-                          'Other',
-                          Icons.location_on,
-                        ),
+                        _buildLabelChip('Other', Icons.location_on),
                       ],
                     ),
 
@@ -799,20 +719,15 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                     CheckboxListTile(
                       value: _isDefault,
                       onChanged: (value) {
-                        setState(() {
-                          _isDefault = value ?? false;
-                        });
+                        setState(() => _isDefault = value ?? false);
                       },
                       activeColor: addressOrange,
                       contentPadding: EdgeInsets.zero,
                       title: const Text(
                         'Set as default address',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: TextStyle(fontWeight: FontWeight.w600),
                       ),
-                      controlAffinity:
-                          ListTileControlAffinity.leading,
+                      controlAffinity: ListTileControlAffinity.leading,
                     ),
 
                     const SizedBox(height: 12),
@@ -824,8 +739,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Row(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Icon(
                             Icons.info_outline,
@@ -834,9 +748,9 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                           SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              'Please select the correct pickup point. '
-                              'The saved coordinates will be used for '
-                              'your booking.',
+                              'Check the pickup point before saving. '
+                              'Its coordinates will be stored with '
+                              'the address.',
                               style: TextStyle(height: 1.4),
                             ),
                           ),
@@ -847,14 +761,8 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                 ),
               ),
 
-              // Save button
               Container(
-                padding: const EdgeInsets.fromLTRB(
-                  16,
-                  12,
-                  16,
-                  16,
-                ),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
                 decoration: const BoxDecoration(
                   color: Colors.white,
                   boxShadow: [
@@ -869,13 +777,10 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                   width: double.infinity,
                   height: 54,
                   child: ElevatedButton(
-                    onPressed:
-                        _saving ? null : _saveAddress,
+                    onPressed: _saving ? null : _saveAddress,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: addressOrange,
                       foregroundColor: Colors.white,
-                      disabledBackgroundColor:
-                          Colors.orange.shade200,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
@@ -905,31 +810,6 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildLabelChip(String label, IconData icon) {
-    final selected = _label == label;
-
-    return ChoiceChip(
-      label: Text(label),
-      avatar: Icon(
-        icon,
-        size: 18,
-        color: selected ? Colors.white : addressOrange,
-      ),
-      selected: selected,
-      selectedColor: addressOrange,
-      backgroundColor: Colors.white,
-      labelStyle: TextStyle(
-        color: selected ? Colors.white : Colors.black87,
-        fontWeight: FontWeight.w600,
-      ),
-      onSelected: (_) {
-        setState(() {
-          _label = label;
-        });
-      },
     );
   }
 }
