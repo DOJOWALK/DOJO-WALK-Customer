@@ -1,3 +1,4 @@
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -24,36 +25,16 @@ class AddressService {
   }
 
   CollectionReference<Map<String, dynamic>> get _addresses =>
-      _firestore.collection('users').doc(_uid).collection('addresses');
+      _firestore
+          .collection('users')
+          .doc(_uid)
+          .collection('addresses');
 
-  Stream<List<SavedAddress>> watchAddresses() {
-    return _addresses.snapshots().map((snapshot) {
-      final addresses = snapshot.docs
-          .map((doc) => SavedAddress.fromMap(doc.id, doc.data()))
-          .toList();
-
-      addresses.sort((a, b) {
-        if (a.isDefault != b.isDefault) {
-          return a.isDefault ? -1 : 1;
-        }
-
-        final aTime = a.createdAt?.millisecondsSinceEpoch ?? 0;
-        final bTime = b.createdAt?.millisecondsSinceEpoch ?? 0;
-
-        return bTime.compareTo(aTime);
-      });
-
-      return addresses;
-    });
-  }
-
-  Future<List<SavedAddress>> getAddresses() async {
-    final snapshot = await _addresses.get();
-
-    final addresses = snapshot.docs
-        .map((doc) => SavedAddress.fromMap(doc.id, doc.data()))
-        .toList();
-
+  /// Returns addresses with the default address first,
+  /// followed by the newest saved addresses.
+  List<SavedAddress> _sortAddresses(
+    List<SavedAddress> addresses,
+  ) {
     addresses.sort((a, b) {
       if (a.isDefault != b.isDefault) {
         return a.isDefault ? -1 : 1;
@@ -68,37 +49,79 @@ class AddressService {
     return addresses;
   }
 
+  Stream<List<SavedAddress>> watchAddresses() {
+    return _addresses.snapshots().map((snapshot) {
+      final addresses = snapshot.docs
+          .map(
+            (doc) => SavedAddress.fromMap(
+              doc.id,
+              doc.data(),
+            ),
+          )
+          .toList();
+
+      return _sortAddresses(addresses);
+    });
+  }
+
+  Future<List<SavedAddress>> getAddresses() async {
+    final snapshot = await _addresses.get();
+
+    final addresses = snapshot.docs
+        .map(
+          (doc) => SavedAddress.fromMap(
+            doc.id,
+            doc.data(),
+          ),
+        )
+        .toList();
+
+    return _sortAddresses(addresses);
+  }
+
+  /// Saves a new address or updates an existing address.
+  ///
+  /// Returns the Firestore document ID of the saved address.
+  /// The first address automatically becomes the default address.
   Future<String> saveAddress(
     SavedAddress address, {
     bool makeDefault = false,
   }) async {
     final collection = _addresses;
-    final isNew = address.id.isEmpty;
-    final ref = isNew ? collection.doc() : collection.doc(address.id);
+    final isNew = address.id.trim().isEmpty;
 
-    final existingSnapshot = isNew ? null : await ref.get();
+    final DocumentReference<Map<String, dynamic>> ref =
+        isNew ? collection.doc() : collection.doc(address.id);
 
-    if (!isNew && !(existingSnapshot?.exists ?? false)) {
-      throw StateError('This address no longer exists.');
+    DocumentSnapshot<Map<String, dynamic>>? existingSnapshot;
+
+    if (!isNew) {
+      existingSnapshot = await ref.get();
+
+      if (!existingSnapshot.exists) {
+        throw StateError('This address no longer exists.');
+      }
     }
 
     final allAddresses = await collection.get();
 
-    // Editing keeps the existing default state unless the caller
-    // explicitly changes it through makeDefault or address.isDefault.
     final existingIsDefault =
         existingSnapshot?.data()?['isDefault'] == true;
 
+    // Keep the current default when editing it.
+    // The first address is automatically made default.
     final shouldBeDefault = makeDefault ||
         address.isDefault ||
-        (isNew && allAddresses.docs.isEmpty) ||
-        (!isNew && existingIsDefault);
+        existingIsDefault ||
+        (isNew && allAddresses.docs.isEmpty);
 
     final batch = _firestore.batch();
 
+    // Ensure only the selected address remains default.
     if (shouldBeDefault) {
       for (final doc in allAddresses.docs) {
-        if (doc.id != ref.id && doc.data()['isDefault'] == true) {
+        if (doc.id != ref.id &&
+            doc.data()['isDefault'] == true) {
           batch.update(doc.reference, {
             'isDefault': false,
             'updatedAt': FieldValue.serverTimestamp(),
@@ -111,16 +134,22 @@ class AddressService {
         .copyWith(isDefault: shouldBeDefault)
         .toMap(includeCreatedAt: isNew);
 
-    batch.set(ref, data, SetOptions(merge: true));
+    batch.set(
+      ref,
+      data,
+      SetOptions(merge: true),
+    );
 
     await batch.commit();
 
     return ref.id;
   }
 
+  /// Makes the selected address the default address.
   Future<void> setDefaultAddress(String addressId) async {
     final collection = _addresses;
     final selected = collection.doc(addressId);
+
     final selectedSnapshot = await selected.get();
 
     if (!selectedSnapshot.exists) {
@@ -140,20 +169,26 @@ class AddressService {
     await batch.commit();
   }
 
+  /// Deletes an address.
+  /// If it was the default, the newest remaining address becomes default.
   Future<void> deleteAddress(String addressId) async {
     final collection = _addresses;
     final selected = collection.doc(addressId);
+
     final selectedSnapshot = await selected.get();
 
     if (!selectedSnapshot.exists) {
       return;
     }
 
-    final wasDefault = selectedSnapshot.data()?['isDefault'] == true;
+    final wasDefault =
+        selectedSnapshot.data()?['isDefault'] == true;
+
     final snapshot = await collection.get();
 
-    final remaining =
-        snapshot.docs.where((doc) => doc.id != addressId).toList();
+    final remaining = snapshot.docs
+        .where((doc) => doc.id != addressId)
+        .toList();
 
     final batch = _firestore.batch();
 
@@ -161,12 +196,16 @@ class AddressService {
 
     if (wasDefault && remaining.isNotEmpty) {
       remaining.sort((a, b) {
-        final aTime = (a.data()['createdAt'] as Timestamp?)
-                ?.millisecondsSinceEpoch ??
-            0;
-        final bTime = (b.data()['createdAt'] as Timestamp?)
-                ?.millisecondsSinceEpoch ??
-            0;
+        final aCreatedAt = a.data()['createdAt'];
+        final bCreatedAt = b.data()['createdAt'];
+
+        final aTime = aCreatedAt is Timestamp
+            ? aCreatedAt.millisecondsSinceEpoch
+            : 0;
+
+        final bTime = bCreatedAt is Timestamp
+            ? bCreatedAt.millisecondsSinceEpoch
+            : 0;
 
         return bTime.compareTo(aTime);
       });
