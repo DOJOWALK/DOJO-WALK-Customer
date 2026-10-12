@@ -51,6 +51,12 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
+      - name: Check App Icon Image
+        run: test -s assets/images/dojo_icon.png
+
+      - name: Generate Android App Icon
+        run: dart run flutter_launcher_icons
+
       - name: Analyze
         run: flutter analyze
 
