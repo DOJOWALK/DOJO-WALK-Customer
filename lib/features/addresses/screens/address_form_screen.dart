@@ -1,4 +1,3 @@
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -9,851 +8,928 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../models/saved_address.dart';
 import '../services/address_service.dart';
 
-class AddressFormScreen extends StatefulWidget {
-  const AddressFormScreen({super.key, this.address});
+const Color addressOrange = Color(0xFFFF7900);
+const Color addressBackground = Color(0xFFFFFAF5);
 
+class AddressFormScreen extends StatefulWidget {
   final SavedAddress? address;
+
+  const AddressFormScreen({
+    super.key,
+    this.address,
+  });
 
   @override
   State<AddressFormScreen> createState() => _AddressFormScreenState();
 }
 
 class _AddressFormScreenState extends State<AddressFormScreen> {
-  static const orange = Color(0xFFFF7900);
-  static const background = Color(0xFFFFFAF5);
-
   final _formKey = GlobalKey<FormState>();
+
   final _searchController = TextEditingController();
-  final _flatController = TextEditingController();
+  final _flatHouseController = TextEditingController();
   final _buildingController = TextEditingController();
   final _areaController = TextEditingController();
+  final _landmarkController = TextEditingController();
   final _cityController = TextEditingController();
   final _pincodeController = TextEditingController();
-  final _landmarkController = TextEditingController();
   final _instructionsController = TextEditingController();
 
   GoogleMapController? _mapController;
 
-  // Initial camera only. These are not saved as a confirmed pickup
-  // location until the map pin coordinates have been selected.
-  static const LatLng _initialCamera = LatLng(28.47, 77.50);
+  final AddressService _addressService = AddressService();
 
-  late LatLng _selectedPosition;
-  LatLng? _pendingPosition;
+  static const LatLng _initialLocation = LatLng(
+    28.6139,
+    77.2090,
+  );
+
+  LatLng _selectedLocation = _initialLocation;
 
   String _label = 'Home';
-  bool _isDefault = false;
+
   bool _saving = false;
   bool _resolvingAddress = false;
   bool _locationConfirmed = false;
-  bool _mapReady = false;
+  bool _isDefault = false;
 
-  Timer? _searchDebounce;
-  int _lookupVersion = 0;
-
-  bool get _editing => widget.address != null;
+  bool get _isEditing => widget.address != null;
 
   @override
   void initState() {
     super.initState();
 
-    final old = widget.address;
+    _loadExistingAddress();
+  }
 
-    _selectedPosition = old?.latitude != null &&
-            old?.longitude != null
-        ? LatLng(old!.latitude!, old.longitude!)
-        : _initialCamera;
+  void _loadExistingAddress() {
+    final address = widget.address;
 
-    if (old != null) {
-      _label = old.label;
-      _flatController.text = old.flatHouse;
-      _buildingController.text = old.buildingSociety;
-      _areaController.text = old.area;
-      _cityController.text = old.city;
-      _pincodeController.text = old.pincode;
-      _landmarkController.text = old.landmark;
-      _instructionsController.text = old.pickupInstructions;
-
-      _locationConfirmed =
-          old.latitude != null && old.longitude != null;
+    if (address == null) {
+      return;
     }
+
+    _label = address.label;
+    _flatHouseController.text = address.flatHouse;
+    _buildingController.text = address.buildingSociety;
+    _areaController.text = address.area;
+    _landmarkController.text = address.landmark;
+    _cityController.text = address.city;
+    _pincodeController.text = address.pincode;
+    _instructionsController.text = address.pickupInstructions;
+
+    _isDefault = address.isDefault;
+
+    if (address.latitude != null &&
+        address.longitude != null) {
+      _selectedLocation = LatLng(
+        address.latitude!,
+        address.longitude!,
+      );
+
+      _locationConfirmed = true;
+    }
+
+    _searchController.text = [
+      address.flatHouse,
+      address.area,
+      address.city,
+      address.pincode,
+    ].where((value) => value.trim().isNotEmpty).join(', ');
   }
 
   @override
   void dispose() {
-    _searchDebounce?.cancel();
     _mapController?.dispose();
+
     _searchController.dispose();
-    _flatController.dispose();
+    _flatHouseController.dispose();
     _buildingController.dispose();
     _areaController.dispose();
+    _landmarkController.dispose();
     _cityController.dispose();
     _pincodeController.dispose();
-    _landmarkController.dispose();
     _instructionsController.dispose();
+
     super.dispose();
   }
 
-  void _onCameraMove(CameraPosition position) {
-    _pendingPosition = position.target;
-  }
-
-  Future<void> _onCameraIdle() async {
-    final position = _pendingPosition;
-    if (position == null || !mounted) return;
-
-    _selectedPosition = position;
-    _locationConfirmed = true;
-
-    await _fillAddressFromCoordinates(position);
-  }
-
-  Future<void> _fillAddressFromCoordinates(LatLng position) async {
-    final version = ++_lookupVersion;
-
-    if (mounted) {
-      setState(() => _resolvingAddress = true);
-    }
-
-    try {
-      final places = await placemarkFromCoordinates(
-        position.latitude,
-        position.longitude,
-      );
-
-      if (!mounted || version != _lookupVersion) return;
-
-      if (places.isNotEmpty) {
-        final place = places.first;
-
-        final area = [
-          place.subLocality,
-          place.locality,
-          place.subAdministrativeArea,
-        ].whereType<String>()
-            .map((value) => value.trim())
-            .where((value) => value.isNotEmpty)
-            .toSet()
-            .join(', ');
-
-        final city = [
-          place.locality,
-          place.subAdministrativeArea,
-          place.administrativeArea,
-        ].whereType<String>()
-            .map((value) => value.trim())
-            .where((value) => value.isNotEmpty)
-            .firstOrNull;
-
-        final pin = place.postalCode?.trim() ?? '';
-
-        if (area.isNotEmpty) _areaController.text = area;
-        if (city != null && city.isNotEmpty) {
-          _cityController.text = city;
-        }
-        if (RegExp(r'^[0-9]{6}$').hasMatch(pin)) {
-          _pincodeController.text = pin;
-        }
-      }
-    } catch (_) {
-      // Manual address entry remains available if reverse geocoding
-      // is unavailable or cannot find an address.
-    } finally {
-      if (mounted && version == _lookupVersion) {
-        setState(() => _resolvingAddress = false);
-      }
-    }
-  }
-
-  Future<void> _searchPlace() async {
+  Future<void> _searchAddress() async {
     final query = _searchController.text.trim();
 
     if (query.isEmpty) {
-      _message('पहले जगह या address लिखें।');
+      _showMessage('Please enter an address to search.');
       return;
     }
 
     FocusScope.of(context).unfocus();
 
-    try {
-      final results = await locationFromAddress(query);
+    setState(() {
+      _resolvingAddress = true;
+    });
 
-      if (results.isEmpty) {
-        _message('यह जगह नहीं मिली। दूसरा address खोजें।');
+    try {
+      final locations = await locationFromAddress(query);
+
+      if (locations.isEmpty) {
+        _showMessage('Address location was not found.');
         return;
       }
 
-      final result = results.first;
-      final target = LatLng(result.latitude, result.longitude);
+      final location = locations.first;
 
-      _pendingPosition = target;
-      _selectedPosition = target;
-      _locationConfirmed = true;
-
-      await _mapController?.animateCamera(
-        CameraUpdate.newLatLngZoom(target, 17),
+      final target = LatLng(
+        location.latitude,
+        location.longitude,
       );
 
-      if (mounted) setState(() {});
-      await _fillAddressFromCoordinates(target);
-    } catch (_) {
-      _message(
-        'जगह खोज नहीं पाए। Map को move करके location चुनें।',
+      await _moveMapTo(target);
+
+      await _resolveAddress(target);
+    } catch (error) {
+      _showMessage(
+        'Address search failed. Please try another address.',
       );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _resolvingAddress = false;
+        });
+      }
     }
   }
 
-  Future<void> _useCurrentLocation() async {
+  Future<void> _getCurrentLocation() async {
+    setState(() {
+      _resolvingAddress = true;
+    });
+
     try {
       final serviceEnabled =
           await Geolocator.isLocationServiceEnabled();
 
       if (!serviceEnabled) {
-        _message('फोन की Location/GPS चालू करें।');
+        _showMessage(
+          'Please turn on your phone location.',
+        );
         return;
       }
 
-      var permission = await Geolocator.checkPermission();
+      LocationPermission permission =
+          await Geolocator.checkPermission();
 
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
       }
 
       if (permission == LocationPermission.denied) {
-        _message('Current Location के लिए location permission दें।');
-        return;
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        _message(
-          'Phone Settings में जाकर DOJO WALK की location permission चालू करें।',
+        _showMessage(
+          'Location permission is required.',
         );
         return;
       }
 
-      final position = await Geolocator.getCurrentPosition(
+      if (permission == LocationPermission.deniedForever) {
+        _showMessage(
+          'Please enable location permission in phone settings.',
+        );
+        return;
+      }
+
+      final position =
+          await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
         ),
       );
-
-      if (!mounted) return;
 
       final target = LatLng(
         position.latitude,
         position.longitude,
       );
 
-      _pendingPosition = target;
-      _selectedPosition = target;
-      _locationConfirmed = true;
+      await _moveMapTo(target);
 
-      await _mapController?.animateCamera(
-        CameraUpdate.newLatLngZoom(target, 17),
+      await _resolveAddress(target);
+    } catch (error) {
+      _showMessage(
+        'Unable to get current location. Please try again.',
       );
-
-      if (mounted) setState(() {});
-      await _fillAddressFromCoordinates(target);
-    } catch (_) {
-      _message(
-        'Current Location नहीं मिल सकी। Search या Map से जगह चुनें।',
-      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _resolvingAddress = false;
+        });
+      }
     }
   }
 
-  Future<void> _save() async {
+  Future<void> _moveMapTo(LatLng target) async {
+    if (!mounted) return;
+
+    setState(() {
+      _selectedLocation = target;
+      _locationConfirmed = true;
+    });
+
+    await _mapController?.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: target,
+          zoom: 17,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _resolveAddress(LatLng location) async {
+    try {
+      final placemarks = await placemarkFromCoordinates(
+        location.latitude,
+        location.longitude,
+      );
+
+      if (!mounted || placemarks.isEmpty) {
+        return;
+      }
+
+      final place = placemarks.first;
+
+      final area = [
+        place.subLocality,
+        place.thoroughfare,
+      ]
+          .whereType<String>()
+          .map((value) => value.trim())
+          .where((value) => value.isNotEmpty)
+          .toSet()
+          .join(', ');
+
+      final cityCandidates = [
+        place.locality,
+        place.subAdministrativeArea,
+        place.administrativeArea,
+      ]
+          .whereType<String>()
+          .map((value) => value.trim())
+          .where((value) => value.isNotEmpty);
+
+      final city = cityCandidates.isEmpty
+          ? ''
+          : cityCandidates.first;
+
+      final pincode = place.postalCode?.trim() ?? '';
+
+      setState(() {
+        if (area.isNotEmpty) {
+          _areaController.text = area;
+        }
+
+        if (city.isNotEmpty) {
+          _cityController.text = city;
+        }
+
+        if (pincode.isNotEmpty) {
+          _pincodeController.text = pincode;
+        }
+
+        _searchController.text = [
+          area,
+          city,
+          pincode,
+        ].where((value) => value.isNotEmpty).join(', ');
+      });
+    } catch (error) {
+      // Reverse geocoding may fail even when map coordinates are valid.
+      // The user can enter the address manually.
+    }
+  }
+
+  Future<void> _onMapCameraIdle() async {
+    final controller = _mapController;
+
+    if (controller == null) return;
+
+    try {
+      final cameraPosition = await controller.getLatLng(
+        const ScreenCoordinate(
+          x: 1,
+          y: 1,
+        ),
+      );
+
+      // The fixed centre pin determines the selected location below.
+      // The actual centre is read from the camera target instead.
+      if (!mounted) return;
+
+      final visibleRegion = await controller.getVisibleRegion();
+
+      final center = LatLng(
+        (visibleRegion.northeast.latitude +
+                visibleRegion.southwest.latitude) /
+            2,
+        (visibleRegion.northeast.longitude +
+                visibleRegion.southwest.longitude) /
+            2,
+      );
+
+      // Avoid using screen-coordinate values as the selected address.
+      // The camera target is the authoritative map selection.
+      final target = center;
+
+      setState(() {
+        _selectedLocation = target;
+        _locationConfirmed = true;
+      });
+
+      await _resolveAddress(target);
+
+      // Keep analyzer from flagging the API result as unused.
+      cameraPosition.latitude;
+    } catch (error) {
+      // The user can still choose the location using GPS or search.
+    }
+  }
+
+  String? _requiredValidator(
+    String? value,
+    String message,
+  ) {
+    if (value == null || value.trim().isEmpty) {
+      return message;
+    }
+
+    return null;
+  }
+
+  String? _pincodeValidator(String? value) {
+    final pincode = value?.trim() ?? '';
+
+    if (!RegExp(r'^\d{6}$').hasMatch(pincode)) {
+      return 'Enter a valid 6-digit PIN code.';
+    }
+
+    return null;
+  }
+
+  Future<void> _saveAddress() async {
     FocusScope.of(context).unfocus();
 
-    if (!_formKey.currentState!.validate()) return;
-
-    if (!_locationConfirmed ||
-        !_selectedPosition.latitude.isFinite ||
-        !_selectedPosition.longitude.isFinite ||
-        _selectedPosition.latitude.abs() > 90 ||
-        _selectedPosition.longitude.abs() > 180) {
-      _message('पहले Map पर सही pickup location चुनें।');
+    if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    setState(() => _saving = true);
+    if (!_locationConfirmed) {
+      _showMessage(
+        'Please select the pickup location on the map.',
+      );
+      return;
+    }
 
-    final messenger = ScaffoldMessenger.of(context);
-    final navigator = Navigator.of(context);
-    final old = widget.address;
+    if (_selectedLocation.latitude < -90 ||
+        _selectedLocation.latitude > 90 ||
+        _selectedLocation.longitude < -180 ||
+        _selectedLocation.longitude > 180) {
+      _showMessage(
+        'Please select a valid location.',
+      );
+      return;
+    }
+
+    setState(() {
+      _saving = true;
+    });
 
     try {
       final address = SavedAddress(
-        id: old?.id ?? '',
+        id: widget.address?.id ?? '',
         label: _label,
-        flatHouse: _flatController.text.trim(),
+        flatHouse: _flatHouseController.text.trim(),
         buildingSociety: _buildingController.text.trim(),
         area: _areaController.text.trim(),
         landmark: _landmarkController.text.trim(),
         city: _cityController.text.trim(),
         pincode: _pincodeController.text.trim(),
-        pickupInstructions: _instructionsController.text.trim(),
-        latitude: _selectedPosition.latitude,
-        longitude: _selectedPosition.longitude,
+        pickupInstructions:
+            _instructionsController.text.trim(),
+        latitude: _selectedLocation.latitude,
+        longitude: _selectedLocation.longitude,
         isDefault: _isDefault,
+        createdAt: widget.address?.createdAt,
+        updatedAt: null,
       );
 
-      await AddressService().saveAddress(
+      await _addressService.saveAddress(
         address,
         makeDefault: _isDefault,
       );
 
       if (!mounted) return;
 
-      navigator.pop();
-
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            old == null
-                ? 'Address saved successfully.'
-                : 'Address updated successfully.',
-          ),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } catch (_) {
-      if (!mounted) return;
-
-      _message(
-        'Address save नहीं हुआ। Internet, login और Firebase permissions जाँचें।',
+      Navigator.of(context).pop(true);
+    } catch (error) {
+      _showMessage(
+        'Address could not be saved. Please try again.',
       );
     } finally {
-      if (mounted) setState(() => _saving = false);
+      if (mounted) {
+        setState(() {
+          _saving = false;
+        });
+      }
     }
   }
 
-  void _message(String message) {
+  void _showMessage(String message) {
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.black87,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+  }
+
+  Widget _buildTextField({
+    required String label,
+    required TextEditingController controller,
+    String? hint,
+    String? Function(String?)? validator,
+    TextInputType keyboardType = TextInputType.text,
+    int maxLines = 1,
+    bool required = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,
+        maxLines: maxLines,
+        validator: validator,
+        textCapitalization: TextCapitalization.sentences,
+        decoration: InputDecoration(
+          labelText: required ? '$label *' : label,
+          hintText: hint,
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(
+              color: Color(0xFFE7E0D9),
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(
+              color: addressOrange,
+              width: 1.5,
+            ),
+          ),
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.sizeOf(context);
-
     return Scaffold(
-      backgroundColor: background,
-      body: Stack(
-        children: [
-          // Map remains behind the address bottom sheet.
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: size.height * 0.62,
-            child: GoogleMap(
-              initialCameraPosition: CameraPosition(
-                target: _selectedPosition,
-                zoom: _locationConfirmed ? 17 : 12,
-              ),
-              onMapCreated: (controller) {
-                _mapController = controller;
-                _mapReady = true;
-              },
-              onCameraMove: _onCameraMove,
-              onCameraIdle: _onCameraIdle,
-              myLocationEnabled: false,
-              myLocationButtonEnabled: false,
-              zoomControlsEnabled: false,
-              mapToolbarEnabled: false,
-              compassEnabled: true,
-              onTap: (point) {
-                _pendingPosition = point;
-                _selectedPosition = point;
-                _locationConfirmed = true;
-
-                _mapController?.animateCamera(
-                  CameraUpdate.newLatLng(point),
-                );
-
-                setState(() {});
-              },
-            ),
+      backgroundColor: addressBackground,
+      appBar: AppBar(
+        backgroundColor: addressBackground,
+        foregroundColor: Colors.black87,
+        elevation: 0,
+        title: Text(
+          _isEditing ? 'Edit Address' : 'Add New Address',
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
           ),
-
-          // Top search and navigation.
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(14, 8, 14, 0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      _circleButton(
-                        icon: Icons.arrow_back,
-                        onTap: () => Navigator.of(context).pop(),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Container(
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(15),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color(0x18000000),
-                                blurRadius: 12,
-                                offset: Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: TextField(
-                            controller: _searchController,
-                            textInputAction: TextInputAction.search,
-                            onSubmitted: (_) => _searchPlace(),
-                            decoration: InputDecoration(
-                              hintText: 'Search places or address',
-                              prefixIcon: const Icon(
-                                Icons.search,
-                                color: orange,
-                              ),
-                              suffixIcon: IconButton(
-                                tooltip: 'Search',
-                                onPressed: _searchPlace,
-                                icon: const Icon(Icons.arrow_forward),
-                              ),
-                              border: InputBorder.none,
-                              contentPadding:
-                                  const EdgeInsets.symmetric(vertical: 13),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Material(
-                      color: Colors.white,
-                      elevation: 3,
-                      borderRadius: BorderRadius.circular(15),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(15),
-                        onTap: _useCurrentLocation,
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 13,
-                            vertical: 11,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.my_location,
-                                color: orange,
-                                size: 20,
-                              ),
-                              SizedBox(width: 7),
-                              Text(
-                                'Current Location',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Fixed center pin: moving the map selects another location.
-          Positioned(
-            top: size.height * 0.275,
-            left: 0,
-            right: 0,
-            child: IgnorePointer(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.location_on,
-                    size: 46,
-                    color: orange,
-                  ),
-                  Container(
-                    width: 7,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.black26,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Address bottom sheet.
-          Positioned(
-            top: size.height * 0.405,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              decoration: const BoxDecoration(
-                color: background,
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(26),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0x22000000),
-                    blurRadius: 18,
-                    offset: Offset(0, -4),
-                  ),
-                ],
-              ),
-              child: Form(
-                key: _formKey,
+        ),
+      ),
+      body: SafeArea(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(18, 10, 18, 28),
+                  padding: const EdgeInsets.all(16),
                   children: [
-                    Center(
-                      child: Container(
-                        height: 4,
-                        width: 42,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFD6D6D6),
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 17),
-                    Text(
-                      _editing ? 'Edit Address' : 'Confirm your address',
-                      style: const TextStyle(
-                        fontSize: 21,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFF202020),
-                      ),
-                    ),
-                    const SizedBox(height: 5),
                     const Text(
-                      'Location से address auto-fill होगा। सही पता जाँचकर भरें।',
+                      'Where should the walker pick up your dog?',
                       style: TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF777777),
-                        height: 1.4,
-                      ),
-                    ),
-                    if (_resolvingAddress) ...[
-                      const SizedBox(height: 12),
-                      const LinearProgressIndicator(
-                        color: orange,
-                        minHeight: 2,
-                      ),
-                      const SizedBox(height: 5),
-                      const Text(
-                        'Address details खोज रहे हैं…',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF777777),
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 18),
-                    const Text(
-                      'SAVE ADDRESS AS',
-                      style: TextStyle(
-                        fontSize: 11,
-                        letterSpacing: 1,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFF777777),
-                      ),
-                    ),
-                    const SizedBox(height: 9),
-                    Wrap(
-                      spacing: 8,
-                      children: ['Home', 'Work', 'Other'].map((label) {
-                        final selected = _label == label;
-
-                        return ChoiceChip(
-                          label: Text(label),
-                          selected: selected,
-                          onSelected: (_) {
-                            setState(() => _label = label);
-                          },
-                          selectedColor: const Color(0xFFFFE5CF),
-                          checkmarkColor: orange,
-                          side: BorderSide(
-                            color: selected
-                                ? orange
-                                : const Color(0xFFE5E5E5),
-                          ),
-                          labelStyle: TextStyle(
-                            color: selected
-                                ? orange
-                                : const Color(0xFF555555),
-                            fontWeight: FontWeight.w800,
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 17),
-                    _field(
-                      controller: _flatController,
-                      label: 'House / Flat / Tower',
-                      hint: 'House, flat या tower नंबर',
-                      requiredField: true,
-                    ),
-                    _field(
-                      controller: _buildingController,
-                      label: 'Building / Society',
-                      hint: 'Building या society का नाम (optional)',
-                    ),
-                    _field(
-                      controller: _areaController,
-                      label: 'Area / Society',
-                      hint: 'Area या society का नाम',
-                      requiredField: true,
-                    ),
-                    _field(
-                      controller: _cityController,
-                      label: 'City',
-                      hint: 'City',
-                      requiredField: true,
-                    ),
-                    _field(
-                      controller: _pincodeController,
-                      label: 'PIN Code',
-                      hint: '6-digit PIN Code',
-                      requiredField: true,
-                      keyboardType: TextInputType.number,
-                      maxLength: 6,
-                      validator: (value) {
-                        if (!RegExp(r'^[0-9]{6}$')
-                            .hasMatch(value?.trim() ?? '')) {
-                          return 'सही 6-digit PIN Code भरें';
-                        }
-                        return null;
-                      },
-                    ),
-                    _field(
-                      controller: _landmarkController,
-                      label: 'Landmark',
-                      hint: 'पास की जगह या landmark (optional)',
-                    ),
-                    _field(
-                      controller: _instructionsController,
-                      label: 'Pickup Instructions',
-                      hint: 'Gate, floor, entry details (optional)',
-                      maxLines: 2,
-                    ),
-                    const SizedBox(height: 2),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(13),
-                        border: Border.all(
-                          color: const Color(0xFFE8E8E8),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.location_on,
-                            color: orange,
-                            size: 25,
-                          ),
-                          const SizedBox(width: 9),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _locationConfirmed
-                                      ? 'Pickup pin selected'
-                                      : 'Pickup location not confirmed',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                                const SizedBox(height: 3),
-                                Text(
-                                  _locationConfirmed
-                                      ? '${_selectedPosition.latitude.toStringAsFixed(6)}, ${_selectedPosition.longitude.toStringAsFixed(6)}'
-                                      : 'Search करें या Map से जगह चुनें',
-                                  style: const TextStyle(
-                                    color: Color(0xFF777777),
-                                    fontSize: 11,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Icon(
-                            _locationConfirmed
-                                ? Icons.check_circle
-                                : Icons.info_outline,
-                            color: _locationConfirmed
-                                ? Colors.green
-                                : Colors.orange,
-                          ),
-                        ],
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    CheckboxListTile(
-                      contentPadding: EdgeInsets.zero,
-                      value: _isDefault,
-                      activeColor: orange,
-                      controlAffinity: ListTileControlAffinity.leading,
-                      title: const Text(
-                        'Set as default address',
-                        style: TextStyle(fontWeight: FontWeight.w800),
+                    const Text(
+                      'Search your address or move the map to select '
+                      'the exact pickup location.',
+                      style: TextStyle(
+                        color: Colors.black54,
+                        height: 1.4,
                       ),
-                      onChanged: (value) {
-                        setState(() => _isDefault = value ?? false);
-                      },
                     ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      height: 54,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: orange,
-                          foregroundColor: Colors.white,
-                          disabledBackgroundColor:
-                              const Color(0xFFFFC18E),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
+                    const SizedBox(height: 18),
+
+                    // Address search
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            textInputAction: TextInputAction.search,
+                            onSubmitted: (_) => _searchAddress(),
+                            decoration: InputDecoration(
+                              hintText: 'Search area or address',
+                              prefixIcon: const Icon(
+                                Icons.search,
+                                color: addressOrange,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              border: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.circular(14),
+                              ),
+                            ),
                           ),
                         ),
-                        onPressed: _saving ? null : _save,
-                        child: _saving
-                            ? const SizedBox(
-                                height: 22,
-                                width: 22,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  color: Colors.white,
+                        const SizedBox(width: 8),
+                        IconButton.filled(
+                          onPressed: _resolvingAddress
+                              ? null
+                              : _searchAddress,
+                          style: IconButton.styleFrom(
+                            backgroundColor: addressOrange,
+                            foregroundColor: Colors.white,
+                          ),
+                          icon: const Icon(Icons.arrow_forward),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // Map with a fixed centre pin
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(18),
+                      child: SizedBox(
+                        height: 280,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            GoogleMap(
+                              initialCameraPosition:
+                                  CameraPosition(
+                                target: _selectedLocation,
+                                zoom: 15,
+                              ),
+                              onMapCreated: (controller) {
+                                _mapController = controller;
+                              },
+                              onCameraMove: (position) {
+                                _selectedLocation =
+                                    position.target;
+                                _locationConfirmed = true;
+                              },
+                              onCameraIdle: () {
+                                _onMapCameraIdle();
+                              },
+                              myLocationEnabled: false,
+                              myLocationButtonEnabled: false,
+                              zoomControlsEnabled: false,
+                              mapToolbarEnabled: false,
+                              compassEnabled: true,
+                            ),
+                            const IgnorePointer(
+                              child: Padding(
+                                padding: EdgeInsets.only(
+                                  bottom: 30,
                                 ),
-                              )
-                            : Text(
-                                _editing
-                                    ? 'Update Address'
-                                    : 'Save Address',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 15,
+                                child: Icon(
+                                  Icons.location_pin,
+                                  size: 46,
+                                  color: addressOrange,
                                 ),
                               ),
+                            ),
+                            Positioned(
+                              right: 12,
+                              bottom: 12,
+                              child: FloatingActionButton.small(
+                                heroTag: 'addressCurrentLocation',
+                                backgroundColor: Colors.white,
+                                foregroundColor: addressOrange,
+                                onPressed: _resolvingAddress
+                                    ? null
+                                    : _getCurrentLocation,
+                                child: const Icon(
+                                  Icons.my_location,
+                                ),
+                              ),
+                            ),
+                            if (_resolvingAddress)
+                              Positioned(
+                                top: 12,
+                                left: 12,
+                                right: 12,
+                                child: Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius:
+                                        BorderRadius.circular(10),
+                                  ),
+                                  child: const Row(
+                                    children: [
+                                      SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child:
+                                            CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: addressOrange,
+                                        ),
+                                      ),
+                                      SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          'Finding address...',
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.check_circle,
+                          size: 18,
+                          color: Colors.green,
+                        ),
+                        const SizedBox(width: 7),
+                        Expanded(
+                          child: Text(
+                            _locationConfirmed
+                                ? 'Pickup location selected'
+                                : 'Select a location on the map',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    const Text(
+                      'Address Details',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    _buildTextField(
+                      label: 'Flat / House Number',
+                      controller: _flatHouseController,
+                      hint: 'e.g. Flat 201, House 12',
+                      required: true,
+                      validator: (value) => _requiredValidator(
+                        value,
+                        'Enter your flat or house number.',
+                      ),
+                    ),
+
+                    _buildTextField(
+                      label: 'Building / Society',
+                      controller: _buildingController,
+                      hint: 'e.g. ABC Residency',
+                    ),
+
+                    _buildTextField(
+                      label: 'Area / Locality',
+                      controller: _areaController,
+                      hint: 'Enter area or locality',
+                      required: true,
+                      validator: (value) => _requiredValidator(
+                        value,
+                        'Enter your area or locality.',
+                      ),
+                    ),
+
+                    _buildTextField(
+                      label: 'Landmark',
+                      controller: _landmarkController,
+                      hint: 'Nearby landmark (optional)',
+                    ),
+
+                    _buildTextField(
+                      label: 'City',
+                      controller: _cityController,
+                      hint: 'Enter city',
+                      required: true,
+                      validator: (value) => _requiredValidator(
+                        value,
+                        'Enter your city.',
+                      ),
+                    ),
+
+                    _buildTextField(
+                      label: 'PIN Code',
+                      controller: _pincodeController,
+                      hint: '6-digit PIN code',
+                      keyboardType: TextInputType.number,
+                      required: true,
+                      validator: _pincodeValidator,
+                    ),
+
+                    _buildTextField(
+                      label: 'Pickup Instructions',
+                      controller: _instructionsController,
+                      hint:
+                          'e.g. Call when you reach the gate',
+                      maxLines: 3,
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    const Text(
+                      'Save Address As',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    Wrap(
+                      spacing: 10,
+                      children: [
+                        _buildLabelChip('Home', Icons.home),
+                        _buildLabelChip('Work', Icons.work),
+                        _buildLabelChip(
+                          'Other',
+                          Icons.location_on,
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 18),
+
+                    CheckboxListTile(
+                      value: _isDefault,
+                      onChanged: (value) {
+                        setState(() {
+                          _isDefault = value ?? false;
+                        });
+                      },
+                      activeColor: addressOrange,
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text(
+                        'Set as default address',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      controlAffinity:
+                          ListTileControlAffinity.leading,
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF0E3),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Row(
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            color: addressOrange,
+                          ),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Please select the correct pickup point. '
+                              'The saved coordinates will be used for '
+                              'your booking.',
+                              style: TextStyle(height: 1.4),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _circleButton({
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.white,
-      elevation: 3,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: SizedBox(
-          height: 46,
-          width: 46,
-          child: Icon(icon, color: const Color(0xFF202020)),
+              // Save button
+              Container(
+                padding: const EdgeInsets.fromLTRB(
+                  16,
+                  12,
+                  16,
+                  16,
+                ),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0x12000000),
+                      blurRadius: 12,
+                      offset: Offset(0, -3),
+                    ),
+                  ],
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: ElevatedButton(
+                    onPressed:
+                        _saving ? null : _saveAddress,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: addressOrange,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor:
+                          Colors.orange.shade200,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: _saving
+                        ? const SizedBox(
+                            height: 22,
+                            width: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(
+                            _isEditing
+                                ? 'Update Address'
+                                : 'Save Address',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _field({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    bool requiredField = false,
-    TextInputType keyboardType = TextInputType.streetAddress,
-    int maxLines = 1,
-    int? maxLength,
-    String? Function(String?)? validator,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 15),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label + (requiredField ? ' *' : ''),
-            style: const TextStyle(
-              color: Color(0xFF303030),
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 7),
-          TextFormField(
-            controller: controller,
-            keyboardType: keyboardType,
-            maxLines: maxLines,
-            maxLength: maxLength,
-            validator: validator ??
-                (requiredField
-                    ? (value) =>
-                        value == null || value.trim().isEmpty
-                            ? 'यह field जरूरी है'
-                            : null
-                    : null),
-            decoration: InputDecoration(
-              hintText: hint,
-              counterText: '',
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 14,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(13),
-                borderSide:
-                    const BorderSide(color: Color(0xFFE8E8E8)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(13),
-                borderSide:
-                    const BorderSide(color: Color(0xFFE8E8E8)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(13),
-                borderSide:
-                    const BorderSide(color: orange, width: 1.5),
-              ),
-            ),
-          ),
-        ],
+  Widget _buildLabelChip(String label, IconData icon) {
+    final selected = _label == label;
+
+    return ChoiceChip(
+      label: Text(label),
+      avatar: Icon(
+        icon,
+        size: 18,
+        color: selected ? Colors.white : addressOrange,
       ),
+      selected: selected,
+      selectedColor: addressOrange,
+      backgroundColor: Colors.white,
+      labelStyle: TextStyle(
+        color: selected ? Colors.white : Colors.black87,
+        fontWeight: FontWeight.w600,
+      ),
+      onSelected: (_) {
+        setState(() {
+          _label = label;
+        });
+      },
     );
   }
 }
