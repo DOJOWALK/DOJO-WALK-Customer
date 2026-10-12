@@ -1,7 +1,7 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Location permission for DOJO WALK pickup address -->
+    <!-- DOJO WALK: Location permissions -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
@@ -10,7 +10,10 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 
-        <!-- Google Maps API key configuration will be added securely later. -->
+        <!-- Google Maps API key -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="${AIzaSyAN_uLRs9SN_27PRd3MpR7ZEmdqP1Oq3d4}" />
 
         <activity
             android:name=".MainActivity"
@@ -39,6 +42,7 @@
 
     </application>
 
+    <!-- Required for Flutter text processing -->
     <queries>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT" />
