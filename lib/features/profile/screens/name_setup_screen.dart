@@ -8,8 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../app/app_navigator.dart';
-import '../../booking/screens/choose_walk_screen.dart';
-import '../../booking/screens/walk_schedule_screen.dart';
 
 const Color profileOrange = Color(0xFFFF7900);
 const Color profileBackground = Color(0xFFFFFAF5);
@@ -154,10 +152,11 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
       today.day,
     );
 
-    final initialDate = _dateOfBirth != null &&
-            !_dateOfBirth!.isAfter(latestAllowedDate)
-        ? _dateOfBirth!
-        : latestAllowedDate;
+    final initialDate =
+        _dateOfBirth != null &&
+                !_dateOfBirth!.isAfter(latestAllowedDate)
+            ? _dateOfBirth!
+            : latestAllowedDate;
 
     final picked = await showDatePicker(
       context: context,
@@ -228,45 +227,16 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
     return storageRef.getDownloadURL();
   }
 
-  WalkBookingType? _selectedBookingType() {
-    switch (widget.bookingWalkType) {
-      case 'oneTime':
-        return WalkBookingType.oneTime;
-      case 'regular':
-        return WalkBookingType.regular;
-      case 'chooseDates':
-        return WalkBookingType.chooseDates;
-      default:
-        return null;
-    }
-  }
-
   void _navigateAfterSave() {
-    final walkType = _selectedBookingType();
-
-    if (widget.bookingWalkType != null && walkType == null) {
-      _showMessage(
-        'Your selected walk plan could not be restored. Please select it again.',
-      );
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute<void>(
-          builder: (_) => const AppNavigator(),
-        ),
-        (route) => false,
-      );
+    if (widget.bookingWalkType != null) {
+      // Return success to PhoneLoginScreen.
+      // PhoneLoginScreen then returns success to ChooseWalkScreen,
+      // which opens WalkScheduleScreen with the selected walk type.
+      Navigator.of(context).pop(true);
       return;
     }
 
-    if (walkType != null) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute<void>(
-          builder: (_) => WalkScheduleScreen(walkType: walkType),
-        ),
-        (route) => false,
-      );
-      return;
-    }
-
+    // Normal profile completion goes to the main application.
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute<void>(
         builder: (_) => const AppNavigator(),
@@ -293,9 +263,9 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
     }
 
     final dob = _dateOfBirth!;
-    final today = DateTime.now();
+    final now = DateTime.now();
 
-    if (dob.isAfter(today)) {
+    if (dob.isAfter(now)) {
       _showMessage('Date of birth cannot be in the future.');
       return;
     }
@@ -344,11 +314,18 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
         profileData['createdAt'] = FieldValue.serverTimestamp();
       }
 
-      await userRef.set(profileData, SetOptions(merge: true));
+      await userRef.set(
+        profileData,
+        SetOptions(merge: true),
+      );
 
       if (!mounted) return;
 
       _navigateAfterSave();
+    } on FirebaseException catch (error) {
+      _showMessage(
+        'Unable to save your profile. Please check your connection. (${error.code})',
+      );
     } catch (_) {
       _showMessage(
         'Unable to save your profile. Please check your connection and try again.',
@@ -481,7 +458,11 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
     );
   }
 
-  Widget _genderOption(String value, String label, IconData icon) {
+  Widget _genderOption(
+    String value,
+    String label,
+    IconData icon,
+  ) {
     final selected = _gender == value;
 
     return Expanded(
@@ -603,6 +584,7 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
               if (name.length > 60) {
                 return 'Name cannot exceed 60 characters.';
               }
+
               return null;
             },
           ),
