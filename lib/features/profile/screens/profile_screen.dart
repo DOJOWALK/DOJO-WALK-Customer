@@ -43,19 +43,20 @@ class ProfileScreen extends StatelessWidget {
                   .collection('users')
                   .doc(user.uid)
                   .snapshots(),
-              builder: (context, userSnapshot) {
-                final data = userSnapshot.data?.data() ??
+              builder: (context, snapshot) {
+                final data = snapshot.data?.data() ??
                     <String, dynamic>{};
 
-                final name = (data['name'] ?? 'DOJO WALK Customer')
+                final name = (data['name'] ?? 'Customer Name')
                     .toString();
                 final phone = (data['phoneNumber'] ??
                         user.phoneNumber ??
-                        'Phone not available')
+                        'Not available')
                     .toString();
+                final photoUrl = (data['photoUrl'] ?? '').toString();
 
                 return ListView(
-                  padding: const EdgeInsets.fromLTRB(18, 16, 18, 28),
+                  padding: const EdgeInsets.fromLTRB(18, 18, 18, 28),
                   children: [
                     Row(
                       children: [
@@ -74,131 +75,120 @@ class ProfileScreen extends StatelessWidget {
                         ),
                         const SizedBox(width: 12),
                         const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'DOJO WALK',
-                                style: TextStyle(
-                                  fontSize: 19,
-                                  fontWeight: FontWeight.w800,
-                                  color: profileText,
-                                  letterSpacing: 0.3,
-                                ),
-                              ),
-                              SizedBox(height: 3),
-                              Text(
-                                'YOUR CUSTOMER ACCOUNT',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: profileMuted,
-                                  letterSpacing: 1,
-                                ),
-                              ),
-                            ],
+                          child: Text(
+                            'My Profile',
+                            style: TextStyle(
+                              fontSize: 23,
+                              fontWeight: FontWeight.w800,
+                              color: profileText,
+                            ),
                           ),
                         ),
                         IconButton(
-                          onPressed: () => _showMessage(
+                          tooltip: 'Settings',
+                          onPressed: () => _message(
                             context,
-                            'Settings are coming soon.',
+                            'Settings screen is not connected yet.',
                           ),
                           icon: const Icon(
                             Icons.settings_outlined,
                             color: profileText,
                           ),
-                          tooltip: 'Settings',
                         ),
                       ],
                     ),
-                    const SizedBox(height: 22),
+                    const SizedBox(height: 20),
 
-                    // Customer profile card
-                    Container(
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [
-                            Color(0xFFFF7900),
-                            Color(0xFFFF9D42),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+                    // Centered profile card
+                    Material(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(24),
+                        onTap: () => _open(
+                          context,
+                          MyProfileAccountScreen(
+                            user: user,
+                          ),
                         ),
-                        borderRadius: BorderRadius.circular(22),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 62,
-                            height: 62,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.6),
-                                width: 1.5,
-                              ),
-                            ),
-                            child: Text(
-                              name.trim().isNotEmpty
-                                  ? name.trim()[0].toUpperCase()
-                                  : 'D',
-                              style: const TextStyle(
-                                fontSize: 27,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                              ),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(22),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color: const Color(0xFFF0E5DA),
                             ),
                           ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  name,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 19,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                  ),
+                          child: Column(
+                            children: [
+                              Container(
+                                width: 104,
+                                height: 104,
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: profileOrange,
                                 ),
-                                const SizedBox(height: 5),
-                                Text(
-                                  phone,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.white.withValues(alpha: 0.9),
-                                  ),
+                                child: CircleAvatar(
+                                  backgroundColor:
+                                      const Color(0xFFFFF0DF),
+                                  backgroundImage: photoUrl.isNotEmpty
+                                      ? NetworkImage(photoUrl)
+                                      : null,
+                                  child: photoUrl.isEmpty
+                                      ? const Icon(
+                                          Icons.person_rounded,
+                                          size: 54,
+                                          color: profileOrange,
+                                        )
+                                      : null,
                                 ),
-                                const SizedBox(height: 10),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 5,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: const Text(
-                                    'CUSTOMER ACCOUNT',
+                              ),
+                              const SizedBox(height: 14),
+                              Text(
+                                name,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 21,
+                                  fontWeight: FontWeight.w800,
+                                  color: profileText,
+                                ),
+                              ),
+                              const SizedBox(height: 5),
+                              const Text(
+                                'DOJO WALK Customer',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: profileOrange,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              _accountStatus(data),
+                              const SizedBox(height: 14),
+                              const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'View Profile & Account',
                                     style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.5,
+                                      color: profileMuted,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12,
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
+                                  SizedBox(width: 5),
+                                  Icon(
+                                    Icons.chevron_right_rounded,
+                                    color: profileOrange,
+                                    size: 19,
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
 
@@ -215,67 +205,78 @@ class ProfileScreen extends StatelessWidget {
                     const SizedBox(height: 12),
 
                     _menuCard(
-                      context,
+                      icon: Icons.person_outline_rounded,
+                      title: 'My Profile & Account',
+                      subtitle: 'Personal information and account details',
+                      onTap: () => _open(
+                        context,
+                        MyProfileAccountScreen(user: user),
+                      ),
+                    ),
+                    _menuCard(
                       icon: Icons.pets_rounded,
                       title: 'My Dogs',
                       subtitle: 'Manage your dogs and their details',
-                      onTap: () => _navigate(
+                      onTap: () => _open(
                         context,
                         const MyDogsScreen(),
                       ),
                     ),
                     _menuCard(
-                      context,
                       icon: Icons.calendar_month_rounded,
                       title: 'My Bookings',
                       subtitle: 'View walks, details and booking status',
-                      onTap: () => _navigate(
+                      onTap: () => _open(
                         context,
                         const MyBookingsScreen(),
                       ),
                     ),
                     _menuCard(
-                      context,
                       icon: Icons.location_on_outlined,
                       title: 'Saved Addresses',
                       subtitle: 'Manage your pickup locations',
-                      onTap: () => _showMessage(
+                      onTap: () => _message(
                         context,
-                        'Saved Addresses will be available here.',
+                        'Connect your existing Saved Addresses screen here.',
                       ),
                     ),
                     _menuCard(
-                      context,
-                      icon: Icons.repeat_rounded,
-                      title: 'Regular Walk Plans',
-                      subtitle: 'Manage your regular walking plans',
-                      onTap: () => _showMessage(
+                      icon: Icons.local_offer_outlined,
+                      title: 'Coupons & Offers',
+                      subtitle: 'View discount offers and coupon information',
+                      onTap: () => _open(
                         context,
-                        'Regular Walk Plans will be available here.',
+                        const CouponsOffersScreen(),
                       ),
                     ),
                     _menuCard(
-                      context,
                       icon: Icons.support_agent_rounded,
                       title: 'Help & Support',
                       subtitle: 'Get help with bookings and your account',
-                      onTap: () => _navigate(
+                      onTap: () => _open(
                         context,
                         const HelpSupportScreen(),
                       ),
                     ),
                     _menuCard(
-                      context,
                       icon: Icons.settings_outlined,
                       title: 'Settings',
                       subtitle: 'Account and app preferences',
-                      onTap: () => _showMessage(
+                      onTap: () => _message(
                         context,
-                        'Settings are coming soon.',
+                        'Settings screen is not connected yet.',
                       ),
                     ),
                     _menuCard(
-                      context,
+                      icon: Icons.privacy_tip_outlined,
+                      title: 'Privacy & Terms',
+                      subtitle: 'Privacy policy and terms of service',
+                      onTap: () => _message(
+                        context,
+                        'Privacy & Terms screen is not connected yet.',
+                      ),
+                    ),
+                    _menuCard(
                       icon: Icons.logout_rounded,
                       title: 'Log Out',
                       subtitle: 'Sign out of your account',
@@ -305,6 +306,68 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  static Widget _accountStatus(Map<String, dynamic> data) {
+    final rawStatus =
+        (data['accountStatus'] ?? data['status'] ?? '')
+            .toString()
+            .toLowerCase()
+            .trim();
+
+    final bool isActive =
+        data['isActive'] == true || rawStatus == 'active';
+    final bool isInactive =
+        data['isActive'] == false ||
+        rawStatus == 'inactive' ||
+        rawStatus == 'suspended' ||
+        rawStatus == 'disabled';
+
+    final label = isActive
+        ? 'Account Active'
+        : isInactive
+            ? 'Account Inactive'
+            : 'Account Status Unavailable';
+
+    final color = isActive
+        ? const Color(0xFF218447)
+        : isInactive
+            ? const Color(0xFFD64545)
+            : profileMuted;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 6,
+      ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isActive
+                ? Icons.check_circle_rounded
+                : isInactive
+                    ? Icons.cancel_rounded
+                    : Icons.info_outline_rounded,
+            color: color,
+            size: 16,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w700,
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _signedOutView(BuildContext context) {
     return Center(
       child: Padding(
@@ -330,26 +393,19 @@ class ProfileScreen extends StatelessWidget {
             const Text(
               'Sign in to manage your dogs and bookings.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: profileMuted,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: profileMuted),
             ),
             const SizedBox(height: 18),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () => _showMessage(
+                onPressed: () => _message(
                   context,
-                  'Connect your existing login screen here.',
+                  'Connect your existing phone login screen here.',
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: profileOrange,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
                 ),
                 child: const Text('LOGIN'),
               ),
@@ -360,8 +416,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _menuCard(
-    BuildContext context, {
+  Widget _menuCard({
     required IconData icon,
     required String title,
     required String subtitle,
@@ -396,11 +451,7 @@ class ProfileScreen extends StatelessWidget {
                     color: iconBackground,
                     borderRadius: BorderRadius.circular(13),
                   ),
-                  child: Icon(
-                    icon,
-                    color: iconColor,
-                    size: 23,
-                  ),
+                  child: Icon(icon, color: iconColor, size: 23),
                 ),
                 const SizedBox(width: 13),
                 Expanded(
@@ -443,14 +494,14 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  void _navigate(BuildContext context, Widget screen) {
+  void _open(BuildContext context, Widget screen) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => screen),
     );
   }
 
-  void _showMessage(BuildContext context, String message) {
+  void _message(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
@@ -491,5 +542,455 @@ class ProfileScreen extends StatelessWidget {
     if (!context.mounted) return;
 
     Navigator.of(context).popUntil((route) => route.isFirst);
+  }
+}
+
+// My Profile & Account
+class MyProfileAccountScreen extends StatelessWidget {
+  final User user;
+
+  const MyProfileAccountScreen({
+    super.key,
+    required this.user,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: profileBackground,
+      appBar: AppBar(
+        title: const Text('My Profile'),
+        backgroundColor: profileBackground,
+        foregroundColor: profileText,
+        elevation: 0,
+      ),
+      body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Center(
+              child: Text('Unable to load profile information.'),
+            );
+          }
+
+          if (!snapshot.hasData) {
+            return const Center(
+              child: CircularProgressIndicator(
+                color: profileOrange,
+              ),
+            );
+          }
+
+          final data = snapshot.data!.data() ??
+              <String, dynamic>{};
+
+          final name = (data['name'] ?? 'Customer Name').toString();
+          final phone = (data['phoneNumber'] ??
+                  user.phoneNumber ??
+                  'Not available')
+              .toString();
+          final gender = (data['gender'] ?? 'Not provided').toString();
+          final dob = data['dateOfBirth'];
+          final photoUrl = (data['photoUrl'] ?? '').toString();
+
+          String dateText = 'Not provided';
+          if (dob is Timestamp) {
+            final date = dob.toDate();
+            dateText =
+                '${date.day.toString().padLeft(2, '0')}/'
+                '${date.month.toString().padLeft(2, '0')}/'
+                '${date.year}';
+          } else if (dob is String && dob.isNotEmpty) {
+            dateText = dob;
+          }
+
+          return ListView(
+            padding: const EdgeInsets.all(18),
+            children: [
+              Container(
+                padding: const EdgeInsets.all(22),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(
+                    color: const Color(0xFFF0E5DA),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 48,
+                      backgroundColor: const Color(0xFFFFF0DF),
+                      backgroundImage: photoUrl.isNotEmpty
+                          ? NetworkImage(photoUrl)
+                          : null,
+                      child: photoUrl.isEmpty
+                          ? const Icon(
+                              Icons.person_rounded,
+                              color: profileOrange,
+                              size: 48,
+                            )
+                          : null,
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      name,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: profileText,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    const Text(
+                      'DOJO WALK Customer',
+                      style: TextStyle(
+                        color: profileOrange,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => _editName(
+                          context,
+                          user,
+                          name,
+                        ),
+                        icon: const Icon(Icons.edit_outlined),
+                        label: const Text('Edit Profile'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: profileOrange,
+                          side: const BorderSide(
+                            color: profileOrange,
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 13,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 22),
+              const Text(
+                'PERSONAL INFORMATION',
+                style: TextStyle(
+                  color: profileMuted,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 10),
+              _detailCard(
+                Icons.person_outline,
+                'Full Name',
+                name,
+              ),
+              _detailCard(
+                Icons.phone_outlined,
+                'Phone Number',
+                phone,
+              ),
+              _detailCard(
+                Icons.wc_outlined,
+                'Gender',
+                gender,
+              ),
+              _detailCard(
+                Icons.calendar_today_outlined,
+                'Date of Birth',
+                dateText,
+              ),
+              const SizedBox(height: 18),
+              const Text(
+                'ACCOUNT DETAILS',
+                style: TextStyle(
+                  color: profileMuted,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 10),
+              _detailCard(
+                Icons.verified_user_outlined,
+                'Account Type',
+                'DOJO WALK Customer',
+              ),
+              _detailCard(
+                Icons.info_outline,
+                'Account Status',
+                _statusText(data),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  static String _statusText(Map<String, dynamic> data) {
+    final status = (data['accountStatus'] ?? data['status'] ?? '')
+        .toString()
+        .toLowerCase()
+        .trim();
+
+    if (data['isActive'] == true || status == 'active') {
+      return 'Account Active';
+    }
+    if (data['isActive'] == false ||
+        status == 'inactive' ||
+        status == 'suspended' ||
+        status == 'disabled') {
+      return 'Account Inactive';
+    }
+    return 'Status not specified';
+  }
+
+  static Widget _detailCard(
+    IconData icon,
+    String title,
+    String value,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(
+          color: const Color(0xFFF0E5DA),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: profileOrange, size: 23),
+          const SizedBox(width: 13),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: profileMuted,
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    color: profileText,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Future<void> _editName(
+    BuildContext context,
+    User user,
+    String currentName,
+  ) async {
+    final controller = TextEditingController(
+      text: currentName == 'Customer Name' ? '' : currentName,
+    );
+
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Edit Name'),
+        content: TextField(
+          controller: controller,
+          textCapitalization: TextCapitalization.words,
+          maxLength: 60,
+          decoration: const InputDecoration(
+            labelText: 'Full Name',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('CANCEL'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: profileOrange,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              final value = controller.text.trim();
+              if (value.isEmpty) return;
+              Navigator.pop(dialogContext, value);
+            },
+            child: const Text('SAVE'),
+          ),
+        ],
+      ),
+    );
+
+    controller.dispose();
+
+    if (newName == null || newName.trim().isEmpty) return;
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .set({
+        'name': newName.trim(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Name updated successfully.')),
+      );
+    } catch (error) {
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not update name. Please try again.'),
+        ),
+      );
+    }
+  }
+}
+
+// Coupons & Offers
+class CouponsOffersScreen extends StatelessWidget {
+  const CouponsOffersScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: profileBackground,
+      appBar: AppBar(
+        title: const Text('Coupons & Offers'),
+        backgroundColor: profileBackground,
+        foregroundColor: profileText,
+        elevation: 0,
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(18),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(22),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [
+                  Color(0xFFFF7900),
+                  Color(0xFFFF9D42),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(22),
+            ),
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.local_offer_rounded,
+                  color: Colors.white,
+                  size: 38,
+                ),
+                SizedBox(height: 14),
+                Text(
+                  'Special Offers',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 23,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                SizedBox(height: 7),
+                Text(
+                  'Look out for DOJO WALK discounts at checkout.',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 22),
+          const Text(
+            'AVAILABLE COUPONS',
+            style: TextStyle(
+              color: profileMuted,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: const Color(0xFFF0E5DA),
+              ),
+            ),
+            child: const Column(
+              children: [
+                Icon(
+                  Icons.confirmation_number_outlined,
+                  size: 42,
+                  color: profileOrange,
+                ),
+                SizedBox(height: 12),
+                Text(
+                  'No Offers Available Yet',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: profileText,
+                  ),
+                ),
+                SizedBox(height: 7),
+                Text(
+                  'New coupon offers will appear here when they are '
+                  'published by DOJO WALK.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: profileMuted,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Coupon codes and discounts must be validated during '
+            'booking before a discount is applied.',
+            style: TextStyle(
+              color: profileMuted,
+              fontSize: 12,
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
