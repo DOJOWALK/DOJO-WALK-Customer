@@ -4,7 +4,8 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import 'phone_login_screen.dart';
+const Color dojoOrange = Color(0xFFFF7900);
+const Color dojoBackground = Color(0xFFFFFAF5);
 
 class OtpVerificationScreen extends StatefulWidget {
   final String phoneNumber;
@@ -25,13 +26,15 @@ class OtpVerificationScreen extends StatefulWidget {
 
 class _OtpVerificationScreenState
     extends State<OtpVerificationScreen> {
-  final _otpController = TextEditingController();
+  final TextEditingController _otpController =
+      TextEditingController();
 
   String? _verificationId;
   int? _resendToken;
 
   bool _loading = false;
   bool _finished = false;
+  bool _resending = false;
 
   int _secondsRemaining = 60;
   Timer? _timer;
@@ -51,25 +54,37 @@ class _OtpVerificationScreenState
     super.dispose();
   }
 
-  void _message(String text) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(text)),
-    );
+  void _message(String message) {
+    if (!mounted || _finished) return;
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(message)),
+      );
   }
 
   String _friendlyError(FirebaseAuthException error) {
     switch (error.code) {
       case 'invalid-verification-code':
         return 'OTP गलत है। दोबारा जाँचें।';
+
       case 'session-expired':
+      case 'invalid-verification-id':
         return 'OTP की समय सीमा समाप्त हो गई। नया OTP मँगाएँ।';
+
       case 'too-many-requests':
-        return 'बहुत बार कोशिश हुई है। बाद में फिर कोशिश करें।';
+        return 'बहुत बार कोशिश हुई है। कुछ देर बाद फिर कोशिश करें।';
+
       case 'quota-exceeded':
-        return 'Firebase SMS की सीमा पूरी हो गई है।';
+        return 'Firebase SMS की सीमा पूरी हो गई है। बाद में कोशिश करें।';
+
       case 'network-request-failed':
-        return 'इंटरनेट कनेक्शन जाँचें।';
+        return 'इंटरनेट कनेक्शन जाँचें और फिर कोशिश करें।';
+
+      case 'operation-not-allowed':
+        return 'Firebase में Phone Authentication चालू नहीं है।';
+
       default:
         return error.message ?? 'समस्या हुई। दोबारा कोशिश करें।';
     }
@@ -78,21 +93,32 @@ class _OtpVerificationScreenState
   void _startTimer() {
     _timer?.cancel();
 
-    setState(() => _secondsRemaining = 60);
+    if (!mounted) {
+      _secondsRemaining = 60;
+      return;
+    }
+
+    setState(() {
+      _secondsRemaining = 60;
+    });
 
     _timer = Timer.periodic(
       const Duration(seconds: 1),
       (timer) {
-        if (!mounted) {
+        if (!mounted || _finished) {
           timer.cancel();
           return;
         }
 
         if (_secondsRemaining <= 1) {
           timer.cancel();
-          setState(() => _secondsRemaining = 0);
+          setState(() {
+            _secondsRemaining = 0;
+          });
         } else {
-          setState(() => _secondsRemaining--);
+          setState(() {
+            _secondsRemaining--;
+          });
         }
       },
     );
@@ -103,16 +129,17 @@ class _OtpVerificationScreenState
 
     _finished = true;
     _timer?.cancel();
+
     Navigator.of(context).pop(true);
   }
 
   Future<void> _verifyOtp() async {
-    if (_loading || _finished) return;
+    if (_loading || _finished || _resending) return;
 
     final otp = _otpController.text.trim();
     final verificationId = _verificationId;
 
-    if (verificationId == null) {
+    if (verificationId == null || verificationId.isEmpty) {
       _message('पहले OTP मँगाएँ।');
       return;
     }
@@ -122,7 +149,9 @@ class _OtpVerificationScreenState
       return;
     }
 
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+    });
 
     try {
       final credential = PhoneAuthProvider.credential(
@@ -133,31 +162,47 @@ class _OtpVerificationScreenState
       final result = await FirebaseAuth.instance
           .signInWithCredential(credential);
 
-      if (!mounted) return;
+      if (!mounted || _finished) return;
 
       if (result.user != null) {
         _finishLogin();
       } else {
-        setState(() => _loading = false);
-        _message('Login पूरा नहीं हुआ।');
+        setState(() {
+          _loading = false;
+        });
+        _message('Login पूरा नहीं हुआ। दोबारा कोशिश करें।');
       }
     } on FirebaseAuthException catch (error) {
-      if (!mounted) return;
+      if (!mounted || _finished) return;
 
-      setState(() => _loading = false);
+      setState(() {
+        _loading = false;
+      });
+
       _message(_friendlyError(error));
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted || _finished) return;
 
-      setState(() => _loading = false);
-      _message('OTP Verify नहीं हुआ। दोबारा कोशिश करें।');
+      setState(() {
+        _loading = false;
+      });
+
+      _message('OTP verify नहीं हुआ। दोबारा कोशिश करें।');
     }
   }
 
   Future<void> _resendOtp() async {
-    if (_loading || _secondsRemaining > 0 || _finished) return;
+    if (_loading ||
+        _secondsRemaining > 0 ||
+        _finished ||
+        _resending) {
+      return;
+    }
 
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _resending = true;
+    });
 
     try {
       await FirebaseAuth.instance.verifyPhoneNumber(
@@ -165,37 +210,58 @@ class _OtpVerificationScreenState
         timeout: const Duration(seconds: 60),
         forceResendingToken: _resendToken,
 
-        verificationCompleted: (credential) async {
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          if (!mounted || _finished) return;
+
           try {
             final result = await FirebaseAuth.instance
                 .signInWithCredential(credential);
 
-            if (!mounted) return;
+            if (!mounted || _finished) return;
 
             if (result.user != null) {
               _finishLogin();
             }
           } on FirebaseAuthException catch (error) {
-            if (!mounted) return;
-            setState(() => _loading = false);
+            if (!mounted || _finished) return;
+
+            setState(() {
+              _loading = false;
+              _resending = false;
+            });
+
             _message(_friendlyError(error));
+          } catch (_) {
+            if (!mounted || _finished) return;
+
+            setState(() {
+              _loading = false;
+              _resending = false;
+            });
+
+            _message('Auto-verification नहीं हुआ। OTP डालकर कोशिश करें।');
           }
         },
 
-        verificationFailed: (error) {
-          if (!mounted) return;
+        verificationFailed: (FirebaseAuthException error) {
+          if (!mounted || _finished) return;
 
-          setState(() => _loading = false);
+          setState(() {
+            _loading = false;
+            _resending = false;
+          });
+
           _message(_friendlyError(error));
         },
 
-        codeSent: (verificationId, resendToken) {
-          if (!mounted) return;
+        codeSent: (String verificationId, int? resendToken) {
+          if (!mounted || _finished) return;
 
           setState(() {
             _verificationId = verificationId;
             _resendToken = resendToken;
             _loading = false;
+            _resending = false;
             _otpController.clear();
           });
 
@@ -203,21 +269,38 @@ class _OtpVerificationScreenState
           _message('नया OTP भेज दिया गया है।');
         },
 
-        codeAutoRetrievalTimeout: (verificationId) {
+        codeAutoRetrievalTimeout: (String verificationId) {
+          if (!mounted || _finished) return;
+
           _verificationId = verificationId;
         },
       );
     } on FirebaseAuthException catch (error) {
-      if (!mounted) return;
+      if (!mounted || _finished) return;
 
-      setState(() => _loading = false);
+      setState(() {
+        _loading = false;
+        _resending = false;
+      });
+
       _message(_friendlyError(error));
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted || _finished) return;
 
-      setState(() => _loading = false);
+      setState(() {
+        _loading = false;
+        _resending = false;
+      });
+
       _message('OTP दोबारा नहीं भेजा जा सका।');
     }
+  }
+
+  void _changeMobileNumber() {
+    if (_loading || _finished) return;
+
+    _timer?.cancel();
+    Navigator.of(context).pop(false);
   }
 
   @override
@@ -242,12 +325,15 @@ class _OtpVerificationScreenState
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 35),
+
               const Icon(
                 Icons.mark_email_read_outlined,
                 size: 54,
                 color: dojoOrange,
               ),
+
               const SizedBox(height: 22),
+
               const Text(
                 'Verify Your Number',
                 style: TextStyle(
@@ -255,7 +341,9 @@ class _OtpVerificationScreenState
                   fontWeight: FontWeight.bold,
                 ),
               ),
+
               const SizedBox(height: 10),
+
               const Text(
                 'हमने इस नंबर पर OTP भेजा है:',
                 style: TextStyle(
@@ -263,7 +351,9 @@ class _OtpVerificationScreenState
                   fontSize: 15,
                 ),
               ),
+
               const SizedBox(height: 6),
+
               Text(
                 widget.phoneNumber,
                 style: const TextStyle(
@@ -271,12 +361,18 @@ class _OtpVerificationScreenState
                   fontSize: 17,
                 ),
               ),
+
               const SizedBox(height: 32),
+
               const Text(
                 '6-Digit OTP',
-                style: TextStyle(fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
+
               const SizedBox(height: 8),
+
               TextField(
                 controller: _otpController,
                 enabled: !_loading,
@@ -284,7 +380,9 @@ class _OtpVerificationScreenState
                 keyboardType: TextInputType.number,
                 maxLength: 6,
                 onSubmitted: (_) {
-                  if (!_loading) _verifyOtp();
+                  if (!_loading) {
+                    _verifyOtp();
+                  }
                 },
                 decoration: InputDecoration(
                   hintText: 'Enter OTP',
@@ -303,7 +401,9 @@ class _OtpVerificationScreenState
                   ),
                 ),
               ),
+
               const SizedBox(height: 16),
+
               SizedBox(
                 width: double.infinity,
                 height: 54,
@@ -312,6 +412,8 @@ class _OtpVerificationScreenState
                   style: ElevatedButton.styleFrom(
                     backgroundColor: dojoOrange,
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor:
+                        dojoOrange.withValues(alpha: 0.55),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -334,7 +436,9 @@ class _OtpVerificationScreenState
                         ),
                 ),
               ),
+
               const SizedBox(height: 18),
+
               Center(
                 child: TextButton(
                   onPressed: _loading || _secondsRemaining > 0
@@ -351,14 +455,27 @@ class _OtpVerificationScreenState
                   ),
                 ),
               ),
+
               Center(
                 child: TextButton(
-                  onPressed: _loading
-                      ? null
-                      : () => Navigator.of(context).pop(false),
+                  onPressed: _loading ? null : _changeMobileNumber,
                   child: const Text(
                     'Change Mobile Number',
-                    style: TextStyle(color: Colors.black54),
+                    style: TextStyle(
+                      color: Colors.black54,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              const Center(
+                child: Text(
+                  'Secure login with DOJO WALK',
+                  style: TextStyle(
+                    color: Colors.black45,
+                    fontSize: 12,
                   ),
                 ),
               ),
