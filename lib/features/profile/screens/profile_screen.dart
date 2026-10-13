@@ -3,13 +3,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../addresses/screens/my_addresses_screen.dart';
 import '../../booking/screens/my_bookings_screen.dart';
 import '../../support/screens/help_support_screen.dart';
 import 'my_dogs_screen.dart';
 
 const Color profileOrange = Color(0xFFFF7900);
 const Color profileBackground = Color(0xFFFFFAF5);
-const Color profileText = Color(0xFF252525);
+const Color profileText = Color(0xFF202020);
 const Color profileMuted = Color(0xFF777777);
 
 class ProfileScreen extends StatelessWidget {
@@ -17,511 +18,500 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: profileBackground,
-      body: SafeArea(
-        child: StreamBuilder<User?>(
-          stream: FirebaseAuth.instance.authStateChanges(),
-          builder: (context, authSnapshot) {
-            if (authSnapshot.connectionState ==
-                ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(
-                  color: profileOrange,
-                ),
-              );
-            }
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, authSnapshot) {
+        final user = authSnapshot.data;
 
-            final user = authSnapshot.data;
-
-            if (user == null) {
-              return _signedOutView(context);
-            }
-
-            return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-              stream: FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(user.uid)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                final data = snapshot.data?.data() ??
-                    <String, dynamic>{};
-
-                final name = (data['name'] ?? 'Customer Name')
-                    .toString();
-                final phone = (data['phoneNumber'] ??
-                        user.phoneNumber ??
-                        'Not available')
-                    .toString();
-                final photoUrl = (data['photoUrl'] ?? '').toString();
-
-                return ListView(
-                  padding: const EdgeInsets.fromLTRB(18, 18, 18, 28),
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 46,
-                          height: 46,
-                          decoration: BoxDecoration(
-                            color: profileOrange,
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: const Icon(
-                            Icons.pets_rounded,
-                            color: Colors.white,
-                            size: 27,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        const Expanded(
-                          child: Text(
-                            'My Profile',
-                            style: TextStyle(
-                              fontSize: 23,
-                              fontWeight: FontWeight.w800,
-                              color: profileText,
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          tooltip: 'Settings',
-                          onPressed: () => _message(
-                            context,
-                            'Settings screen is not connected yet.',
-                          ),
-                          icon: const Icon(
-                            Icons.settings_outlined,
-                            color: profileText,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Centered profile card
-                    Material(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(24),
-                        onTap: () => _open(
-                          context,
-                          MyProfileAccountScreen(
-                            user: user,
-                          ),
-                        ),
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(22),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: const Color(0xFFF0E5DA),
-                            ),
-                          ),
-                          child: Column(
-                            children: [
-                              Container(
-                                width: 104,
-                                height: 104,
-                                padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: profileOrange,
-                                ),
-                                child: CircleAvatar(
-                                  backgroundColor:
-                                      const Color(0xFFFFF0DF),
-                                  backgroundImage: photoUrl.isNotEmpty
-                                      ? NetworkImage(photoUrl)
-                                      : null,
-                                  child: photoUrl.isEmpty
-                                      ? const Icon(
-                                          Icons.person_rounded,
-                                          size: 54,
-                                          color: profileOrange,
-                                        )
-                                      : null,
-                                ),
-                              ),
-                              const SizedBox(height: 14),
-                              Text(
-                                name,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontSize: 21,
-                                  fontWeight: FontWeight.w800,
-                                  color: profileText,
-                                ),
-                              ),
-                              const SizedBox(height: 5),
-                              const Text(
-                                'DOJO WALK Customer',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: profileOrange,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              _accountStatus(data),
-                              const SizedBox(height: 14),
-                              const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    'View Profile & Account',
-                                    style: TextStyle(
-                                      color: profileMuted,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                  SizedBox(width: 5),
-                                  Icon(
-                                    Icons.chevron_right_rounded,
-                                    color: profileOrange,
-                                    size: 19,
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 26),
-                    const Text(
-                      'YOUR ACCOUNT',
-                      style: TextStyle(
-                        color: profileMuted,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    _menuCard(
-                      icon: Icons.person_outline_rounded,
-                      title: 'My Profile & Account',
-                      subtitle: 'Personal information and account details',
-                      onTap: () => _open(
-                        context,
-                        MyProfileAccountScreen(user: user),
-                      ),
-                    ),
-                    _menuCard(
-                      icon: Icons.pets_rounded,
-                      title: 'My Dogs',
-                      subtitle: 'Manage your dogs and their details',
-                      onTap: () => _open(
-                        context,
-                        const MyDogsScreen(),
-                      ),
-                    ),
-                    _menuCard(
-                      icon: Icons.calendar_month_rounded,
-                      title: 'My Bookings',
-                      subtitle: 'View walks, details and booking status',
-                      onTap: () => _open(
-                        context,
-                        const MyBookingsScreen(),
-                      ),
-                    ),
-                    _menuCard(
-                      icon: Icons.location_on_outlined,
-                      title: 'Saved Addresses',
-                      subtitle: 'Manage your pickup locations',
-                      onTap: () => _message(
-                        context,
-                        'Connect your existing Saved Addresses screen here.',
-                      ),
-                    ),
-                    _menuCard(
-                      icon: Icons.local_offer_outlined,
-                      title: 'Coupons & Offers',
-                      subtitle: 'View discount offers and coupon information',
-                      onTap: () => _open(
-                        context,
-                        const CouponsOffersScreen(),
-                      ),
-                    ),
-                    _menuCard(
-                      icon: Icons.support_agent_rounded,
-                      title: 'Help & Support',
-                      subtitle: 'Get help with bookings and your account',
-                      onTap: () => _open(
-                        context,
-                        const HelpSupportScreen(),
-                      ),
-                    ),
-                    _menuCard(
-                      icon: Icons.settings_outlined,
-                      title: 'Settings',
-                      subtitle: 'Account and app preferences',
-                      onTap: () => _message(
-                        context,
-                        'Settings screen is not connected yet.',
-                      ),
-                    ),
-                    _menuCard(
-                      icon: Icons.privacy_tip_outlined,
-                      title: 'Privacy & Terms',
-                      subtitle: 'Privacy policy and terms of service',
-                      onTap: () => _message(
-                        context,
-                        'Privacy & Terms screen is not connected yet.',
-                      ),
-                    ),
-                    _menuCard(
-                      icon: Icons.logout_rounded,
-                      title: 'Log Out',
-                      subtitle: 'Sign out of your account',
-                      iconColor: const Color(0xFFD64545),
-                      iconBackground: const Color(0xFFFFEEEE),
-                      onTap: () => _confirmLogout(context),
-                    ),
-
-                    const SizedBox(height: 18),
-                    const Center(
-                      child: Text(
-                        'DOJO WALK • YOUR DOG, OUR CARE',
-                        style: TextStyle(
-                          color: Color(0xFF999999),
-                          fontSize: 10,
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  static Widget _accountStatus(Map<String, dynamic> data) {
-    final rawStatus =
-        (data['accountStatus'] ?? data['status'] ?? '')
-            .toString()
-            .toLowerCase()
-            .trim();
-
-    final bool isActive =
-        data['isActive'] == true || rawStatus == 'active';
-    final bool isInactive =
-        data['isActive'] == false ||
-        rawStatus == 'inactive' ||
-        rawStatus == 'suspended' ||
-        rawStatus == 'disabled';
-
-    final label = isActive
-        ? 'Account Active'
-        : isInactive
-            ? 'Account Inactive'
-            : 'Account Status Unavailable';
-
-    final color = isActive
-        ? const Color(0xFF218447)
-        : isInactive
-            ? const Color(0xFFD64545)
-            : profileMuted;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 6,
-      ),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(30),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            isActive
-                ? Icons.check_circle_rounded
-                : isInactive
-                    ? Icons.cancel_rounded
-                    : Icons.info_outline_rounded,
-            color: color,
-            size: 16,
-          ),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.w700,
-              fontSize: 11,
+        return Scaffold(
+          backgroundColor: profileBackground,
+          appBar: AppBar(
+            backgroundColor: profileBackground,
+            elevation: 0,
+            title: const Text(
+              'My Profile',
+              style: TextStyle(
+                color: profileText,
+                fontWeight: FontWeight.w900,
+              ),
             ),
           ),
-        ],
-      ),
+          body: user == null
+              ? _signedOutView(context)
+              : _signedInView(context, user),
+        );
+      },
     );
   }
 
   Widget _signedOutView(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.account_circle_outlined,
-              color: profileOrange,
-              size: 70,
-            ),
-            const SizedBox(height: 14),
-            const Text(
-              'Login to Your Account',
-              style: TextStyle(
-                fontSize: 21,
-                fontWeight: FontWeight.w800,
-                color: profileText,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Sign in to manage your dogs and bookings.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: profileMuted),
-            ),
-            const SizedBox(height: 18),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => _message(
-                  context,
-                  'Connect your existing phone login screen here.',
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: profileOrange,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('LOGIN'),
-              ),
-            ),
-          ],
+    return ListView(
+      padding: const EdgeInsets.all(20),
+      children: [
+        const SizedBox(height: 30),
+        const CircleAvatar(
+          radius: 46,
+          backgroundColor: Color(0xFFFFEAD8),
+          child: Icon(
+            Icons.person_outline_rounded,
+            size: 48,
+            color: profileOrange,
+          ),
         ),
-      ),
+        const SizedBox(height: 18),
+        const Text(
+          'Welcome to DOJO WALK',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 21,
+            fontWeight: FontWeight.w900,
+            color: profileText,
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Sign in to manage your profile, dogs and bookings.',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: profileMuted,
+            height: 1.5,
+          ),
+        ),
+        const SizedBox(height: 22),
+        SizedBox(
+          height: 50,
+          child: ElevatedButton(
+            onPressed: () {
+              _showMessage(
+                context,
+                'Connect this button to your existing phone login screen.',
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: profileOrange,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            child: const Text(
+              'Login with Phone',
+              style: TextStyle(fontWeight: FontWeight.w800),
+            ),
+          ),
+        ),
+        const SizedBox(height: 28),
+        _menuCard(
+          context,
+          icon: Icons.local_offer_outlined,
+          title: 'Coupons & Offers',
+          subtitle: 'View available offers',
+          onTap: () => _open(
+            context,
+            const CouponsOffersScreen(),
+          ),
+        ),
+        _menuCard(
+          context,
+          icon: Icons.support_agent_rounded,
+          title: 'Help & Support',
+          subtitle: 'Get help with DOJO WALK',
+          onTap: () => _open(
+            context,
+            const HelpSupportScreen(),
+          ),
+        ),
+        _menuCard(
+          context,
+          icon: Icons.privacy_tip_outlined,
+          title: 'Privacy & Terms',
+          subtitle: 'Your privacy and account policies',
+          onTap: () => _showMessage(
+            context,
+            'Privacy & Terms page is not connected yet.',
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _menuCard({
+  Widget _signedInView(BuildContext context, User user) {
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .snapshots(),
+      builder: (context, snapshot) {
+        final data = snapshot.data?.data() ?? {};
+
+        final name = _readString(data, 'name').isNotEmpty
+            ? _readString(data, 'name')
+            : (user.displayName?.trim().isNotEmpty == true
+                ? user.displayName!.trim()
+                : 'DOJO WALK Customer');
+
+        final phone = _readString(data, 'phoneNumber').isNotEmpty
+            ? _readString(data, 'phoneNumber')
+            : (user.phoneNumber ?? 'Phone number not available');
+
+        final photoUrl = _readString(data, 'photoUrl');
+        final accountStatus = _accountStatus(data);
+
+        return ListView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [
+                    Color(0xFFFF7900),
+                    Color(0xFFFF9C42),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: profileOrange.withValues(alpha: 0.16),
+                    blurRadius: 16,
+                    offset: const Offset(0, 7),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    radius: 42,
+                    backgroundColor: Colors.white,
+                    backgroundImage: photoUrl.isNotEmpty
+                        ? NetworkImage(photoUrl)
+                        : null,
+                    child: photoUrl.isEmpty
+                        ? const Icon(
+                            Icons.person_rounded,
+                            color: profileOrange,
+                            size: 46,
+                          )
+                        : null,
+                  ),
+                  const SizedBox(height: 13),
+                  Text(
+                    name,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 21,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  const Text(
+                    'DOJO WALK Customer',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 7),
+                  Text(
+                    phone,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: 13),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 7,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.verified_user_outlined,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          accountStatus,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 17),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => _open(
+                        context,
+                        MyProfileAccountScreen(user: user),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        side: const BorderSide(color: Colors.white),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(13),
+                        ),
+                      ),
+                      icon: const Icon(Icons.manage_accounts_outlined),
+                      label: const Text(
+                        'View Profile & Account',
+                        style: TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 25),
+            const Padding(
+              padding: EdgeInsets.only(left: 4, bottom: 10),
+              child: Text(
+                'MY ACCOUNT',
+                style: TextStyle(
+                  color: profileMuted,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1,
+                ),
+              ),
+            ),
+            _menuCard(
+              context,
+              icon: Icons.person_outline_rounded,
+              title: 'My Profile & Account',
+              subtitle: 'Manage your personal details',
+              onTap: () => _open(
+                context,
+                MyProfileAccountScreen(user: user),
+              ),
+            ),
+            _menuCard(
+              context,
+              icon: Icons.pets_rounded,
+              title: 'My Dogs',
+              subtitle: 'Manage your saved dogs',
+              onTap: () => _open(
+                context,
+                const MyDogsScreen(),
+              ),
+            ),
+            _menuCard(
+              context,
+              icon: Icons.calendar_month_rounded,
+              title: 'My Bookings',
+              subtitle: 'View walks and booking details',
+              onTap: () => _open(
+                context,
+                const MyBookingsScreen(),
+              ),
+            ),
+            _menuCard(
+              context,
+              icon: Icons.location_on_outlined,
+              title: 'Saved Addresses',
+              subtitle: 'Manage your pickup locations',
+              onTap: () => _open(
+                context,
+                const MyAddressesScreen(),
+              ),
+            ),
+            _menuCard(
+              context,
+              icon: Icons.local_offer_outlined,
+              title: 'Coupons & Offers',
+              subtitle: 'See offers available to your account',
+              onTap: () => _open(
+                context,
+                const CouponsOffersScreen(),
+              ),
+            ),
+            const SizedBox(height: 15),
+            const Padding(
+              padding: EdgeInsets.only(left: 4, bottom: 10),
+              child: Text(
+                'SUPPORT & INFORMATION',
+                style: TextStyle(
+                  color: profileMuted,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1,
+                ),
+              ),
+            ),
+            _menuCard(
+              context,
+              icon: Icons.support_agent_rounded,
+              title: 'Help & Support',
+              subtitle: 'Get help with a booking',
+              onTap: () => _open(
+                context,
+                const HelpSupportScreen(),
+              ),
+            ),
+            _menuCard(
+              context,
+              icon: Icons.settings_outlined,
+              title: 'Settings',
+              subtitle: 'Account preferences',
+              onTap: () => _showMessage(
+                context,
+                'Settings screen is not connected yet.',
+              ),
+            ),
+            _menuCard(
+              context,
+              icon: Icons.privacy_tip_outlined,
+              title: 'Privacy & Terms',
+              subtitle: 'Privacy policy and terms of service',
+              onTap: () => _showMessage(
+                context,
+                'Privacy & Terms page is not connected yet.',
+              ),
+            ),
+            const SizedBox(height: 14),
+            _menuCard(
+              context,
+              icon: Icons.logout_rounded,
+              title: 'Log Out',
+              subtitle: 'Sign out from this device',
+              iconColor: Colors.red,
+              titleColor: Colors.red,
+              onTap: () => _confirmLogout(context),
+            ),
+            const SizedBox(height: 12),
+            const Center(
+              child: Text(
+                'DOJO WALK • Customer App',
+                style: TextStyle(
+                  color: profileMuted,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  String _accountStatus(Map<String, dynamic> data) {
+    if (data['isActive'] == true ||
+        data['accountStatus'] == 'active' ||
+        data['status'] == 'active') {
+      return 'Account Active';
+    }
+
+    if (data['isActive'] == false ||
+        data['accountStatus'] == 'inactive' ||
+        data['accountStatus'] == 'suspended' ||
+        data['status'] == 'inactive' ||
+        data['status'] == 'suspended') {
+      return 'Account Inactive';
+    }
+
+    return 'Account Status Unavailable';
+  }
+
+  String _readString(Map<String, dynamic> data, String key) {
+    final value = data[key];
+    return value is String ? value.trim() : '';
+  }
+
+  Widget _menuCard(
+    BuildContext context, {
     required IconData icon,
     required String title,
     required String subtitle,
     required VoidCallback onTap,
     Color iconColor = profileOrange,
-    Color iconBackground = const Color(0xFFFFF0E3),
+    Color titleColor = profileText,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 11),
+      margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(17),
-        border: Border.all(color: const Color(0xFFF0E6DD)),
+        border: Border.all(color: const Color(0xFFF0ECE8)),
       ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(17),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(17),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 13,
-              vertical: 14,
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 45,
-                  height: 45,
-                  decoration: BoxDecoration(
-                    color: iconBackground,
-                    borderRadius: BorderRadius.circular(13),
-                  ),
-                  child: Icon(icon, color: iconColor, size: 23),
-                ),
-                const SizedBox(width: 13),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: title == 'Log Out'
-                              ? const Color(0xFFD64545)
-                              : profileText,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        subtitle,
-                        style: const TextStyle(
-                          fontSize: 11.5,
-                          color: profileMuted,
-                          height: 1.35,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const Icon(
-                  Icons.chevron_right_rounded,
-                  color: Color(0xFF999999),
-                  size: 23,
-                ),
-              ],
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 15,
+          vertical: 6,
+        ),
+        leading: Container(
+          width: 43,
+          height: 43,
+          decoration: BoxDecoration(
+            color: iconColor == Colors.red
+                ? const Color(0xFFFFEEEE)
+                : const Color(0xFFFFF0E3),
+            borderRadius: BorderRadius.circular(13),
+          ),
+          child: Icon(icon, color: iconColor, size: 22),
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            color: titleColor,
+            fontSize: 14,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(
+            subtitle,
+            style: const TextStyle(
+              color: profileMuted,
+              fontSize: 12,
             ),
           ),
         ),
+        trailing: const Icon(
+          Icons.chevron_right_rounded,
+          color: profileMuted,
+        ),
+        onTap: onTap,
       ),
     );
   }
 
   void _open(BuildContext context, Widget screen) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => screen),
-    );
-  }
-
-  void _message(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => screen),
     );
   }
 
   Future<void> _confirmLogout(BuildContext context) async {
-    final shouldLogout = await showDialog<bool>(
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Log Out?'),
+        title: const Text('Log out?'),
         content: const Text(
           'Are you sure you want to log out of DOJO WALK?',
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('CANCEL'),
+            child: const Text('Stay'),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -529,24 +519,39 @@ class ProfileScreen extends StatelessWidget {
               foregroundColor: Colors.white,
             ),
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('LOG OUT'),
+            child: const Text('Log Out'),
           ),
         ],
       ),
     );
 
-    if (shouldLogout != true) return;
+    if (confirmed != true) return;
 
-    await FirebaseAuth.instance.signOut();
+    try {
+      await FirebaseAuth.instance.signOut();
+    } catch (error) {
+      if (context.mounted) {
+        _showMessage(
+          context,
+          'Could not log out. Please try again.',
+        );
+      }
+    }
+  }
 
-    if (!context.mounted) return;
-
-    Navigator.of(context).popUntil((route) => route.isFirst);
+  void _showMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
   }
 }
 
-// My Profile & Account
-class MyProfileAccountScreen extends StatelessWidget {
+class MyProfileAccountScreen extends StatefulWidget {
   final User user;
 
   const MyProfileAccountScreen({
@@ -555,326 +560,216 @@ class MyProfileAccountScreen extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: profileBackground,
-      appBar: AppBar(
-        title: const Text('My Profile'),
-        backgroundColor: profileBackground,
-        foregroundColor: profileText,
-        elevation: 0,
-      ),
-      body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-        stream: FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return const Center(
-              child: Text('Unable to load profile information.'),
-            );
-          }
+  State<MyProfileAccountScreen> createState() =>
+      _MyProfileAccountScreenState();
+}
 
-          if (!snapshot.hasData) {
-            return const Center(
-              child: CircularProgressIndicator(
-                color: profileOrange,
-              ),
-            );
-          }
+class _MyProfileAccountScreenState
+    extends State<MyProfileAccountScreen> {
+  final _nameController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
-          final data = snapshot.data!.data() ??
-              <String, dynamic>{};
+  bool _loading = true;
+  bool _saving = false;
+  String _phone = '';
 
-          final name = (data['name'] ?? 'Customer Name').toString();
-          final phone = (data['phoneNumber'] ??
-                  user.phoneNumber ??
-                  'Not available')
-              .toString();
-          final gender = (data['gender'] ?? 'Not provided').toString();
-          final dob = data['dateOfBirth'];
-          final photoUrl = (data['photoUrl'] ?? '').toString();
-
-          String dateText = 'Not provided';
-          if (dob is Timestamp) {
-            final date = dob.toDate();
-            dateText =
-                '${date.day.toString().padLeft(2, '0')}/'
-                '${date.month.toString().padLeft(2, '0')}/'
-                '${date.year}';
-          } else if (dob is String && dob.isNotEmpty) {
-            dateText = dob;
-          }
-
-          return ListView(
-            padding: const EdgeInsets.all(18),
-            children: [
-              Container(
-                padding: const EdgeInsets.all(22),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(22),
-                  border: Border.all(
-                    color: const Color(0xFFF0E5DA),
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    CircleAvatar(
-                      radius: 48,
-                      backgroundColor: const Color(0xFFFFF0DF),
-                      backgroundImage: photoUrl.isNotEmpty
-                          ? NetworkImage(photoUrl)
-                          : null,
-                      child: photoUrl.isEmpty
-                          ? const Icon(
-                              Icons.person_rounded,
-                              color: profileOrange,
-                              size: 48,
-                            )
-                          : null,
-                    ),
-                    const SizedBox(height: 14),
-                    Text(
-                      name,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        color: profileText,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    const Text(
-                      'DOJO WALK Customer',
-                      style: TextStyle(
-                        color: profileOrange,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () => _editName(
-                          context,
-                          user,
-                          name,
-                        ),
-                        icon: const Icon(Icons.edit_outlined),
-                        label: const Text('Edit Profile'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: profileOrange,
-                          side: const BorderSide(
-                            color: profileOrange,
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 13,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 22),
-              const Text(
-                'PERSONAL INFORMATION',
-                style: TextStyle(
-                  color: profileMuted,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1,
-                  fontSize: 12,
-                ),
-              ),
-              const SizedBox(height: 10),
-              _detailCard(
-                Icons.person_outline,
-                'Full Name',
-                name,
-              ),
-              _detailCard(
-                Icons.phone_outlined,
-                'Phone Number',
-                phone,
-              ),
-              _detailCard(
-                Icons.wc_outlined,
-                'Gender',
-                gender,
-              ),
-              _detailCard(
-                Icons.calendar_today_outlined,
-                'Date of Birth',
-                dateText,
-              ),
-              const SizedBox(height: 18),
-              const Text(
-                'ACCOUNT DETAILS',
-                style: TextStyle(
-                  color: profileMuted,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1,
-                  fontSize: 12,
-                ),
-              ),
-              const SizedBox(height: 10),
-              _detailCard(
-                Icons.verified_user_outlined,
-                'Account Type',
-                'DOJO WALK Customer',
-              ),
-              _detailCard(
-                Icons.info_outline,
-                'Account Status',
-                _statusText(data),
-              ),
-            ],
-          );
-        },
-      ),
-    );
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
   }
 
-  static String _statusText(Map<String, dynamic> data) {
-    final status = (data['accountStatus'] ?? data['status'] ?? '')
-        .toString()
-        .toLowerCase()
-        .trim();
+  Future<void> _loadProfile() async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.user.uid)
+          .get();
 
-    if (data['isActive'] == true || status == 'active') {
-      return 'Account Active';
+      final data = doc.data() ?? {};
+      _nameController.text = data['name'] is String
+          ? data['name'] as String
+          : widget.user.displayName ?? '';
+      _phone = data['phoneNumber'] is String
+          ? data['phoneNumber'] as String
+          : widget.user.phoneNumber ?? '';
+    } catch (_) {
+      _nameController.text = widget.user.displayName ?? '';
+      _phone = widget.user.phoneNumber ?? '';
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
-    if (data['isActive'] == false ||
-        status == 'inactive' ||
-        status == 'suspended' ||
-        status == 'disabled') {
-      return 'Account Inactive';
-    }
-    return 'Status not specified';
   }
 
-  static Widget _detailCard(
-    IconData icon,
-    String title,
-    String value,
-  ) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(
-          color: const Color(0xFFF0E5DA),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: profileOrange, size: 23),
-          const SizedBox(width: 13),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: profileMuted,
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    color: profileText,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
   }
 
-  static Future<void> _editName(
-    BuildContext context,
-    User user,
-    String currentName,
-  ) async {
-    final controller = TextEditingController(
-      text: currentName == 'Customer Name' ? '' : currentName,
-    );
+  Future<void> _saveProfile() async {
+    if (!_formKey.currentState!.validate()) return;
 
-    final newName = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Edit Name'),
-        content: TextField(
-          controller: controller,
-          textCapitalization: TextCapitalization.words,
-          maxLength: 60,
-          decoration: const InputDecoration(
-            labelText: 'Full Name',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('CANCEL'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: profileOrange,
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () {
-              final value = controller.text.trim();
-              if (value.isEmpty) return;
-              Navigator.pop(dialogContext, value);
-            },
-            child: const Text('SAVE'),
-          ),
-        ],
-      ),
-    );
-
-    controller.dispose();
-
-    if (newName == null || newName.trim().isEmpty) return;
+    setState(() => _saving = true);
 
     try {
       await FirebaseFirestore.instance
           .collection('users')
-          .doc(user.uid)
+          .doc(widget.user.uid)
           .set({
-        'name': newName.trim(),
+        'name': _nameController.text.trim(),
+        'phoneNumber': _phone,
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
-      if (!context.mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Name updated successfully.')),
-      );
-    } catch (error) {
-      if (!context.mounted) return;
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Could not update name. Please try again.'),
+          content: Text('Profile updated successfully.'),
         ),
       );
+    } catch (_) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not update profile. Please try again.'),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: profileBackground,
+      appBar: AppBar(
+        backgroundColor: profileBackground,
+        title: const Text(
+          'My Profile & Account',
+          style: TextStyle(
+            color: profileText,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ),
+      body: _loading
+          ? const Center(
+              child: CircularProgressIndicator(
+                color: profileOrange,
+              ),
+            )
+          : ListView(
+              padding: const EdgeInsets.all(18),
+              children: [
+                const CircleAvatar(
+                  radius: 38,
+                  backgroundColor: Color(0xFFFFEAD8),
+                  child: Icon(
+                    Icons.person_rounded,
+                    size: 42,
+                    color: profileOrange,
+                  ),
+                ),
+                const SizedBox(height: 22),
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Full Name',
+                        style: TextStyle(
+                          color: profileText,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _nameController,
+                        textCapitalization: TextCapitalization.words,
+                        decoration: InputDecoration(
+                          hintText: 'Enter your full name',
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter your name.';
+                          }
+                          if (value.trim().length < 2) {
+                            return 'Name must contain at least 2 characters.';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 18),
+                      const Text(
+                        'Phone Number',
+                        style: TextStyle(
+                          color: profileText,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        initialValue: _phone,
+                        readOnly: true,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: const Color(0xFFF1EFED),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          helperText:
+                              'Contact support if your number needs to change.',
+                        ),
+                      ),
+                      const SizedBox(height: 26),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton(
+                          onPressed: _saving ? null : _saveProfile,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: profileOrange,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: _saving
+                              ? const SizedBox(
+                                  height: 22,
+                                  width: 22,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  'Save Changes',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+    );
   }
 }
 
-// Coupons & Offers
 class CouponsOffersScreen extends StatelessWidget {
   const CouponsOffersScreen({super.key});
 
@@ -883,113 +778,56 @@ class CouponsOffersScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: profileBackground,
       appBar: AppBar(
-        title: const Text('Coupons & Offers'),
         backgroundColor: profileBackground,
-        foregroundColor: profileText,
-        elevation: 0,
+        title: const Text(
+          'Coupons & Offers',
+          style: TextStyle(
+            color: profileText,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(18),
-        children: [
-          Container(
-            padding: const EdgeInsets.all(22),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [
-                  Color(0xFFFF7900),
-                  Color(0xFFFF9D42),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(22),
-            ),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  Icons.local_offer_rounded,
-                  color: Colors.white,
-                  size: 38,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 82,
+                height: 82,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFFEAD8),
+                  shape: BoxShape.circle,
                 ),
-                SizedBox(height: 14),
-                Text(
-                  'Special Offers',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 23,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                SizedBox(height: 7),
-                Text(
-                  'Look out for DOJO WALK discounts at checkout.',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 22),
-          const Text(
-            'AVAILABLE COUPONS',
-            style: TextStyle(
-              color: profileMuted,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1,
-              fontSize: 12,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: const Color(0xFFF0E5DA),
-              ),
-            ),
-            child: const Column(
-              children: [
-                Icon(
-                  Icons.confirmation_number_outlined,
-                  size: 42,
+                child: const Icon(
+                  Icons.local_offer_outlined,
+                  size: 40,
                   color: profileOrange,
                 ),
-                SizedBox(height: 12),
-                Text(
-                  'No Offers Available Yet',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: profileText,
-                  ),
+              ),
+              const SizedBox(height: 18),
+              const Text(
+                'No Offers Available Yet',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: profileText,
+                  fontSize: 19,
+                  fontWeight: FontWeight.w900,
                 ),
-                SizedBox(height: 7),
-                Text(
-                  'New coupon offers will appear here when they are '
-                  'published by DOJO WALK.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: profileMuted,
-                    height: 1.5,
-                  ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'New DOJO WALK offers will appear here when they become available.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: profileMuted,
+                  height: 1.5,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          const Text(
-            'Coupon codes and discounts must be validated during '
-            'booking before a discount is applied.',
-            style: TextStyle(
-              color: profileMuted,
-              fontSize: 12,
-              height: 1.5,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
