@@ -100,8 +100,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                       }
 
                       final docs = snapshot.data?.docs ?? [];
+
                       final bookings = docs.where((doc) {
                         final status = _status(doc.data());
+
                         switch (_selectedFilter) {
                           case 1:
                             return _isUpcoming(status);
@@ -134,7 +136,9 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                           await FirebaseFirestore.instance
                               .collection('bookings')
                               .where('customerId', isEqualTo: user.uid)
-                              .get(const GetOptions(source: Source.server));
+                              .get(
+                                const GetOptions(source: Source.server),
+                              );
                         },
                         child: ListView.builder(
                           physics: const AlwaysScrollableScrollPhysics(),
@@ -142,6 +146,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                           itemCount: bookings.length,
                           itemBuilder: (context, index) {
                             final doc = bookings[index];
+
                             return _BookingCard(
                               key: ValueKey(doc.id),
                               documentId: doc.id,
@@ -174,6 +179,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         separatorBuilder: (_, __) => const SizedBox(width: 9),
         itemBuilder: (context, index) {
           final selected = index == _selectedFilter;
+
           return ChoiceChip(
             label: Text(_filters[index]),
             selected: selected,
@@ -292,7 +298,10 @@ class _BookingCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          _text(data['serviceName'], fallback: 'Dog Walking'),
+                          _text(
+                            data['serviceName'],
+                            fallback: 'Dog Walking',
+                          ),
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w900,
@@ -424,7 +433,9 @@ class BookingDetailsScreen extends StatelessWidget {
 
     if (user == null) {
       return const Scaffold(
-        body: Center(child: Text('Please log in to view this booking.')),
+        body: Center(
+          child: Text('Please log in to view this booking.'),
+        ),
       );
     }
 
@@ -446,18 +457,20 @@ class BookingDetailsScreen extends StatelessWidget {
 
         final data = snapshot.data?.data() ?? initialData;
 
-        // Do not expose a booking belonging to another customer.
         if (data['customerId'] != user.uid) {
           return Scaffold(
             appBar: AppBar(title: const Text('Booking Details')),
-            body: const Center(child: Text('Booking not available.')),
+            body: const Center(
+              child: Text('Booking not available.'),
+            ),
           );
         }
 
         final pet = _petDetails(data);
         final status = _status(data);
         final address = _address(data['pickupAddress']);
-        final regular = _plan(data) == 'Regular Walk';
+        final regular = _text(data['bookingPlan']).toLowerCase() == 'regular' ||
+            _text(data['serviceType']).toLowerCase() == 'regular_walk';
 
         return Scaffold(
           backgroundColor: bookingsBackground,
@@ -474,29 +487,33 @@ class BookingDetailsScreen extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 28),
             children: [
               _section('Booking Summary', [
-                _detail('Booking ID',
-                    _text(data['bookingId'], fallback: documentId)),
+                _detail(
+                  'Booking ID',
+                  _text(data['bookingId'], fallback: documentId),
+                ),
                 _detail('Plan', _plan(data)),
                 _detail('Duration', _duration(data)),
                 _detail('Date', _formatDate(_date(data['scheduledAt']))),
                 _detail(
                   'Preferred Time',
-                  _text(data['preferredTime'],
-                      fallback: _formatTime(_date(data['scheduledAt']))),
+                  _text(
+                    data['preferredTime'],
+                    fallback: _formatTime(_date(data['scheduledAt'])),
+                  ),
                 ),
                 _detail('Status', status.toUpperCase()),
-                _detail(
-                  'Created',
-                  _formatDate(_date(data['createdAt'])),
-                ),
+                _detail('Created', _formatDate(_date(data['createdAt']))),
+                _detail('Number of Walks', _text(data['walkCount'])),
               ]),
               const SizedBox(height: 14),
               _section('Dog Details', [
-                _detail('Dog Name',
-                    _text(pet['name'] ?? data['petName'])),
+                _detail(
+                  'Dog Name',
+                  _text(pet['name'] ?? data['petName']),
+                ),
                 _detail('Dog ID', _text(data['dogId'])),
                 _detail('Breed', _text(pet['breed'])),
-                _detail('Age', _age(pet['age'])),
+                _detail('Age', _age(pet['age'] ?? pet['dob'])),
                 _detail('Size', _text(pet['size'])),
                 _detail('Gender', _text(pet['gender'])),
                 _detail('Behaviour', _displayList(pet['behaviour'])),
@@ -505,8 +522,10 @@ class BookingDetailsScreen extends StatelessWidget {
               ]),
               const SizedBox(height: 14),
               _section('Pickup Address', [
-                _detail('Address Type',
-                    _text(_map(data['pickupAddress'])['label'])),
+                _detail(
+                  'Address Type',
+                  _text(_map(data['pickupAddress'])['label']),
+                ),
                 _detail(
                   'Full Address',
                   address.isEmpty ? 'Not provided' : address,
@@ -518,7 +537,10 @@ class BookingDetailsScreen extends StatelessWidget {
               ]),
               const SizedBox(height: 14),
               _section('Assigned Walker', [
-                _detail('Walker ID', _text(data['walkerId'], fallback: 'Not assigned')),
+                _detail(
+                  'Walker ID',
+                  _text(data['walkerId'], fallback: 'Not assigned'),
+                ),
                 const Text(
                   'Walker name and contact details will appear after '
                   'the assignment process provides those fields.',
@@ -533,13 +555,11 @@ class BookingDetailsScreen extends StatelessWidget {
                 const SizedBox(height: 14),
                 _section('Regular Walk Plan', [
                   _detail('Frequency', _text(data['frequency'])),
-                  _detail('Walks Per Week',
-                      _text(data['walksPerWeek'])),
-                  _detail('Preferred Time',
-                      _text(data['preferredTime'])),
+                  _detail('Walks Per Week', _text(data['walksPerWeek'])),
+                  _detail('Walks Per Day', _text(data['walksPerDay'])),
+                  _detail('Preferred Time', _text(data['preferredTime'])),
                   const Text(
-                    'Extra daily times and plan dates are shown only '
-                    'when saved in the booking record.',
+                    'Saved walk schedules are shown in the booking record.',
                     style: TextStyle(
                       color: bookingsMuted,
                       fontSize: 12,
@@ -547,6 +567,13 @@ class BookingDetailsScreen extends StatelessWidget {
                     ),
                   ),
                 ]),
+              ],
+              if (data['walkSchedules'] is List) ...[
+                const SizedBox(height: 14),
+                _section(
+                  'Walk Schedule',
+                  _scheduleDetails(data['walkSchedules']),
+                ),
               ],
               const SizedBox(height: 14),
               _CancellationSection(
@@ -569,6 +596,22 @@ class BookingDetailsScreen extends StatelessWidget {
   }
 }
 
+List<Widget> _scheduleDetails(dynamic value) {
+  if (value is! List || value.isEmpty) {
+    return [_detail('Schedule', 'Not provided')];
+  }
+
+  return List<Widget>.generate(value.length, (index) {
+    final walk = _map(value[index]);
+
+    return _detail(
+      'Walk ${index + 1}',
+      '${_text(walk['time'], fallback: 'Time not provided')} · '
+          '${_text(walk['duration'], fallback: 'Duration not provided')}',
+    );
+  });
+}
+
 class _CancellationSection extends StatelessWidget {
   const _CancellationSection({
     required this.documentId,
@@ -587,7 +630,7 @@ class _CancellationSection extends StatelessWidget {
 
     final requestStatus = request == null
         ? 'Not Requested'
-        : _text(requestMap['status'], fallback: 'Pending');
+        : _text(requestMap['status'], fallback: 'pending');
 
     final status = _status(data);
     final terminal = status == 'completed' ||
@@ -617,7 +660,7 @@ class _CancellationSection extends StatelessWidget {
             icon: const Icon(Icons.cancel_outlined),
             label: const Text('Request Cancellation'),
             style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.red.shade700,
+              foregroundColor: Colors.red,
               padding: const EdgeInsets.symmetric(vertical: 13),
             ),
             onPressed: () => _request(context),
@@ -628,15 +671,23 @@ class _CancellationSection extends StatelessWidget {
 
   Future<void> _request(BuildContext context) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please log in to request cancellation.'),
+        ),
+      );
+      return;
+    }
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Request Cancellation?'),
         content: const Text(
-          'Your request will be saved for review. '
-          'This will not automatically cancel your booking.',
+          'Your request will be sent for review. '
+          'Your booking will not be cancelled automatically.',
         ),
         actions: [
           TextButton(
@@ -658,54 +709,65 @@ class _CancellationSection extends StatelessWidget {
           .collection('bookings')
           .doc(documentId);
 
-      await FirebaseFirestore.instance.runTransaction((transaction) async {
-        final snapshot = await transaction.get(ref);
+      await FirebaseFirestore.instance.runTransaction(
+        (transaction) async {
+          final snapshot = await transaction.get(ref);
 
-        if (!snapshot.exists) {
-          throw Exception('Booking not found.');
-        }
+          if (!snapshot.exists) {
+            throw Exception('Booking not found.');
+          }
 
-        final current = snapshot.data() ?? <String, dynamic>{};
+          final current = snapshot.data() ?? <String, dynamic>{};
 
-        if (current['customerId'] != user.uid) {
-          throw Exception('You cannot change this booking.');
-        }
+          if (current['customerId'] != user.uid) {
+            throw Exception('You cannot change this booking.');
+          }
 
-        final status = _status(current);
-        if ([
-          'completed',
-          'cancelled',
-          'canceled',
-        ].contains(status)) {
-          throw Exception('This booking cannot be cancelled.');
-        }
+          final currentStatus = _status(current);
 
-        final existing = current['cancelRequest'];
-        if (existing is Map &&
-            _text(existing['status']).toLowerCase() == 'pending') {
-          throw Exception('A cancellation request is already pending.');
-        }
+          if (![
+            'pending',
+            'finding_walker',
+            'walker_assigned',
+            'walker_arriving',
+          ].contains(currentStatus)) {
+            throw Exception(
+              'Cancellation requests are not allowed for this booking status.',
+            );
+          }
 
-        transaction.update(ref, {
-          'cancelRequest': {
-            'status': 'Pending',
-            'requestedBy': user.uid,
-            'requestedAt': FieldValue.serverTimestamp(),
-          },
-        });
-      });
+          if (current['cancelRequest'] != null) {
+            throw Exception(
+              'A cancellation request has already been submitted.',
+            );
+          }
+
+          transaction.update(ref, {
+            'cancelRequest': {
+              'status': 'pending',
+              'requestedBy': 'customer',
+              'customerId': user.uid,
+              'requestedAt': FieldValue.serverTimestamp(),
+            },
+          });
+        },
+      );
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Cancellation request submitted.'),
+            content: Text('Cancellation request submitted successfully.'),
           ),
         );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Request failed: $e')),
+          SnackBar(
+            content: Text(
+              'Request failed: ${e.toString().replaceFirst('Exception: ', '')}',
+            ),
+          ),
         );
       }
     }
@@ -798,8 +860,10 @@ Widget _statusBadge(String status) {
 }
 
 Map<String, dynamic> _map(dynamic value) {
-  if (value is Map) return Map<String, dynamic>.from(value);
-  return {};
+  if (value is Map) {
+    return Map<String, dynamic>.from(value);
+  }
+  return <String, dynamic>{};
 }
 
 Map<String, dynamic> _petDetails(Map<String, dynamic> data) {
@@ -813,6 +877,9 @@ String _status(Map<String, dynamic> data) {
 bool _isUpcoming(String status) {
   return [
     'pending',
+    'finding_walker',
+    'walker_assigned',
+    'walker_arriving',
     'confirmed',
     'assigned',
     'accepted',
@@ -828,25 +895,36 @@ String _plan(Map<String, dynamic> data) {
   if (plan == 'regular' || service == 'regular_walk') {
     return 'Regular Walk';
   }
+
+  if (plan == 'customize' || service == 'custom_walk') {
+    return 'Choose Dates / Customize';
+  }
+
   return 'One-Time Walk';
 }
 
 String _duration(Map<String, dynamic> data) {
   final value = data['duration'];
+
   if (value == null || value.toString().trim().isEmpty) {
     return 'Not provided';
   }
 
   final text = value.toString().trim();
+
   if (RegExp(r'^\d+$').hasMatch(text)) {
     return '$text minutes';
   }
+
   return text.toLowerCase().contains('minute') ? text : '$text minutes';
 }
 
 String _text(dynamic value, {String fallback = 'Not provided'}) {
   if (value == null) return fallback;
-  if (value is List) return value.map((e) => e.toString()).join(', ');
+
+  if (value is List) {
+    return value.map((e) => e.toString()).join(', ');
+  }
 
   final result = value.toString().trim();
   return result.isEmpty ? fallback : result;
@@ -858,18 +936,38 @@ String _displayList(dynamic value) {
         .map((e) => e.toString().trim())
         .where((e) => e.isNotEmpty)
         .toList();
+
     return values.isEmpty ? 'Not provided' : values.join(', ');
   }
+
   return _text(value);
 }
 
 String _age(dynamic value) {
+  if (value is Timestamp) {
+    final dob = value.toDate();
+    final now = DateTime.now();
+
+    var years = now.year - dob.year;
+
+    if (now.month < dob.month ||
+        (now.month == dob.month && now.day < dob.day)) {
+      years--;
+    }
+
+    if (years < 0) return 'Not provided';
+    if (years == 0) return 'Less than 1 year';
+    return years == 1 ? '1 year' : '$years years';
+  }
+
   final age = _text(value);
+
   if (age == 'Not provided') return age;
 
   if (RegExp(r'^\d+$').hasMatch(age)) {
     return age == '1' ? '1 year' : '$age years';
   }
+
   return age;
 }
 
@@ -877,8 +975,9 @@ String _address(dynamic value) {
   final address = _map(value);
 
   return [
-    address['label'],
     address['address'],
+    address['flatHouse'],
+    address['buildingSociety'],
     address['area'],
     address['landmark'],
     address['city'],
@@ -913,5 +1012,6 @@ String _formatTime(DateTime date) {
 
   final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
   final minute = date.minute.toString().padLeft(2, '0');
+
   return '$hour:$minute ${date.hour >= 12 ? 'PM' : 'AM'}';
 }
