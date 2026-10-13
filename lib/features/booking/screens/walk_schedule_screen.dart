@@ -14,9 +14,7 @@ class _WalkSlot {
   TimeOfDay time;
   int durationMinutes;
 
-  _WalkSlot({
-    required this.time,
-  }) : durationMinutes = 30;
+  _WalkSlot({required this.time}) : durationMinutes = 30;
 }
 
 class WalkScheduleScreen extends StatefulWidget {
@@ -28,32 +26,34 @@ class WalkScheduleScreen extends StatefulWidget {
   final WalkBookingType walkType;
 
   @override
-  State<WalkScheduleScreen> createState() =>
-      _WalkScheduleScreenState();
+  State<WalkScheduleScreen> createState() => _WalkScheduleScreenState();
 }
 
 class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
   int _walkCount = 1;
 
   DateTime _selectedDate = DateUtils.dateOnly(DateTime.now());
+  final Set<DateTime> _selectedDates = <DateTime>{};
 
   final List<_WalkSlot> _slots = [
     _WalkSlot(time: const TimeOfDay(hour: 7, minute: 0)),
     _WalkSlot(time: const TimeOfDay(hour: 18, minute: 0)),
-    _WalkSlot(time: const TimeOfDay(hour: 21, minute: 0)),
+    _WalkSlot(time: const TimeOfDay(hour: 20, minute: 0)),
   ];
 
-  bool get _isRegular =>
-      widget.walkType == WalkBookingType.regular;
+  bool get _isRegular => widget.walkType == WalkBookingType.regular;
+  bool get _isChooseDates => widget.walkType == WalkBookingType.chooseDates;
+  bool get _isOneTime => widget.walkType == WalkBookingType.oneTime;
 
-  bool get _isChooseDates =>
-      widget.walkType == WalkBookingType.chooseDates;
-
-  bool get _isOneTime =>
-      widget.walkType == WalkBookingType.oneTime;
-
-  // A One-Time booking can contain exactly one walk.
   int get _effectiveWalkCount => _isOneTime ? 1 : _walkCount;
+
+  List<DateTime> get _datesForBooking {
+    if (_isChooseDates) {
+      final dates = _selectedDates.toList()..sort();
+      return dates;
+    }
+    return <DateTime>[_selectedDate];
+  }
 
   String get _planTitle {
     if (_isRegular) return 'Daily Walk Plan';
@@ -62,12 +62,8 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
   }
 
   String get _planSubtitle {
-    if (_isRegular) {
-      return 'Repeats daily, including Sunday';
-    }
-    if (_isChooseDates) {
-      return 'Walks on your selected date';
-    }
+    if (_isRegular) return 'Repeats daily, including Sunday';
+    if (_isChooseDates) return 'Choose one or more walk dates';
     return 'A one-time walk request';
   }
 
@@ -75,7 +71,6 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
     final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
     final minute = time.minute.toString().padLeft(2, '0');
     final period = time.period == DayPeriod.am ? 'AM' : 'PM';
-
     return '$hour:$minute $period';
   }
 
@@ -87,7 +82,6 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
 
   String _timeLabel(TimeOfDay time) {
     final hour = time.hour;
-
     if (hour >= 5 && hour < 12) return 'Morning';
     if (hour >= 12 && hour < 16) return 'Afternoon';
     if (hour >= 16 && hour < 20) return 'Evening';
@@ -114,20 +108,21 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
     }
 
     return const [
+      TimeOfDay(hour: 18, minute: 0),
+      TimeOfDay(hour: 19, minute: 0),
       TimeOfDay(hour: 20, minute: 0),
       TimeOfDay(hour: 21, minute: 0),
-      TimeOfDay(hour: 22, minute: 0),
     ];
   }
 
   bool _sameTime(TimeOfDay a, TimeOfDay b) =>
       a.hour == b.hour && a.minute == b.minute;
 
-  DateTime _dateTimeForSlot(_WalkSlot slot) {
+  DateTime _dateTimeForSlot(_WalkSlot slot, DateTime date) {
     return DateTime(
-      _selectedDate.year,
-      _selectedDate.month,
-      _selectedDate.day,
+      date.year,
+      date.month,
+      date.day,
       slot.time.hour,
       slot.time.minute,
     );
@@ -135,7 +130,7 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
 
   int get _totalMinutes => _slots
       .take(_effectiveWalkCount)
-      .fold(0, (total, slot) => total + slot.durationMinutes);
+      .fold<int>(0, (total, slot) => total + slot.durationMinutes);
 
   int? get _dailyPrice => WalkPricingService.dailyEstimate(
         _slots
@@ -147,41 +142,75 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
   void _showMessage(String message) {
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<DateTime?> _showDatePicker({DateTime? initialDate}) async {
+    final today = DateUtils.dateOnly(DateTime.now());
+
+    return showDatePicker(
+      context: context,
+      initialDate: initialDate != null && !initialDate.isBefore(today)
+          ? initialDate
+          : today,
+      firstDate: today,
+      lastDate: today.add(const Duration(days: 365)),
+      helpText: _isRegular ? 'Choose plan start date' : 'Choose walk date',
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: const ColorScheme.light(
+            primary: scheduleOrange,
+            onPrimary: Colors.white,
+            surface: Colors.white,
+            onSurface: scheduleText,
+          ),
+        ),
+        child: child!,
+      ),
     );
   }
 
   Future<void> _chooseDate() async {
-    final today = DateUtils.dateOnly(DateTime.now());
-
-    final selected = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate.isBefore(today) ? today : _selectedDate,
-      firstDate: today,
-      lastDate: today.add(const Duration(days: 365)),
-      helpText: _isRegular
-          ? 'Choose plan start date'
-          : 'Choose walk date',
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: scheduleOrange,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: scheduleText,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-
+    final selected = await _showDatePicker(initialDate: _selectedDate);
     if (selected == null || !mounted) return;
 
     setState(() {
       _selectedDate = DateUtils.dateOnly(selected);
+
+      if (_isChooseDates) {
+        _selectedDates.add(_selectedDate);
+      }
+    });
+  }
+
+  Future<void> _addAnotherDate() async {
+    final selected = await _showDatePicker(initialDate: _selectedDate);
+    if (selected == null || !mounted) return;
+
+    final date = DateUtils.dateOnly(selected);
+
+    if (_selectedDates.contains(date)) {
+      _showMessage('This date is already selected.');
+      return;
+    }
+
+    setState(() {
+      _selectedDates.add(date);
+      final dates = _selectedDates.toList()..sort();
+      _selectedDate = dates.first;
+    });
+  }
+
+  void _removeDate(DateTime date) {
+    setState(() {
+      _selectedDates.remove(date);
+      final dates = _selectedDates.toList()..sort();
+
+      if (dates.isNotEmpty) {
+        _selectedDate = dates.first;
+      }
     });
   }
 
@@ -190,26 +219,22 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
       context: context,
       initialTime: _slots[index].time,
       helpText: 'Choose walk start time',
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: scheduleOrange,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: scheduleText,
-            ),
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: const ColorScheme.light(
+            primary: scheduleOrange,
+            onPrimary: Colors.white,
+            surface: Colors.white,
+            onSurface: scheduleText,
           ),
-          child: child!,
-        );
-      },
+        ),
+        child: child!,
+      ),
     );
 
     if (selected == null || !mounted) return;
 
-    setState(() {
-      _slots[index].time = selected;
-    });
+    setState(() => _slots[index].time = selected);
   }
 
   Future<void> _chooseCustomDuration(int index) async {
@@ -263,25 +288,26 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
 
     if (result == null || !mounted) return;
 
-    setState(() {
-      _slots[index].durationMinutes = result;
-    });
+    setState(() => _slots[index].durationMinutes = result);
   }
 
   bool _hasOverlappingWalks() {
     final slots = _slots.take(_effectiveWalkCount).toList()
       ..sort((a, b) {
-        return _dateTimeForSlot(a).compareTo(_dateTimeForSlot(b));
+        final aMinutes = a.time.hour * 60 + a.time.minute;
+        final bMinutes = b.time.hour * 60 + b.time.minute;
+        return aMinutes.compareTo(bMinutes);
       });
 
     for (var i = 0; i < slots.length - 1; i++) {
-      final currentStart = _dateTimeForSlot(slots[i]);
-      final currentEnd = currentStart.add(
-        Duration(minutes: slots[i].durationMinutes),
-      );
-      final nextStart = _dateTimeForSlot(slots[i + 1]);
+      final currentStartMinutes =
+          slots[i].time.hour * 60 + slots[i].time.minute;
+      final currentEndMinutes =
+          currentStartMinutes + slots[i].durationMinutes;
+      final nextStartMinutes =
+          slots[i + 1].time.hour * 60 + slots[i + 1].time.minute;
 
-      if (currentEnd.isAfter(nextStart)) return true;
+      if (currentEndMinutes > nextStartMinutes) return true;
     }
 
     return false;
@@ -289,24 +315,32 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
 
   String? _validateSchedule() {
     final today = DateUtils.dateOnly(DateTime.now());
-    final selectedDay = DateUtils.dateOnly(_selectedDate);
 
-    if (selectedDay.isBefore(today)) {
+    if (_isChooseDates && _selectedDates.isEmpty) {
+      return 'Please select at least one walk date.';
+    }
+
+    final dates = _datesForBooking;
+
+    if (dates.any((date) => DateUtils.dateOnly(date).isBefore(today))) {
       return 'Please select today or a future date.';
     }
 
     final now = DateTime.now();
-    final selectedSlots = _slots.take(_effectiveWalkCount).toList();
 
-    for (final slot in selectedSlots) {
-      final start = _dateTimeForSlot(slot);
+    for (final date in dates) {
+      for (final slot in _slots.take(_effectiveWalkCount)) {
+        final start = _dateTimeForSlot(slot, date);
 
-      if (!start.isAfter(now)) {
-        return 'Selected walk time has passed. Please choose a future time.';
+        if (!start.isAfter(now)) {
+          return 'A selected walk time has passed. '
+              'Choose a future time for today.';
+        }
       }
+    }
 
-      if (slot.durationMinutes < 1 ||
-          slot.durationMinutes > 240) {
+    for (final slot in _slots.take(_effectiveWalkCount)) {
+      if (slot.durationMinutes < 1 || slot.durationMinutes > 240) {
         return 'Walk duration must be between 1 and 240 minutes.';
       }
     }
@@ -327,18 +361,26 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
     }
 
     final selectedSlots = _slots.take(_effectiveWalkCount).toList();
+    final dates = _datesForBooking;
 
-    final times = selectedSlots
-        .map((slot) => _formatTime(slot.time))
-        .toList();
+    final times = selectedSlots.map((slot) => _formatTime(slot.time)).toList();
+    final formattedDates = dates.map(_formatDate).toList();
 
     final schedule = <String, dynamic>{
+      // Existing single-date fields are retained for compatibility.
       'date': DateTime(
         _selectedDate.year,
         _selectedDate.month,
         _selectedDate.day,
       ),
       'selectedDate': _formatDate(_selectedDate),
+
+      // Additional fields for multi-date bookings.
+      'selectedDates': dates
+          .map((date) => DateTime(date.year, date.month, date.day))
+          .toList(),
+      'selectedDatesFormatted': formattedDates,
+
       'time': times.first,
       'duration': selectedSlots.first.durationMinutes,
       'isRegular': _isRegular,
@@ -402,20 +444,14 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
         fontSize: 12,
         color: selected ? const Color(0xFFC65C00) : scheduleText,
       ),
-      onSelected: (_) {
-        setState(() {
-          _slots[index].time = time;
-        });
-      },
+      onSelected: (_) => setState(() => _slots[index].time = time),
     );
   }
 
   Widget _walkCard(int index) {
     final slot = _slots[index];
     final suggestions = _suggestedTimes(index);
-    final price = WalkPricingService.priceForDuration(
-      slot.durationMinutes,
-    );
+    final price = WalkPricingService.priceForDuration(slot.durationMinutes);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -491,9 +527,7 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
                         : const Color(0xFFE8E1DA),
                   ),
                   onSelected: (_) {
-                    setState(() {
-                      slot.durationMinutes = minutes;
-                    });
+                    setState(() => slot.durationMinutes = minutes);
                   },
                 );
               }),
@@ -510,10 +544,7 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
               const Expanded(
                 child: Text(
                   'Price per walk',
-                  style: TextStyle(
-                    color: scheduleMuted,
-                    fontSize: 13,
-                  ),
+                  style: TextStyle(color: scheduleMuted, fontSize: 13),
                 ),
               ),
               Text(
@@ -531,21 +562,91 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
     );
   }
 
-  Widget _summaryRow(
-    String label,
-    String value, {
-    bool emphasize = false,
-  }) {
+  Widget _dateSelectionSection() {
+    if (!_isChooseDates) return const SizedBox.shrink();
+
+    final dates = _selectedDates.toList()..sort();
+
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.all(13),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: const Color(0xFFF1E3D6)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Selected walk dates',
+                  style: TextStyle(
+                    color: scheduleText,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              TextButton.icon(
+                onPressed: _addAnotherDate,
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text('Add date'),
+                style: TextButton.styleFrom(
+                  foregroundColor: scheduleOrange,
+                ),
+              ),
+            ],
+          ),
+          if (dates.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'No dates selected yet. Add at least one date.',
+                style: TextStyle(color: scheduleMuted, fontSize: 12),
+              ),
+            )
+          else
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: dates.map((date) {
+                return Chip(
+                  label: Text(_formatDate(date)),
+                  deleteIcon: const Icon(Icons.close, size: 17),
+                  onDeleted: () => _removeDate(date),
+                  backgroundColor: const Color(0xFFFFF0E3),
+                  side: const BorderSide(color: Color(0xFFFFD2AE)),
+                  labelStyle: const TextStyle(
+                    color: scheduleText,
+                    fontSize: 12,
+                  ),
+                );
+              }).toList(),
+            ),
+          const SizedBox(height: 6),
+          const Text(
+            'The selected walk times will be used on each chosen date.',
+            style: TextStyle(
+              color: scheduleMuted,
+              fontSize: 11,
+              height: 1.4,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _summaryRow(String label, String value, {bool emphasize = false}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(
-              color: scheduleMuted,
-              fontSize: 13,
-            ),
+            style: const TextStyle(color: scheduleMuted, fontSize: 13),
           ),
         ),
         const SizedBox(width: 8),
@@ -567,6 +668,7 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
   @override
   Widget build(BuildContext context) {
     final count = _effectiveWalkCount;
+    final selectedDateCount = _isChooseDates ? _selectedDates.length : 1;
 
     return Scaffold(
       backgroundColor: scheduleBackground,
@@ -587,12 +689,9 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
               _isRegular
                   ? "Build your dog's daily routine"
                   : _isChooseDates
-                      ? 'Choose your walk date and time'
+                      ? 'Choose your walk dates and times'
                       : 'Plan your one-time walk',
-              style: const TextStyle(
-                color: scheduleMuted,
-                fontSize: 14,
-              ),
+              style: const TextStyle(color: scheduleMuted, fontSize: 14),
             ),
             const SizedBox(height: 16),
             Container(
@@ -648,8 +747,8 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
                 style: const TextStyle(color: scheduleText),
               ),
             ),
+            _dateSelectionSection(),
             const SizedBox(height: 20),
-
             if (_isOneTime) ...[
               Container(
                 padding: const EdgeInsets.all(12),
@@ -659,18 +758,12 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
                 ),
                 child: const Row(
                   children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: scheduleOrange,
-                    ),
+                    Icon(Icons.info_outline, color: scheduleOrange),
                     SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'One-Time booking mein sirf ek walk select kar sakte hain.',
-                        style: TextStyle(
-                          color: scheduleText,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: scheduleText, fontSize: 12),
                       ),
                     ),
                   ],
@@ -691,9 +784,7 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
                       ),
                       child: OutlinedButton(
                         onPressed: () {
-                          setState(() {
-                            _walkCount = countOption;
-                          });
+                          setState(() => _walkCount = countOption);
                         },
                         style: OutlinedButton.styleFrom(
                           backgroundColor: selected
@@ -707,9 +798,7 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
                                 ? scheduleOrange
                                 : const Color(0xFFE8E1DA),
                           ),
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                         child: Text(
                           '$countOption ${countOption == 1 ? 'Walk' : 'Walks'}',
@@ -722,9 +811,7 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
               ),
               const SizedBox(height: 16),
             ],
-
             ...List.generate(count, _walkCard),
-
             const SizedBox(height: 4),
             Container(
               padding: const EdgeInsets.all(16),
@@ -745,7 +832,10 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  _summaryRow('Walks per day', '$count'),
+                  _summaryRow(
+                    _isChooseDates ? 'Selected dates' : 'Walks per day',
+                    _isChooseDates ? '$selectedDateCount' : '$count',
+                  ),
                   const SizedBox(height: 8),
                   _summaryRow(
                     'Total walking time',
@@ -755,7 +845,9 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
                   _summaryRow(
                     _isRegular
                         ? 'Estimated daily total'
-                        : 'Estimated total',
+                        : _isChooseDates
+                            ? 'Estimated total per selected date'
+                            : 'Estimated total',
                     _dailyPrice == null
                         ? 'Price to be confirmed'
                         : '₹$_dailyPrice',
@@ -800,10 +892,7 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
             const Text(
               'Your booking request is not confirmed at this step.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: scheduleMuted,
-                fontSize: 11,
-              ),
+              style: TextStyle(color: scheduleMuted, fontSize: 11),
             ),
           ],
         ),
