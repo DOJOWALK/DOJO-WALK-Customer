@@ -8,12 +8,19 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../app/app_navigator.dart';
+import '../../booking/screens/choose_walk_screen.dart';
+import '../../booking/screens/walk_schedule_screen.dart';
 
 const Color profileOrange = Color(0xFFFF7900);
 const Color profileBackground = Color(0xFFFFFAF5);
 
 class NameSetupScreen extends StatefulWidget {
-  const NameSetupScreen({super.key});
+  final String? bookingWalkType;
+
+  const NameSetupScreen({
+    super.key,
+    this.bookingWalkType,
+  });
 
   @override
   State<NameSetupScreen> createState() => _NameSetupScreenState();
@@ -70,6 +77,12 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
     return age;
   }
 
+  DateTime? _parseDateOfBirth(dynamic value) {
+    if (value is Timestamp) return value.toDate();
+    if (value is String) return DateTime.tryParse(value);
+    return null;
+  }
+
   Future<void> _loadExistingProfile() async {
     if (!mounted) return;
 
@@ -83,7 +96,8 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
 
       if (user == null) {
         setState(() {
-          _loadError = 'Please log in with your mobile number first.';
+          _loadError =
+              'Please log in with your mobile number first.';
         });
         return;
       }
@@ -106,26 +120,17 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
           _gender = savedGender;
         }
 
-        final savedDob = data['dateOfBirth'];
-        DateTime? parsedDob;
-
-        if (savedDob is Timestamp) {
-          parsedDob = savedDob.toDate();
-        } else if (savedDob is String) {
-          parsedDob = DateTime.tryParse(savedDob);
+        final dob = _parseDateOfBirth(data['dateOfBirth']);
+        if (dob != null && !dob.isAfter(DateTime.now())) {
+          _dateOfBirth = dob;
         }
 
-        if (parsedDob != null &&
-            !parsedDob.isAfter(DateTime.now())) {
-          _dateOfBirth = parsedDob;
-        }
-
-        final savedPhoto = data['photoUrl'];
-        if (savedPhoto is String && savedPhoto.isNotEmpty) {
-          _photoUrl = savedPhoto;
+        final photo = data['photoUrl'];
+        if (photo is String && photo.isNotEmpty) {
+          _photoUrl = photo;
         }
       }
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
         setState(() {
           _loadError =
@@ -133,9 +138,7 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
         });
       }
     } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-      }
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -145,22 +148,22 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
-    final defaultDate = DateTime(
+    final latestAllowedDate = DateTime(
       today.year - 18,
       today.month,
       today.day,
     );
 
-    final currentDate = _dateOfBirth ?? defaultDate;
-    final initialDate = currentDate.isAfter(today)
-        ? today
-        : currentDate;
+    final initialDate = _dateOfBirth != null &&
+            !_dateOfBirth!.isAfter(latestAllowedDate)
+        ? _dateOfBirth!
+        : latestAllowedDate;
 
     final picked = await showDatePicker(
       context: context,
       initialDate: initialDate,
       firstDate: DateTime(1900, 1, 1),
-      lastDate: today,
+      lastDate: latestAllowedDate,
       helpText: 'SELECT DATE OF BIRTH',
       cancelText: 'CANCEL',
       confirmText: 'SELECT',
@@ -195,11 +198,9 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
       );
 
       if (picked != null && mounted) {
-        setState(() {
-          _selectedPhoto = File(picked.path);
-        });
+        setState(() => _selectedPhoto = File(picked.path));
       }
-    } catch (e) {
+    } catch (_) {
       _showMessage('Unable to select the photo. Please try again.');
     }
   }
@@ -207,7 +208,6 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
   String _formatDate(DateTime date) {
     final day = date.day.toString().padLeft(2, '0');
     final month = date.month.toString().padLeft(2, '0');
-
     return '$day/$month/${date.year}';
   }
 
@@ -225,7 +225,54 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
       SettableMetadata(contentType: 'image/jpeg'),
     );
 
-    return await storageRef.getDownloadURL();
+    return storageRef.getDownloadURL();
+  }
+
+  WalkBookingType? _selectedBookingType() {
+    switch (widget.bookingWalkType) {
+      case 'oneTime':
+        return WalkBookingType.oneTime;
+      case 'regular':
+        return WalkBookingType.regular;
+      case 'chooseDates':
+        return WalkBookingType.chooseDates;
+      default:
+        return null;
+    }
+  }
+
+  void _navigateAfterSave() {
+    final walkType = _selectedBookingType();
+
+    if (widget.bookingWalkType != null && walkType == null) {
+      _showMessage(
+        'Your selected walk plan could not be restored. Please select it again.',
+      );
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute<void>(
+          builder: (_) => const AppNavigator(),
+        ),
+        (route) => false,
+      );
+      return;
+    }
+
+    if (walkType != null) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute<void>(
+          builder: (_) => WalkScheduleScreen(walkType: walkType),
+        ),
+        (route) => false,
+      );
+      return;
+    }
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute<void>(
+        builder: (_) => const AppNavigator(),
+      ),
+      (route) => false,
+    );
   }
 
   Future<void> _saveProfile() async {
@@ -253,9 +300,7 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
       return;
     }
 
-    final age = _calculateAge(dob);
-
-    if (age < 18) {
+    if (_calculateAge(dob) < 18) {
       _showMessage(
         'You must be at least 18 years old to create a DOJO WALK account.',
       );
@@ -303,20 +348,13 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
 
       if (!mounted) return;
 
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (_) => const AppNavigator(),
-        ),
-        (route) => false,
-      );
-    } catch (e) {
+      _navigateAfterSave();
+    } catch (_) {
       _showMessage(
         'Unable to save your profile. Please check your connection and try again.',
       );
     } finally {
-      if (mounted) {
-        setState(() => _saving = false);
-      }
+      if (mounted) setState(() => _saving = false);
     }
   }
 
@@ -536,7 +574,6 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
         children: [
           _buildPhotoPicker(),
           const SizedBox(height: 22),
-
           const Text(
             'Your Name',
             style: TextStyle(
@@ -545,7 +582,6 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
             ),
           ),
           const SizedBox(height: 8),
-
           TextFormField(
             controller: _nameController,
             enabled: !_saving,
@@ -560,27 +596,20 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
             validator: (value) {
               final name = value?.trim() ?? '';
 
-              if (name.isEmpty) {
-                return 'Please enter your name.';
-              }
-
+              if (name.isEmpty) return 'Please enter your name.';
               if (name.length < 2) {
                 return 'Name must be at least 2 characters.';
               }
-
               if (name.length > 60) {
                 return 'Name cannot exceed 60 characters.';
               }
-
               return null;
             },
           ),
-
           const SizedBox(height: 20),
           _buildGenderSelector(),
           const SizedBox(height: 20),
           _buildDatePicker(),
-
           const SizedBox(height: 12),
           const Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -603,9 +632,7 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
               ),
             ],
           ),
-
           const SizedBox(height: 28),
-
           SizedBox(
             height: 54,
             child: ElevatedButton(
@@ -637,7 +664,6 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
                     ),
             ),
           ),
-
           const SizedBox(height: 18),
           const Text(
             'Your information helps us provide a safer and more reliable dog-walking experience.',
