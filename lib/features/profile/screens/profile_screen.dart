@@ -7,6 +7,7 @@ import '../../addresses/screens/my_addresses_screen.dart';
 import '../../auth/screens/phone_login_screen.dart';
 import '../../booking/screens/my_bookings_screen.dart';
 import '../../support/screens/help_support_screen.dart';
+import 'account_details_screen.dart';
 import 'my_dogs_screen.dart';
 
 const Color profileOrange = Color(0xFFFF7900);
@@ -37,9 +38,15 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
           ),
-          body: user == null
-              ? _signedOutView(context)
-              : _signedInView(context, user),
+          body: authSnapshot.connectionState == ConnectionState.waiting
+              ? const Center(
+                  child: CircularProgressIndicator(
+                    color: profileOrange,
+                  ),
+                )
+              : user == null
+                  ? _signedOutView(context)
+                  : _signedInView(context, user),
         );
       },
     );
@@ -50,13 +57,15 @@ class ProfileScreen extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       children: [
         const SizedBox(height: 24),
-        const CircleAvatar(
-          radius: 46,
-          backgroundColor: Color(0xFFFFEAD8),
-          child: Icon(
-            Icons.person_outline_rounded,
-            size: 48,
-            color: profileOrange,
+        const Center(
+          child: CircleAvatar(
+            radius: 46,
+            backgroundColor: Color(0xFFFFEAD8),
+            child: Icon(
+              Icons.person_outline_rounded,
+              size: 48,
+              color: profileOrange,
+            ),
           ),
         ),
         const SizedBox(height: 18),
@@ -106,30 +115,21 @@ class ProfileScreen extends StatelessWidget {
           icon: Icons.local_offer_outlined,
           title: 'Coupons & Offers',
           subtitle: 'View available offers',
-          onTap: () => _open(
-            context,
-            const CouponsOffersScreen(),
-          ),
+          onTap: () => _open(context, const CouponsOffersScreen()),
         ),
         _menuCard(
           context,
           icon: Icons.support_agent_rounded,
           title: 'Help & Support',
           subtitle: 'Get help with DOJO WALK',
-          onTap: () => _open(
-            context,
-            const HelpSupportScreen(),
-          ),
+          onTap: () => _open(context, const HelpSupportScreen()),
         ),
         _menuCard(
           context,
           icon: Icons.privacy_tip_outlined,
           title: 'Privacy & Terms',
           subtitle: 'Your privacy and account policies',
-          onTap: () => _open(
-            context,
-            const PrivacyTermsScreen(),
-          ),
+          onTap: () => _open(context, const PrivacyTermsScreen()),
         ),
       ],
     );
@@ -144,110 +144,19 @@ class ProfileScreen extends StatelessWidget {
       builder: (context, snapshot) {
         final data = snapshot.data?.data() ?? {};
 
-        final name = _readString(data, 'name').isNotEmpty
-            ? _readString(data, 'name')
+        final storedName = _readString(data, 'name');
+        final name = storedName.isNotEmpty
+            ? storedName
             : (user.displayName?.trim().isNotEmpty == true
                 ? user.displayName!.trim()
                 : 'DOJO WALK Customer');
-
-        final phone = _readString(data, 'phoneNumber').isNotEmpty
-            ? _readString(data, 'phoneNumber')
-            : (user.phoneNumber ?? 'Phone number not available');
 
         final photoUrl = _readString(data, 'photoUrl');
 
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
           children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [
-                    Color(0xFFFF7900),
-                    Color(0xFFFF9C42),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: profileOrange.withValues(alpha: 0.16),
-                    blurRadius: 16,
-                    offset: const Offset(0, 7),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  CircleAvatar(
-                    radius: 42,
-                    backgroundColor: Colors.white,
-                    backgroundImage: photoUrl.isNotEmpty
-                        ? NetworkImage(photoUrl)
-                        : null,
-                    child: photoUrl.isEmpty
-                        ? const Icon(
-                            Icons.person_rounded,
-                            color: profileOrange,
-                            size: 46,
-                          )
-                        : null,
-                  ),
-                  const SizedBox(height: 13),
-                  Text(
-                    name,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 21,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  const Text(
-                    'DOJO WALK Customer',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 7),
-                  Text(
-                    phone,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                    ),
-                  ),
-                  const SizedBox(height: 17),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () => _open(
-                        context,
-                        MyProfileAccountScreen(user: user),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        side: const BorderSide(color: Colors.white),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(13),
-                        ),
-                      ),
-                      icon: const Icon(Icons.manage_accounts_outlined),
-                      label: const Text(
-                        'View Profile & Account',
-                        style: TextStyle(fontWeight: FontWeight.w800),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            _profileCard(context, user, name, photoUrl),
             const SizedBox(height: 25),
             _sectionTitle('MY ACCOUNT'),
             _menuCard(
@@ -257,7 +166,7 @@ class ProfileScreen extends StatelessWidget {
               subtitle: 'Manage your personal details',
               onTap: () => _open(
                 context,
-                MyProfileAccountScreen(user: user),
+                AccountDetailsScreen(user: user),
               ),
             ),
             _menuCard(
@@ -265,40 +174,28 @@ class ProfileScreen extends StatelessWidget {
               icon: Icons.pets_rounded,
               title: 'My Dogs',
               subtitle: 'Manage your saved dogs',
-              onTap: () => _open(
-                context,
-                const MyDogsScreen(),
-              ),
+              onTap: () => _open(context, const MyDogsScreen()),
             ),
             _menuCard(
               context,
               icon: Icons.calendar_month_rounded,
               title: 'My Bookings',
               subtitle: 'View walks and booking details',
-              onTap: () => _open(
-                context,
-                const MyBookingsScreen(),
-              ),
+              onTap: () => _open(context, const MyBookingsScreen()),
             ),
             _menuCard(
               context,
               icon: Icons.location_on_outlined,
               title: 'Saved Addresses',
               subtitle: 'Manage your pickup locations',
-              onTap: () => _open(
-                context,
-                const MyAddressesScreen(),
-              ),
+              onTap: () => _open(context, const MyAddressesScreen()),
             ),
             _menuCard(
               context,
               icon: Icons.local_offer_outlined,
               title: 'Coupons & Offers',
               subtitle: 'See offers available to your account',
-              onTap: () => _open(
-                context,
-                const CouponsOffersScreen(),
-              ),
+              onTap: () => _open(context, const CouponsOffersScreen()),
             ),
             const SizedBox(height: 15),
             _sectionTitle('SUPPORT & INFORMATION'),
@@ -307,30 +204,21 @@ class ProfileScreen extends StatelessWidget {
               icon: Icons.support_agent_rounded,
               title: 'Help & Support',
               subtitle: 'Get help with a booking',
-              onTap: () => _open(
-                context,
-                const HelpSupportScreen(),
-              ),
+              onTap: () => _open(context, const HelpSupportScreen()),
             ),
             _menuCard(
               context,
               icon: Icons.settings_outlined,
               title: 'Settings',
               subtitle: 'Account preferences',
-              onTap: () => _open(
-                context,
-                const SettingsScreen(),
-              ),
+              onTap: () => _open(context, const SettingsScreen()),
             ),
             _menuCard(
               context,
               icon: Icons.privacy_tip_outlined,
               title: 'Privacy & Terms',
               subtitle: 'Privacy policy and terms of service',
-              onTap: () => _open(
-                context,
-                const PrivacyTermsScreen(),
-              ),
+              onTap: () => _open(context, const PrivacyTermsScreen()),
             ),
             const SizedBox(height: 14),
             _menuCard(
@@ -356,6 +244,132 @@ class ProfileScreen extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+
+  Widget _profileCard(
+    BuildContext context,
+    User user,
+    String name,
+    String photoUrl,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFFFF7900),
+            Color(0xFFFFA34D),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: profileOrange.withValues(alpha: 0.20),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 76,
+                height: 76,
+                padding: const EdgeInsets.all(3),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: CircleAvatar(
+                  backgroundColor: const Color(0xFFFFEAD8),
+                  backgroundImage: photoUrl.isNotEmpty
+                      ? NetworkImage(photoUrl)
+                      : null,
+                  child: photoUrl.isEmpty
+                      ? const Icon(
+                          Icons.person_rounded,
+                          color: profileOrange,
+                          size: 42,
+                        )
+                      : null,
+                ),
+              ),
+              const SizedBox(width: 15),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'WELCOME TO DOJO WALK',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                    const SizedBox(height: 7),
+                    Text(
+                      name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    const Text(
+                      'Dog Parent 🐾',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.pets_rounded,
+                color: Colors.white,
+                size: 27,
+              ),
+            ],
+          ),
+          const SizedBox(height: 22),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _open(
+                context,
+                AccountDetailsScreen(user: user),
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: profileOrange,
+                backgroundColor: Colors.white,
+                side: const BorderSide(color: Colors.white),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              icon: const Icon(Icons.manage_accounts_rounded),
+              label: const Text(
+                'View Profile & Account',
+                style: TextStyle(fontWeight: FontWeight.w900),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -489,223 +503,6 @@ class ProfileScreen extends StatelessWidget {
           behavior: SnackBarBehavior.floating,
         ),
       );
-  }
-}
-
-class MyProfileAccountScreen extends StatefulWidget {
-  final User user;
-
-  const MyProfileAccountScreen({
-    super.key,
-    required this.user,
-  });
-
-  @override
-  State<MyProfileAccountScreen> createState() =>
-      _MyProfileAccountScreenState();
-}
-
-class _MyProfileAccountScreenState
-    extends State<MyProfileAccountScreen> {
-  final _nameController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-
-  bool _loading = true;
-  bool _saving = false;
-  String _phone = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _loadProfile();
-  }
-
-  Future<void> _loadProfile() async {
-    try {
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.user.uid)
-          .get();
-
-      final data = doc.data() ?? {};
-      _nameController.text = data['name'] is String
-          ? data['name'] as String
-          : widget.user.displayName ?? '';
-      _phone = data['phoneNumber'] is String
-          ? data['phoneNumber'] as String
-          : widget.user.phoneNumber ?? '';
-    } catch (_) {
-      _nameController.text = widget.user.displayName ?? '';
-      _phone = widget.user.phoneNumber ?? '';
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _saveProfile() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _saving = true);
-
-    try {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.user.uid)
-          .set({
-        'name': _nameController.text.trim(),
-        'phoneNumber': _phone,
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Profile updated successfully.'),
-        ),
-      );
-    } catch (_) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Could not update profile. Please try again.'),
-        ),
-      );
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: profileBackground,
-      appBar: AppBar(
-        backgroundColor: profileBackground,
-        title: const Text(
-          'My Profile & Account',
-          style: TextStyle(
-            color: profileText,
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-      ),
-      body: _loading
-          ? const Center(
-              child: CircularProgressIndicator(
-                color: profileOrange,
-              ),
-            )
-          : ListView(
-              padding: const EdgeInsets.all(18),
-              children: [
-                const CircleAvatar(
-                  radius: 38,
-                  backgroundColor: Color(0xFFFFEAD8),
-                  child: Icon(
-                    Icons.person_rounded,
-                    size: 42,
-                    color: profileOrange,
-                  ),
-                ),
-                const SizedBox(height: 22),
-                Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Full Name',
-                        style: TextStyle(
-                          color: profileText,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        controller: _nameController,
-                        textCapitalization: TextCapitalization.words,
-                        decoration: InputDecoration(
-                          hintText: 'Enter your full name',
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                        validator: (value) {
-                          if (value == null ||
-                              value.trim().length < 2) {
-                            return 'Enter a name with at least 2 characters.';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 18),
-                      const Text(
-                        'Phone Number',
-                        style: TextStyle(
-                          color: profileText,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        initialValue: _phone,
-                        readOnly: true,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: const Color(0xFFF1EFED),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          helperText:
-                              'Contact support if your number needs to change.',
-                        ),
-                      ),
-                      const SizedBox(height: 26),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: ElevatedButton(
-                          onPressed: _saving ? null : _saveProfile,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: profileOrange,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                          child: _saving
-                              ? const SizedBox(
-                                  height: 22,
-                                  width: 22,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text(
-                                  'Save Changes',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                                ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-    );
   }
 }
 
