@@ -128,22 +128,21 @@ class _BookingConfirmationScreenState
   }
 
   DateTime? _selectedDate() {
-    final raw = widget.schedule['date'] ??
-        widget.schedule['selectedDate'];
+    final raw =
+        widget.schedule['date'] ?? widget.schedule['selectedDate'];
 
     if (raw is Timestamp) return raw.toDate();
     if (raw is DateTime) return raw;
 
     if (raw != null) {
       final value = raw.toString().trim();
-
       final parsed = DateTime.tryParse(value);
       if (parsed != null) return parsed;
 
-      // Supports dd/MM/yyyy from the schedule screen.
       final match =
           RegExp(r'^(\d{1,2})/(\d{1,2})/(\d{4})$')
               .firstMatch(value);
+
       if (match != null) {
         return DateTime(
           int.parse(match.group(3)!),
@@ -170,12 +169,15 @@ class _BookingConfirmationScreenState
 
   String _formatTime(String raw) {
     final value = raw.trim();
+
     final match = RegExp(
       r'^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?$',
       caseSensitive: false,
     ).firstMatch(value);
 
-    if (match == null) return value.isEmpty ? 'Not selected' : value;
+    if (match == null) {
+      return value.isEmpty ? 'Not selected' : value;
+    }
 
     var hour = int.parse(match.group(1)!);
     final minute = match.group(2) ?? '00';
@@ -220,8 +222,20 @@ class _BookingConfirmationScreenState
       return;
     }
 
-    if (_walks.isEmpty) {
+    final walks = _walks;
+
+    if (walks.isEmpty) {
       _message('Please walk ka time select karein.');
+      return;
+    }
+
+    if (_isRegular && (walks.length < 1 || walks.length > 3)) {
+      _message('Regular plan mein 1 se 3 walks select karein.');
+      return;
+    }
+
+    if (!_isRegular && walks.length != 1) {
+      _message('One-Time Plan mein sirf ek walk select karein.');
       return;
     }
 
@@ -231,8 +245,9 @@ class _BookingConfirmationScreenState
       return;
     }
 
-    for (final walk in _walks) {
+    for (final walk in walks) {
       final time = (walk['time'] ?? '').toString().trim();
+
       if (time.isEmpty || _duration(walk) <= 0) {
         _message('Har walk ka valid time aur duration select karein.');
         return;
@@ -244,7 +259,7 @@ class _BookingConfirmationScreenState
     try {
       final firestore = FirebaseFirestore.instance;
 
-      // Recheck that the selected dog still exists.
+      // Confirm that the selected dog still exists.
       final petDoc = await firestore
           .collection('users')
           .doc(user.uid)
@@ -270,21 +285,35 @@ class _BookingConfirmationScreenState
       }
 
       final bookingRef = firestore.collection('bookings').doc();
-      final firstWalk = _walks.first;
       final selectedDate = DateTime(date.year, date.month, date.day);
+      final firstWalk = walks.first;
 
       final pickup = <String, dynamic>{
         ...widget.pickupAddress,
         'address': _addressText(),
       };
 
-      // Keep only the fields accepted by the current booking rules.
+      // Save EVERY selected walk in the same booking document.
+      // Keep schedule item fields simple and consistent.
+      final walkSchedules = walks.asMap().entries.map((entry) {
+        final index = entry.key;
+        final walk = entry.value;
+
+        return <String, dynamic>{
+          'walkNumber': index + 1,
+          'time': (walk['time'] ?? '').toString().trim(),
+          'duration': _duration(walk),
+          if (_price(walk) != null) 'price': _price(walk),
+        };
+      }).toList();
+
       final bookingData = <String, dynamic>{
         'bookingId': bookingRef.id,
         'customerId': user.uid,
         'walkType': 'scheduled',
         'bookingPlan': _isRegular ? 'regular' : 'one_time',
-        'serviceType': _isRegular ? 'regular_walk' : 'temporary_walk',
+        'serviceType':
+            _isRegular ? 'regular_walk' : 'temporary_walk',
         'serviceName': _planName,
         'petName': dogName,
         'dogId': _dogId,
@@ -298,21 +327,31 @@ class _BookingConfirmationScreenState
         'pickupAddressId': _addressId,
         'pickupAddress': pickup,
         'scheduledAt': Timestamp.fromDate(selectedDate),
+
+        // Keep these compatibility fields for existing booking screens.
+        // They describe the first walk; walkSchedules contains all walks.
         'duration': '${_duration(firstWalk)} minutes',
         'preferredTime': firstWalk['time'].toString(),
+
         'status': 'pending',
         'walkerId': null,
         'cancelRequest': null,
         'createdAt': FieldValue.serverTimestamp(),
-        if (_isRegular) 'frequency': 'Daily',
-        if (_isRegular) 'walksPerWeek': 7,
+
+        if (_isRegular) ...{
+          'frequency': 'daily',
+          'walksPerWeek': 7,
+          'walksPerDay': walks.length,
+          'walkSchedules': walkSchedules,
+        },
       };
 
-      // Do not write to walk_requests from the customer app:
-      // the current Firestore rules deny client writes there.
+      // Write one booking only. Do not create walk_requests here:
+      // client writes to that collection are denied by the current rules.
       await bookingRef.set(bookingData);
 
       if (!mounted) return;
+
       setState(() {
         _submitted = true;
         _isSubmitting = false;
@@ -352,7 +391,8 @@ class _BookingConfirmationScreenState
               ),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
-                Navigator.of(context).popUntil((route) => route.isFirst);
+                Navigator.of(context)
+                    .popUntil((route) => route.isFirst);
               },
               child: const Text('Done'),
             ),
@@ -362,20 +402,20 @@ class _BookingConfirmationScreenState
     } on StateError catch (e) {
       if (!mounted) return;
       setState(() => _isSubmitting = false);
-      _message(e.message);
+      _message(e.message.toString());
     } on FirebaseException catch (e) {
       if (!mounted) return;
       setState(() => _isSubmitting = false);
 
       _message(
         e.code == 'permission-denied'
-            ? 'Booking save nahi hui. Firebase Rules aur required user fields check karne honge.'
-            : 'Booking save nahi hui. Please dobara try karein.',
+            ? 'Booking rejected by Firebase Rules. Check the booking fields and Rules.'
+            : 'Booking save nahi hui (${e.code}). Please dobara try karein.',
       );
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
       setState(() => _isSubmitting = false);
-      _message('Kuch galat hua. Please dobara try karein.');
+      _message('Booking save nahi hui: $e');
     }
   }
 
@@ -433,6 +473,7 @@ class _BookingConfirmationScreenState
                     final index = entry.key;
                     final walk = entry.value;
                     final price = _price(walk);
+
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: const Icon(
