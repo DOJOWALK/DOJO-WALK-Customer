@@ -35,6 +35,31 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 
+  int _calculateAge(DateTime dob) {
+    final today = DateTime.now();
+
+    var age = today.year - dob.year;
+
+    if (today.month < dob.month ||
+        (today.month == dob.month && today.day < dob.day)) {
+      age--;
+    }
+
+    return age;
+  }
+
+  DateTime? _parseDateOfBirth(dynamic value) {
+    if (value is Timestamp) {
+      return value.toDate();
+    }
+
+    if (value is String) {
+      return DateTime.tryParse(value);
+    }
+
+    return null;
+  }
+
   Future<void> _checkLoginAndNavigate() async {
     if (!mounted || _navigated || _checking) return;
 
@@ -43,6 +68,7 @@ class _SplashScreenState extends State<SplashScreen> {
     try {
       final user = FirebaseAuth.instance.currentUser;
 
+      // Login is mandatory.
       if (user == null) {
         _openNextScreen(const PhoneLoginScreen());
         return;
@@ -59,7 +85,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
       final name = data?['name'];
       final gender = data?['gender'];
-      final dob = data?['dateOfBirth'];
+      final dobValue = data?['dateOfBirth'];
 
       final hasName =
           name is String && name.trim().length >= 2;
@@ -67,13 +93,21 @@ class _SplashScreenState extends State<SplashScreen> {
       final hasGender = gender is String &&
           ['male', 'female', 'other'].contains(gender);
 
-      final hasDob = dob is Timestamp ||
-          (dob is String && DateTime.tryParse(dob) != null);
+      final dob = _parseDateOfBirth(dobValue);
 
+      final hasValidDob = dob != null &&
+          !dob.isAfter(DateTime.now());
+
+      final isAdult =
+          hasValidDob && _calculateAge(dob) >= 18;
+
+      // Incomplete profiles and profiles under 18 must
+      // complete profile setup instead of entering the app.
       if (!profile.exists ||
           !hasName ||
           !hasGender ||
-          !hasDob) {
+          !hasValidDob ||
+          !isAdult) {
         _openNextScreen(const NameSetupScreen());
         return;
       }
@@ -84,7 +118,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
       setState(() {
         _error =
-            'अकाउंट चेक नहीं हो पाया।\nइंटरनेट जाँचें और दोबारा कोशिश करें।';
+            'Unable to verify your account.\nPlease check your internet connection and try again.';
       });
     } finally {
       _checking = false;
@@ -118,7 +152,6 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // आपकी पूरी Splash Screen image
             Image.asset(
               'assets/images/dojo_splash.png',
               fit: BoxFit.fill,
@@ -140,12 +173,12 @@ class _SplashScreenState extends State<SplashScreen> {
               },
             ),
 
-            // सफेद loading spinner — image के ऊपर
             if (_error == null)
               Positioned(
                 left: 0,
                 right: 0,
-                bottom: MediaQuery.of(context).size.height * 0.105,
+                bottom:
+                    MediaQuery.of(context).size.height * 0.105,
                 child: const Center(
                   child: SizedBox(
                     width: 27,
@@ -153,13 +186,14 @@ class _SplashScreenState extends State<SplashScreen> {
                     child: CircularProgressIndicator(
                       strokeWidth: 3,
                       valueColor:
-                          AlwaysStoppedAnimation<Color>(Colors.white),
+                          AlwaysStoppedAnimation<Color>(
+                        Colors.white,
+                      ),
                     ),
                   ),
                 ),
               ),
 
-            // Error होने पर retry विकल्प
             if (_error != null)
               Positioned(
                 left: 24,
