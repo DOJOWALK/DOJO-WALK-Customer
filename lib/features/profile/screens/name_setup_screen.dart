@@ -7,6 +7,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../app/app_navigator.dart';
+
 const Color profileOrange = Color(0xFFFF7900);
 const Color profileBackground = Color(0xFFFFFAF5);
 
@@ -20,6 +22,7 @@ class NameSetupScreen extends StatefulWidget {
 class _NameSetupScreenState extends State<NameSetupScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final ImagePicker _imagePicker = ImagePicker();
 
   String? _gender;
   DateTime? _dateOfBirth;
@@ -28,8 +31,6 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
 
   bool _loading = true;
   bool _saving = false;
-
-  final ImagePicker _imagePicker = ImagePicker();
 
   User? get _user => FirebaseAuth.instance.currentUser;
 
@@ -45,14 +46,23 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
     super.dispose();
   }
 
+  void _showMessage(String message) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.black87,
+      ),
+    );
+  }
+
   Future<void> _loadExistingProfile() async {
     try {
       final user = _user;
 
       if (user == null) {
-        if (mounted) {
-          setState(() => _loading = false);
-        }
+        _showMessage('पहले मोबाइल नंबर से लॉगिन करें।');
         return;
       }
 
@@ -64,7 +74,7 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
       if (!mounted) return;
 
       if (snapshot.exists) {
-        final data = snapshot.data()!;
+        final data = snapshot.data() ?? {};
 
         _nameController.text = (data['name'] ?? '').toString();
 
@@ -75,6 +85,7 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
         }
 
         final savedDob = data['dateOfBirth'];
+
         if (savedDob is Timestamp) {
           _dateOfBirth = savedDob.toDate();
         } else if (savedDob is String) {
@@ -87,7 +98,7 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
         }
       }
     } catch (e) {
-      _showMessage('Profile load nahi ho payi: $e');
+      _showMessage('प्रोफ़ाइल लोड नहीं हो पाई: $e');
     } finally {
       if (mounted) {
         setState(() => _loading = false);
@@ -99,12 +110,14 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
-    final initialDate = _dateOfBirth ??
-        DateTime(now.year - 18, now.month, 1);
+    final defaultDate = DateTime(now.year - 18, now.month, 1);
+    final currentDate = _dateOfBirth ?? defaultDate;
+
+    final initialDate = currentDate.isAfter(today) ? today : currentDate;
 
     final picked = await showDatePicker(
       context: context,
-      initialDate: initialDate.isAfter(today) ? today : initialDate,
+      initialDate: initialDate,
       firstDate: DateTime(1900, 1, 1),
       lastDate: today,
       helpText: 'Select Date of Birth',
@@ -132,6 +145,8 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
   }
 
   Future<void> _selectPhoto() async {
+    if (_saving) return;
+
     try {
       final picked = await _imagePicker.pickImage(
         source: ImageSource.gallery,
@@ -143,7 +158,7 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
         setState(() => _selectedPhoto = File(picked.path));
       }
     } catch (e) {
-      _showMessage('Photo select nahi ho payi: $e');
+      _showMessage('फोटो चुन नहीं पाए: $e');
     }
   }
 
@@ -171,22 +186,24 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
   }
 
   Future<void> _saveProfile() async {
+    if (_saving || _loading) return;
+
     if (!_formKey.currentState!.validate()) return;
 
     if (_gender == null) {
-      _showMessage('Please select your gender.');
+      _showMessage('अपना Gender चुनें।');
       return;
     }
 
     if (_dateOfBirth == null) {
-      _showMessage('Please select your date of birth.');
+      _showMessage('अपनी Date of Birth चुनें।');
       return;
     }
 
     final user = _user;
 
     if (user == null) {
-      _showMessage('Please login with your phone number first.');
+      _showMessage('पहले मोबाइल नंबर से लॉगिन करें।');
       return;
     }
 
@@ -196,10 +213,15 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
       final firestore = FirebaseFirestore.instance;
       final profileRef = firestore.collection('users').doc(user.uid);
 
-      // Read the existing document so createdAt is preserved.
       final existing = await profileRef.get();
 
+      if (!mounted) return;
+
       final uploadedPhotoUrl = await _uploadPhoto(user.uid);
+
+      if (!mounted) return;
+
+      final selectedDob = _dateOfBirth!;
 
       final profileData = <String, dynamic>{
         'uid': user.uid,
@@ -208,9 +230,9 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
         'gender': _gender,
         'dateOfBirth': Timestamp.fromDate(
           DateTime(
-            _dateOfBirth!.year,
-            _dateOfBirth!.month,
-            _dateOfBirth!.day,
+            selectedDob.year,
+            selectedDob.month,
+            selectedDob.day,
           ),
         ),
         'phoneNumber': user.phoneNumber ?? '',
@@ -229,28 +251,21 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
 
       if (!mounted) return;
 
-      _showMessage('Profile saved successfully!');
-
-      // Keeps compatibility with a flow that awaits this screen.
-      Navigator.pop(context, _nameController.text.trim());
+      // प्रोफ़ाइल सेव होने के बाद पुरानी स्क्रीनें हटाकर
+      // सीधे DOJO WALK के मुख्य ऐप में जाएँ।
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute<void>(
+          builder: (_) => const AppNavigator(),
+        ),
+        (route) => false,
+      );
     } catch (e) {
-      _showMessage('Profile save nahi ho payi: $e');
+      _showMessage('प्रोफ़ाइल सेव नहीं हो पाई: $e');
     } finally {
       if (mounted) {
         setState(() => _saving = false);
       }
     }
-  }
-
-  void _showMessage(String message) {
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.black87,
-      ),
-    );
   }
 
   @override
@@ -344,6 +359,7 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _nameController,
+                      enabled: !_saving,
                       textCapitalization: TextCapitalization.words,
                       keyboardType: TextInputType.name,
                       decoration: _decoration(
@@ -354,9 +370,11 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
                         if (value == null || value.trim().isEmpty) {
                           return 'Please enter your name.';
                         }
+
                         if (value.trim().length < 2) {
                           return 'Name must contain at least 2 characters.';
                         }
+
                         return null;
                       },
                     ),
@@ -396,6 +414,7 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
                         if (value == null || value.isEmpty) {
                           return 'Please select your gender.';
                         }
+
                         return null;
                       },
                     ),
@@ -460,6 +479,7 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
                               ),
                       ),
                     ),
+
                     const SizedBox(height: 16),
                   ],
                 ),
@@ -483,11 +503,15 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
       ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFE8E0D9)),
+        borderSide: const BorderSide(
+          color: Color(0xFFE8E0D9),
+        ),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFE8E0D9)),
+        borderSide: const BorderSide(
+          color: Color(0xFFE8E0D9),
+        ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
