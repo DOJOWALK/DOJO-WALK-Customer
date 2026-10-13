@@ -16,8 +16,7 @@ class _WalkSlot {
 
   _WalkSlot({
     required this.time,
-    this.durationMinutes = 30,
-  });
+  }) : durationMinutes = 30;
 }
 
 class WalkScheduleScreen extends StatefulWidget {
@@ -200,6 +199,7 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
         title: const Text('Custom walk duration'),
         content: TextField(
           controller: controller,
+          autofocus: true,
           keyboardType: TextInputType.number,
           decoration: const InputDecoration(
             labelText: 'Duration in minutes',
@@ -215,6 +215,7 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: scheduleOrange,
+              foregroundColor: Colors.white,
             ),
             onPressed: () {
               final value = int.tryParse(controller.text.trim());
