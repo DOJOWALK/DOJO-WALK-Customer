@@ -9,6 +9,7 @@ import '../../addresses/services/address_service.dart';
 import '../../addresses/screens/address_form_screen.dart';
 
 import 'booking_confirmation_screen.dart';
+import 'choose_walk_screen.dart';
 
 const Color detailsOrange = Color(0xFFFF7900);
 const Color detailsBackground = Color(0xFFFFFAF5);
