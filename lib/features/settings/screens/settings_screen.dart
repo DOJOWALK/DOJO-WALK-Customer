@@ -4,6 +4,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../app/app_language.dart';
+
 const Color settingsOrange = Color(0xFFFF7900);
 const Color settingsBackground = Color(0xFFFFFAF5);
 const Color settingsText = Color(0xFF202020);
@@ -20,6 +22,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     with WidgetsBindingObserver {
   String _language = 'en';
   String _appVersion = 'Loading...';
+
   LocationPermission? _permission;
   bool _locationEnabled = false;
   bool _loadingLocation = true;
@@ -45,17 +48,30 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   Future<void> _loadSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    final info = await PackageInfo.fromPlatform();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final info = await PackageInfo.fromPlatform();
+      final savedLanguage =
+          prefs.getString('dojo_app_language') ?? 'en';
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    setState(() {
-      _language = prefs.getString('dojo_app_language') ?? 'en';
-      _appVersion = '${info.version}+${info.buildNumber}';
-    });
+      setState(() {
+        _language = savedLanguage == 'hi' ? 'hi' : 'en';
+        _appVersion = '${info.version}+${info.buildNumber}';
+      });
 
-    await _checkLocation();
+      // Keep the app locale in sync with saved preference.
+      appLocale.value = Locale(_language);
+
+      await _checkLocation();
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _appVersion = 'Unavailable';
+      });
+      _message('Could not load app settings.');
+    }
   }
 
   Future<void> _checkLocation() async {
@@ -76,9 +92,11 @@ class _SettingsScreenState extends State<SettingsScreen>
       });
     } catch (_) {
       if (!mounted) return;
+
       setState(() {
         _loadingLocation = false;
       });
+
       _message('Could not check location status.');
     }
   }
@@ -88,9 +106,11 @@ class _SettingsScreenState extends State<SettingsScreen>
       context: context,
       backgroundColor: settingsBackground,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(24),
+        ),
       ),
-      builder: (context) => SafeArea(
+      builder: (sheetContext) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -106,8 +126,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                 ),
               ),
               const SizedBox(height: 12),
-              _languageOption(context, 'en', 'English'),
-              _languageOption(context, 'hi', 'हिंदी'),
+              _languageOption(sheetContext, 'en', 'English'),
+              _languageOption(sheetContext, 'hi', 'हिंदी'),
             ],
           ),
         ),
@@ -116,21 +136,32 @@ class _SettingsScreenState extends State<SettingsScreen>
 
     if (selected == null) return;
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('dojo_app_language', selected);
+    try {
+      final prefs = await SharedPreferences.getInstance();
 
-    if (!mounted) return;
-    setState(() => _language = selected);
+      await prefs.setString('dojo_app_language', selected);
 
-    _message(
-      selected == 'hi'
-          ? 'भाषा की पसंद सेव हो गई।'
-          : 'Language preference saved.',
-    );
+      if (!mounted) return;
+
+      setState(() {
+        _language = selected;
+      });
+
+      // Updates the locale listened to by DojoWalkApp.
+      appLocale.value = Locale(selected);
+
+      _message(
+        selected == 'hi'
+            ? 'भाषा की पसंद सेव हो गई।'
+            : 'Language preference saved.',
+      );
+    } catch (_) {
+      _message('Could not save language preference.');
+    }
   }
 
   Widget _languageOption(
-    BuildContext context,
+    BuildContext sheetContext,
     String code,
     String label,
   ) {
@@ -139,7 +170,9 @@ class _SettingsScreenState extends State<SettingsScreen>
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: Icon(
-        selected ? Icons.radio_button_checked : Icons.radio_button_off,
+        selected
+            ? Icons.radio_button_checked
+            : Icons.radio_button_off,
         color: settingsOrange,
       ),
       title: Text(
@@ -149,15 +182,16 @@ class _SettingsScreenState extends State<SettingsScreen>
           fontWeight: FontWeight.w700,
         ),
       ),
-      onTap: () => Navigator.pop(context, code),
+      onTap: () => Navigator.pop(sheetContext, code),
     );
   }
 
   Future<void> _manageLocation() async {
     try {
-      if (!await Geolocator.isLocationServiceEnabled()) {
-        final opened = await Geolocator.openLocationSettings();
-        if (!opened) await Geolocator.openAppSettings();
+      final enabled = await Geolocator.isLocationServiceEnabled();
+
+      if (!enabled) {
+        await Geolocator.openLocationSettings();
         return;
       }
 
@@ -187,7 +221,9 @@ class _SettingsScreenState extends State<SettingsScreen>
   String get _locationStatus {
     if (_loadingLocation) return 'Checking permission...';
 
-    if (!_locationEnabled) return 'Phone location is turned off';
+    if (!_locationEnabled) {
+      return 'Phone location is turned off';
+    }
 
     switch (_permission) {
       case LocationPermission.always:
@@ -224,7 +260,9 @@ class _SettingsScreenState extends State<SettingsScreen>
       appBar: AppBar(
         backgroundColor: settingsBackground,
         elevation: 0,
-        iconTheme: const IconThemeData(color: settingsText),
+        iconTheme: const IconThemeData(
+          color: settingsText,
+        ),
         title: const Text(
           'Settings',
           style: TextStyle(
@@ -240,7 +278,10 @@ class _SettingsScreenState extends State<SettingsScreen>
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [settingsOrange, Color(0xFFFFA34D)],
+                colors: [
+                  settingsOrange,
+                  Color(0xFFFFA34D),
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -315,7 +356,10 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   Widget _sectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 10),
+      padding: const EdgeInsets.only(
+        left: 4,
+        bottom: 10,
+      ),
       child: Text(
         title,
         style: const TextStyle(
@@ -340,7 +384,9 @@ class _SettingsScreenState extends State<SettingsScreen>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(17),
-        border: Border.all(color: const Color(0xFFF0ECE8)),
+        border: Border.all(
+          color: const Color(0xFFF0ECE8),
+        ),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(
@@ -354,7 +400,11 @@ class _SettingsScreenState extends State<SettingsScreen>
             color: const Color(0xFFFFF0E3),
             borderRadius: BorderRadius.circular(13),
           ),
-          child: Icon(icon, color: settingsOrange, size: 23),
+          child: Icon(
+            icon,
+            color: settingsOrange,
+            size: 23,
+          ),
         ),
         title: Text(
           title,
