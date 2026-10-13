@@ -1,6 +1,6 @@
-
 import 'package:flutter/material.dart';
 
+import 'app_language.dart';
 import '../features/splash/screens/splash_screen.dart';
 
 class DojoWalkApp extends StatelessWidget {
@@ -8,18 +8,28 @@ class DojoWalkApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'DOJO WALK',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFFF7900),
-          primary: const Color(0xFFFF7900),
-        ),
-        scaffoldBackgroundColor: Colors.white,
-      ),
-      home: const SplashScreen(),
+    return ValueListenableBuilder<Locale>(
+      valueListenable: appLocale,
+      builder: (context, locale, child) {
+        return MaterialApp(
+          title: 'DOJO WALK',
+          debugShowCheckedModeBanner: false,
+          locale: locale,
+          supportedLocales: const [
+            Locale('en'),
+            Locale('hi'),
+          ],
+          theme: ThemeData(
+            useMaterial3: true,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFFFF7900),
+              primary: const Color(0xFFFF7900),
+            ),
+            scaffoldBackgroundColor: Colors.white,
+          ),
+          home: const SplashScreen(),
+        );
+      },
     );
   }
 }
