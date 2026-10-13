@@ -1,13 +1,15 @@
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../booking/screens/my_bookings_screen.dart';
-import '../../booking/screens/my_dogs_screen.dart';
+import '../../support/screens/help_support_screen.dart';
+import 'my_dogs_screen.dart';
 
 const Color profileOrange = Color(0xFFFF7900);
 const Color profileBackground = Color(0xFFFFFAF5);
-const Color profileText = Color(0xFF202020);
+const Color profileText = Color(0xFF252525);
 const Color profileMuted = Color(0xFF777777);
 
 class ProfileScreen extends StatelessWidget {
@@ -15,543 +17,479 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, authSnapshot) {
-        final user = authSnapshot.data;
+    return Scaffold(
+      backgroundColor: profileBackground,
+      body: SafeArea(
+        child: StreamBuilder<User?>(
+          stream: FirebaseAuth.instance.authStateChanges(),
+          builder: (context, authSnapshot) {
+            if (authSnapshot.connectionState ==
+                ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  color: profileOrange,
+                ),
+              );
+            }
 
-        return Scaffold(
-          backgroundColor: profileBackground,
-          appBar: AppBar(
-            backgroundColor: profileBackground,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            title: const Text(
-              'My Profile',
-              style: TextStyle(
-                color: profileText,
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ),
-          body: SafeArea(
-            child: authSnapshot.connectionState ==
-                        ConnectionState.waiting &&
-                    !authSnapshot.hasData
-                ? const Center(
-                    child: CircularProgressIndicator(
-                      color: profileOrange,
-                    ),
-                  )
-                : ListView(
-                    padding: const EdgeInsets.fromLTRB(
-                      18,
-                      10,
-                      18,
-                      28,
-                    ),
-                    children: [
-                      if (user == null)
-                        _buildSignedOutHeader()
-                      else
-                        StreamBuilder<
-                            DocumentSnapshot<Map<String, dynamic>>>(
-                          stream: FirebaseFirestore.instance
-                              .collection('users')
-                              .doc(user.uid)
-                              .snapshots(),
-                          builder: (context, snapshot) {
-                            final data = snapshot.data?.data();
+            final user = authSnapshot.data;
 
-                            final savedName =
-                                data?['name']?.toString().trim() ?? '';
-                            final savedPhone =
-                                data?['phoneNumber']?.toString().trim() ??
-                                    '';
+            if (user == null) {
+              return _signedOutView(context);
+            }
 
-                            final name = savedName.isNotEmpty
-                                ? savedName
-                                : (user.displayName?.trim().isNotEmpty ==
-                                        true
-                                    ? user.displayName!
-                                    : 'DOJO WALK Customer');
+            return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(user.uid)
+                  .snapshots(),
+              builder: (context, userSnapshot) {
+                final data = userSnapshot.data?.data() ??
+                    <String, dynamic>{};
 
-                            final phone = user.phoneNumber ??
-                                (savedPhone.isNotEmpty
-                                    ? savedPhone
-                                    : 'Mobile number not available');
+                final name = (data['name'] ?? 'DOJO WALK Customer')
+                    .toString();
+                final phone = (data['phoneNumber'] ??
+                        user.phoneNumber ??
+                        'Phone not available')
+                    .toString();
 
-                            return _buildProfileHeader(
-                              name: name,
-                              phone: phone,
-                              isLoggedIn: true,
-                            );
-                          },
+                return ListView(
+                  padding: const EdgeInsets.fromLTRB(18, 16, 18, 28),
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 46,
+                          height: 46,
+                          decoration: BoxDecoration(
+                            color: profileOrange,
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: const Icon(
+                            Icons.pets_rounded,
+                            color: Colors.white,
+                            size: 27,
+                          ),
                         ),
-
-                      const SizedBox(height: 26),
-
-                      _sectionTitle('MY ACCOUNT'),
-
-                      _buildMenuItem(
-                        context,
-                        icon: Icons.pets_rounded,
-                        title: 'My Dogs',
-                        subtitle: 'Manage your dogs and their details',
-                        onTap: () {
-                          Navigator.push(
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'DOJO WALK',
+                                style: TextStyle(
+                                  fontSize: 19,
+                                  fontWeight: FontWeight.w800,
+                                  color: profileText,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                              SizedBox(height: 3),
+                              Text(
+                                'YOUR CUSTOMER ACCOUNT',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: profileMuted,
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => _showMessage(
                             context,
-                            MaterialPageRoute(
-                              builder: (_) => const MyDogsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-
-                      _buildMenuItem(
-                        context,
-                        icon: Icons.receipt_long_rounded,
-                        title: 'My Bookings',
-                        subtitle: 'View and track your dog walks',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const MyBookingsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-
-                      _buildMenuItem(
-                        context,
-                        icon: Icons.location_on_outlined,
-                        title: 'Saved Addresses',
-                        subtitle: 'Manage your pickup locations',
-                        onTap: () => _showMessage(
-                          context,
-                          'Saved Addresses will be connected next.',
-                        ),
-                      ),
-
-                      _buildMenuItem(
-                        context,
-                        icon: Icons.calendar_month_rounded,
-                        title: 'Regular Walk Plans',
-                        subtitle: 'Manage recurring walk preferences',
-                        onTap: () => _showMessage(
-                          context,
-                          'Regular Walk Plans will be connected next.',
-                        ),
-                      ),
-
-                      const SizedBox(height: 22),
-
-                      _sectionTitle('COMMUNICATION'),
-
-                      _buildMenuItem(
-                        context,
-                        icon: Icons.notifications_active_outlined,
-                        title: 'Notifications',
-                        subtitle: 'Booking updates and important alerts',
-                        onTap: () => _showMessage(
-                          context,
-                          'Notifications will be connected next.',
-                        ),
-                      ),
-
-                      _buildMenuItem(
-                        context,
-                        icon: Icons.support_agent_rounded,
-                        title: 'Help & Support',
-                        subtitle: 'Get help with your bookings',
-                        onTap: () => _showMessage(
-                          context,
-                          'Help & Support will be connected next.',
-                        ),
-                      ),
-
-                      const SizedBox(height: 22),
-
-                      _sectionTitle('PREFERENCES'),
-
-                      _buildMenuItem(
-                        context,
-                        icon: Icons.settings_outlined,
-                        title: 'Settings',
-                        subtitle: 'Account and app preferences',
-                        onTap: () => _showMessage(
-                          context,
-                          'Settings will be available here.',
-                        ),
-                      ),
-
-                      if (user != null) ...[
-                        const SizedBox(height: 22),
-                        _sectionTitle('ACCOUNT SECURITY'),
-                        _buildMenuItem(
-                          context,
-                          icon: Icons.logout_rounded,
-                          title: 'Log Out',
-                          subtitle: 'Sign out from your account',
-                          isDestructive: true,
-                          onTap: () => _confirmLogout(context),
+                            'Settings are coming soon.',
+                          ),
+                          icon: const Icon(
+                            Icons.settings_outlined,
+                            color: profileText,
+                          ),
+                          tooltip: 'Settings',
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 22),
 
-                      const SizedBox(height: 26),
-
-                      const Icon(
-                        Icons.pets_rounded,
-                        color: profileOrange,
-                        size: 27,
-                      ),
-                      const SizedBox(height: 8),
-                      const Center(
-                        child: Text(
-                          'DOJO WALK',
-                          style: TextStyle(
-                            color: profileText,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.4,
-                          ),
+                    // Customer profile card
+                    Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0xFFFF7900),
+                            Color(0xFFFF9D42),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
+                        borderRadius: BorderRadius.circular(22),
                       ),
-                      const SizedBox(height: 4),
-                      const Center(
-                        child: Text(
-                          'Happy walks. Happier dogs.',
-                          style: TextStyle(
-                            color: profileMuted,
-                            fontSize: 12,
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 62,
+                            height: 62,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.6),
+                                width: 1.5,
+                              ),
+                            ),
+                            child: Text(
+                              name.trim().isNotEmpty
+                                  ? name.trim()[0].toUpperCase()
+                                  : 'D',
+                              style: const TextStyle(
+                                fontSize: 27,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
-                        ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  name,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 19,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  phone,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.white.withValues(alpha: 0.9),
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: const Text(
+                                    'CUSTOMER ACCOUNT',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-          ),
-        );
-      },
-    );
-  }
+                    ),
 
-  Widget _buildSignedOutHeader() {
-    return Container(
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            Color(0xFFFF7900),
-            Color(0xFFFF9D42),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CircleAvatar(
-            radius: 31,
-            backgroundColor: Color(0x44FFFFFF),
-            child: Icon(
-              Icons.person_outline_rounded,
-              color: Colors.white,
-              size: 36,
-            ),
-          ),
-          SizedBox(height: 16),
-          Text(
-            'Welcome to DOJO WALK',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 21,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          SizedBox(height: 7),
-          Text(
-            'Sign in when you are ready to manage your account and bookings.',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 13,
-              height: 1.5,
-            ),
-          ),
-          SizedBox(height: 12),
-          Row(
-            children: [
-              Icon(
-                Icons.lock_outline_rounded,
-                color: Colors.white,
-                size: 16,
-              ),
-              SizedBox(width: 6),
-              Text(
-                'You are currently signed out',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProfileHeader({
-    required String name,
-    required String phone,
-    required bool isLoggedIn,
-  }) {
-    final initial =
-        name.trim().isNotEmpty ? name.trim()[0].toUpperCase() : 'D';
-
-    return Container(
-      padding: const EdgeInsets.all(21),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            Color(0xFFFF7900),
-            Color(0xFFFF9D42),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: profileOrange.withValues(alpha: 0.18),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            height: 68,
-            width: 68,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.22),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.45),
-                width: 1.5,
-              ),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              initial,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 29,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 7),
-                Text(
-                  phone,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(height: 11),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.verified_user_rounded,
-                        color: Colors.white,
-                        size: 13,
+                    const SizedBox(height: 26),
+                    const Text(
+                      'YOUR ACCOUNT',
+                      style: TextStyle(
+                        color: profileMuted,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1,
                       ),
-                      const SizedBox(width: 5),
-                      Text(
-                        isLoggedIn ? 'Customer Account' : 'Guest Account',
-                        style: const TextStyle(
-                          color: Colors.white,
+                    ),
+                    const SizedBox(height: 12),
+
+                    _menuCard(
+                      context,
+                      icon: Icons.pets_rounded,
+                      title: 'My Dogs',
+                      subtitle: 'Manage your dogs and their details',
+                      onTap: () => _navigate(
+                        context,
+                        const MyDogsScreen(),
+                      ),
+                    ),
+                    _menuCard(
+                      context,
+                      icon: Icons.calendar_month_rounded,
+                      title: 'My Bookings',
+                      subtitle: 'View walks, details and booking status',
+                      onTap: () => _navigate(
+                        context,
+                        const MyBookingsScreen(),
+                      ),
+                    ),
+                    _menuCard(
+                      context,
+                      icon: Icons.location_on_outlined,
+                      title: 'Saved Addresses',
+                      subtitle: 'Manage your pickup locations',
+                      onTap: () => _showMessage(
+                        context,
+                        'Saved Addresses will be available here.',
+                      ),
+                    ),
+                    _menuCard(
+                      context,
+                      icon: Icons.repeat_rounded,
+                      title: 'Regular Walk Plans',
+                      subtitle: 'Manage your regular walking plans',
+                      onTap: () => _showMessage(
+                        context,
+                        'Regular Walk Plans will be available here.',
+                      ),
+                    ),
+                    _menuCard(
+                      context,
+                      icon: Icons.support_agent_rounded,
+                      title: 'Help & Support',
+                      subtitle: 'Get help with bookings and your account',
+                      onTap: () => _navigate(
+                        context,
+                        const HelpSupportScreen(),
+                      ),
+                    ),
+                    _menuCard(
+                      context,
+                      icon: Icons.settings_outlined,
+                      title: 'Settings',
+                      subtitle: 'Account and app preferences',
+                      onTap: () => _showMessage(
+                        context,
+                        'Settings are coming soon.',
+                      ),
+                    ),
+                    _menuCard(
+                      context,
+                      icon: Icons.logout_rounded,
+                      title: 'Log Out',
+                      subtitle: 'Sign out of your account',
+                      iconColor: const Color(0xFFD64545),
+                      iconBackground: const Color(0xFFFFEEEE),
+                      onTap: () => _confirmLogout(context),
+                    ),
+
+                    const SizedBox(height: 18),
+                    const Center(
+                      child: Text(
+                        'DOJO WALK • YOUR DOG, OUR CARE',
+                        style: TextStyle(
+                          color: Color(0xFF999999),
                           fontSize: 10,
-                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.8,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _sectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Text(
-        title,
-        style: const TextStyle(
-          color: profileMuted,
-          fontSize: 11,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 1.2,
+                    ),
+                  ],
+                );
+              },
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildMenuItem(
+  Widget _signedOutView(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.account_circle_outlined,
+              color: profileOrange,
+              size: 70,
+            ),
+            const SizedBox(height: 14),
+            const Text(
+              'Login to Your Account',
+              style: TextStyle(
+                fontSize: 21,
+                fontWeight: FontWeight.w800,
+                color: profileText,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Sign in to manage your dogs and bookings.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: profileMuted,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 18),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => _showMessage(
+                  context,
+                  'Connect your existing login screen here.',
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: profileOrange,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: const Text('LOGIN'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _menuCard(
     BuildContext context, {
     required IconData icon,
     required String title,
     required String subtitle,
     required VoidCallback onTap,
-    bool isDestructive = false,
+    Color iconColor = profileOrange,
+    Color iconBackground = const Color(0xFFFFF0E3),
   }) {
-    final color = isDestructive ? Colors.red.shade700 : profileText;
-    final iconColor = isDestructive ? Colors.red : profileOrange;
-
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 11),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(17),
-        border: Border.all(
-          color: const Color(0xFFEFEFEF),
-        ),
+        border: Border.all(color: const Color(0xFFF0E6DD)),
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 7,
-        ),
-        leading: Container(
-          height: 45,
-          width: 45,
-          decoration: BoxDecoration(
-            color: iconColor.withValues(alpha: 0.09),
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Icon(
-            icon,
-            color: iconColor,
-            size: 23,
-          ),
-        ),
-        title: Text(
-          title,
-          style: TextStyle(
-            color: color,
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: Text(
-            subtitle,
-            style: const TextStyle(
-              color: profileMuted,
-              fontSize: 11,
-              height: 1.4,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(17),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(17),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 13,
+              vertical: 14,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 45,
+                  height: 45,
+                  decoration: BoxDecoration(
+                    color: iconBackground,
+                    borderRadius: BorderRadius.circular(13),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: iconColor,
+                    size: 23,
+                  ),
+                ),
+                const SizedBox(width: 13),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: title == 'Log Out'
+                              ? const Color(0xFFD64545)
+                              : profileText,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          fontSize: 11.5,
+                          color: profileMuted,
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  color: Color(0xFF999999),
+                  size: 23,
+                ),
+              ],
             ),
           ),
         ),
-        trailing: const Icon(
-          Icons.chevron_right_rounded,
-          color: profileMuted,
-        ),
-        onTap: onTap,
       ),
+    );
+  }
+
+  void _navigate(BuildContext context, Widget screen) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => screen),
     );
   }
 
   void _showMessage(BuildContext context, String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   Future<void> _confirmLogout(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
+    final shouldLogout = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Log Out?'),
+        content: const Text(
+          'Are you sure you want to log out of DOJO WALK?',
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('CANCEL'),
           ),
-          title: const Text('Log out?'),
-          content: const Text(
-            'Are you sure you want to log out of DOJO WALK?',
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: profileOrange,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('LOG OUT'),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: profileOrange,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Log Out'),
-            ),
-          ],
-        );
-      },
+        ],
+      ),
     );
 
-    if (confirmed != true) return;
+    if (shouldLogout != true) return;
 
-    try {
-      await FirebaseAuth.instance.signOut();
+    await FirebaseAuth.instance.signOut();
 
-      if (!context.mounted) return;
+    if (!context.mounted) return;
 
-      Navigator.of(context).popUntil((route) => route.isFirst);
-    } catch (_) {
-      if (!context.mounted) return;
-
-      _showMessage(
-        context,
-        'Could not log out. Please try again.',
-      );
-    }
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 }
