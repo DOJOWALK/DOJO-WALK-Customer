@@ -62,7 +62,7 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
       final user = _user;
 
       if (user == null) {
-        _showMessage('पहले मोबाइल नंबर से लॉगिन करें।');
+        _showMessage('Please log in with your mobile number.');
         return;
       }
 
@@ -98,7 +98,7 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
         }
       }
     } catch (e) {
-      _showMessage('प्रोफ़ाइल लोड नहीं हो पाई: $e');
+      _showMessage('Unable to load profile: $e');
     } finally {
       if (mounted) {
         setState(() => _loading = false);
@@ -113,7 +113,8 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
     final defaultDate = DateTime(now.year - 18, now.month, 1);
     final currentDate = _dateOfBirth ?? defaultDate;
 
-    final initialDate = currentDate.isAfter(today) ? today : currentDate;
+    final initialDate =
+        currentDate.isAfter(today) ? today : currentDate;
 
     final picked = await showDatePicker(
       context: context,
@@ -158,7 +159,7 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
         setState(() => _selectedPhoto = File(picked.path));
       }
     } catch (e) {
-      _showMessage('फोटो चुन नहीं पाए: $e');
+      _showMessage('Unable to select photo: $e');
     }
   }
 
@@ -191,19 +192,19 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_gender == null) {
-      _showMessage('अपना Gender चुनें।');
+      _showMessage('Please select your gender.');
       return;
     }
 
     if (_dateOfBirth == null) {
-      _showMessage('अपनी Date of Birth चुनें।');
+      _showMessage('Please select your date of birth.');
       return;
     }
 
     final user = _user;
 
     if (user == null) {
-      _showMessage('पहले मोबाइल नंबर से लॉगिन करें।');
+      _showMessage('Please log in with your mobile number.');
       return;
     }
 
@@ -251,8 +252,6 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
 
       if (!mounted) return;
 
-      // प्रोफ़ाइल सेव होने के बाद पुरानी स्क्रीनें हटाकर
-      // सीधे DOJO WALK के मुख्य ऐप में जाएँ।
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute<void>(
           builder: (_) => const AppNavigator(),
@@ -260,7 +259,7 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
         (route) => false,
       );
     } catch (e) {
-      _showMessage('प्रोफ़ाइल सेव नहीं हो पाई: $e');
+      _showMessage('Unable to save profile: $e');
     } finally {
       if (mounted) {
         setState(() => _saving = false);
@@ -313,7 +312,6 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
                     ),
                     const SizedBox(height: 28),
 
-                    // Optional profile photo
                     Center(
                       child: Column(
                         children: [
@@ -351,7 +349,6 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
 
                     const SizedBox(height: 16),
 
-                    // Customer name
                     const Text(
                       'Customer Name *',
                       style: TextStyle(fontWeight: FontWeight.w600),
@@ -381,14 +378,13 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
 
                     const SizedBox(height: 22),
 
-                    // Gender
                     const Text(
                       'Gender *',
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
-                      value: _gender,
+                      initialValue: _gender,
                       decoration: _decoration(
                         hint: 'Select gender',
                         icon: Icons.person_search_outlined,
@@ -421,7 +417,6 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
 
                     const SizedBox(height: 22),
 
-                    // Date of birth
                     const Text(
                       'Date of Birth *',
                       style: TextStyle(fontWeight: FontWeight.w600),
