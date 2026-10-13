@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/walk_pricing_service.dart';
+import 'choose_walk_screen.dart';
 import 'dog_pickup_details_screen.dart';
 
 const Color scheduleOrange = Color(0xFFFF7900);
