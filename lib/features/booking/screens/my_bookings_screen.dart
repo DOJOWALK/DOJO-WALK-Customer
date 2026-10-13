@@ -1,12 +1,178 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+import '../../../app/app_language.dart';
 
 const Color bookingsOrange = Color(0xFFFF7900);
 const Color bookingsBackground = Color(0xFFFFFAF5);
 const Color bookingsText = Color(0xFF202020);
 const Color bookingsMuted = Color(0xFF777777);
+
+String _t(String en, String hi, String bn) {
+  switch (appLocale.value.languageCode) {
+    case 'hi':
+      return hi;
+    case 'bn':
+      return bn;
+    default:
+      return en;
+  }
+}
+
+String _text(dynamic value, {String? fallback}) {
+  if (value == null || value.toString().trim().isEmpty) {
+    return fallback ?? _t('Not provided', 'जानकारी उपलब्ध नहीं', 'তথ্য দেওয়া নেই');
+  }
+
+  if (value is List) {
+    return value.join(', ');
+  }
+
+  return value.toString().trim();
+}
+
+Map<String, dynamic> _map(dynamic value) {
+  if (value is Map) {
+    return Map<String, dynamic>.from(value);
+  }
+  return <String, dynamic>{};
+}
+
+Map<String, dynamic> _petDetails(Map<String, dynamic> data) {
+  return _map(data['petDetails']);
+}
+
+String _status(Map<String, dynamic> data) {
+  return _text(data['status'], fallback: 'pending').toLowerCase();
+}
+
+bool _isCancelled(String status) {
+  return status == 'cancelled' || status == 'canceled';
+}
+
+bool _isUpcoming(String status) {
+  return [
+    'pending',
+    'finding_walker',
+    'walker_assigned',
+    'walker_arriving',
+    'confirmed',
+    'assigned',
+    'accepted',
+    'in_progress',
+    'in progress',
+  ].contains(status);
+}
+
+String _statusText(String status) {
+  switch (status.toLowerCase()) {
+    case 'pending':
+      return _t('Pending', 'लंबित', 'অপেক্ষমাণ');
+    case 'finding_walker':
+      return _t('Finding Walker', 'वॉकर खोज रहे हैं', 'ওয়াকার খোঁজা হচ্ছে');
+    case 'walker_assigned':
+    case 'assigned':
+      return _t('Walker Assigned', 'वॉकर नियुक्त', 'ওয়াকার নিযুক্ত');
+    case 'walker_arriving':
+      return _t('Walker Arriving', 'वॉकर आ रहे हैं', 'ওয়াকার আসছেন');
+    case 'confirmed':
+    case 'accepted':
+      return _t('Confirmed', 'पुष्टि हो गई', 'নিশ্চিত');
+    case 'in_progress':
+    case 'in progress':
+      return _t('In Progress', 'जारी है', 'চলছে');
+    case 'completed':
+      return _t('Completed', 'पूरा हुआ', 'সম্পন্ন');
+    case 'cancelled':
+    case 'canceled':
+      return _t('Cancelled', 'रद्द', 'বাতিল');
+    default:
+      return status.replaceAll('_', ' ');
+  }
+}
+
+DateTime _date(dynamic value) {
+  if (value is Timestamp) return value.toDate();
+  if (value is DateTime) return value;
+  if (value is String) {
+    return DateTime.tryParse(value) ?? DateTime(2000);
+  }
+  return DateTime(2000);
+}
+
+String _formatDate(DateTime date) {
+  if (date.year <= 2000) {
+    return _t('Not provided', 'जानकारी उपलब्ध नहीं', 'তথ্য দেওয়া নেই');
+  }
+
+  const months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
+
+  return '${date.day} ${months[date.month - 1]} ${date.year}';
+}
+
+String _formatTime(DateTime date) {
+  if (date.year <= 2000) {
+    return _t('Not provided', 'जानकारी उपलब्ध नहीं', 'তথ্য দেওয়া নেই');
+  }
+
+  final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
+  final minute = date.minute.toString().padLeft(2, '0');
+
+  return '$hour:$minute ${date.hour >= 12 ? 'PM' : 'AM'}';
+}
+
+String _duration(Map<String, dynamic> data) {
+  final value = data['duration'];
+
+  if (value == null || value.toString().trim().isEmpty) {
+    return _t('Not provided', 'जानकारी उपलब्ध नहीं', 'তথ্য দেওয়া নেই');
+  }
+
+  final duration = value.toString().trim();
+
+  if (RegExp(r'^\d+$').hasMatch(duration)) {
+    return '$duration ${_t('minutes', 'मिनट', 'মিনিট')}';
+  }
+
+  return duration;
+}
+
+String _plan(Map<String, dynamic> data) {
+  final plan = _text(data['bookingPlan'], fallback: '').toLowerCase();
+  final service = _text(data['serviceType'], fallback: '').toLowerCase();
+
+  if (plan == 'regular' || service == 'regular_walk') {
+    return _t('Regular Walk', 'रेगुलर वॉक', 'নিয়মিত ওয়াক');
+  }
+
+  if (plan == 'customize' || service == 'custom_walk') {
+    return _t('Customized Walk', 'कस्टम वॉक', 'কাস্টম ওয়াক');
+  }
+
+  return _t('One-Time Walk', 'एक बार की वॉक', 'একবারের ওয়াক');
+}
+
+String _address(dynamic value) {
+  final address = _map(value);
+
+  return [
+    address['address'],
+    address['flatHouse'],
+    address['buildingSociety'],
+    address['area'],
+    address['landmark'],
+    address['city'],
+    address['pincode'],
+  ]
+      .where((v) => v != null && v.toString().trim().isNotEmpty)
+      .map((v) => v.toString().trim())
+      .toSet()
+      .join(', ');
+}
 
 class MyBookingsScreen extends StatefulWidget {
   const MyBookingsScreen({super.key});
@@ -18,80 +184,37 @@ class MyBookingsScreen extends StatefulWidget {
 class _MyBookingsScreenState extends State<MyBookingsScreen> {
   int _selectedFilter = 0;
 
-  static const _filters = [
-    'All',
-    'Upcoming',
-    'Completed',
-    'Cancelled',
-  ];
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: bookingsBackground,
-      appBar: AppBar(
-        backgroundColor: bookingsBackground,
-        automaticallyImplyLeading: false,
-        elevation: 0,
-        title: const Text(
-          'My Bookings',
-          style: TextStyle(
-            color: bookingsText,
-            fontSize: 23,
-            fontWeight: FontWeight.w900,
+    return ValueListenableBuilder<Locale>(
+      valueListenable: appLocale,
+      builder: (context, locale, child) {
+        return Scaffold(
+          backgroundColor: bookingsBackground,
+          appBar: AppBar(
+            backgroundColor: bookingsBackground,
+            automaticallyImplyLeading: false,
+            elevation: 0,
+            title: Text(
+              _t('My Bookings', 'मेरी बुकिंग', 'আমার বুকিং'),
+              style: const TextStyle(
+                color: bookingsText,
+                fontSize: 23,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
           ),
-        ),
-      ),
-      body: SafeArea(
-        top: false,
-        child: Column(
-          children: [
-            _buildFilters(),
-            Expanded(
-              child: StreamBuilder<User?>(
-                stream: FirebaseAuth.instance.authStateChanges(),
-                builder: (context, auth) {
-                  if (auth.connectionState == ConnectionState.waiting &&
-                      !auth.hasData) {
-                    return const Center(
-                      child: CircularProgressIndicator(
-                        color: bookingsOrange,
-                      ),
-                    );
-                  }
-
-                  final user = auth.data;
-
-                  if (user == null) {
-                    return _message(
-                      Icons.person_outline,
-                      'Login Required',
-                      'Please log in to view your bookings.',
-                    );
-                  }
-
-                  return StreamBuilder<
-                      QuerySnapshot<Map<String, dynamic>>>(
-                    stream: FirebaseFirestore.instance
-                        .collection('bookings')
-                        .where('customerId', isEqualTo: user.uid)
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasError) {
-                        return _message(
-                          Icons.error_outline,
-                          'Could Not Load Bookings',
-                          'Please check your connection and Firebase permissions.',
-                          action: TextButton(
-                            onPressed: () => setState(() {}),
-                            child: const Text('Refresh'),
-                          ),
-                        );
-                      }
-
-                      if (snapshot.connectionState ==
-                              ConnectionState.waiting &&
-                          !snapshot.hasData) {
+          body: SafeArea(
+            top: false,
+            child: Column(
+              children: [
+                _buildFilters(),
+                Expanded(
+                  child: StreamBuilder<User?>(
+                    stream: FirebaseAuth.instance.authStateChanges(),
+                    builder: (context, auth) {
+                      if (auth.connectionState == ConnectionState.waiting &&
+                          !auth.hasData) {
                         return const Center(
                           child: CircularProgressIndicator(
                             color: bookingsOrange,
@@ -99,89 +222,155 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                         );
                       }
 
-                      final docs = snapshot.data?.docs ?? [];
+                      final user = auth.data;
 
-                      final bookings = docs.where((doc) {
-                        final status = _status(doc.data());
-
-                        switch (_selectedFilter) {
-                          case 1:
-                            return _isUpcoming(status);
-                          case 2:
-                            return status == 'completed';
-                          case 3:
-                            return status == 'cancelled' ||
-                                status == 'canceled';
-                          default:
-                            return true;
-                        }
-                      }).toList();
-
-                      bookings.sort((a, b) {
-                        return _date(b.data()['scheduledAt'])
-                            .compareTo(_date(a.data()['scheduledAt']));
-                      });
-
-                      if (bookings.isEmpty) {
+                      if (user == null) {
                         return _message(
-                          Icons.receipt_long,
-                          'No Bookings Yet',
-                          'Your dog walking bookings will appear here.',
+                          Icons.person_outline,
+                          _t('Login Required', 'लॉगिन ज़रूरी है', 'লগইন প্রয়োজন'),
+                          _t(
+                            'Please log in to view your bookings.',
+                            'अपनी बुकिंग देखने के लिए लॉगिन करें।',
+                            'আপনার বুকিং দেখতে লগইন করুন।',
+                          ),
                         );
                       }
 
-                      return RefreshIndicator(
-                        color: bookingsOrange,
-                        onRefresh: () async {
-                          await FirebaseFirestore.instance
-                              .collection('bookings')
-                              .where('customerId', isEqualTo: user.uid)
-                              .get(
-                                const GetOptions(source: Source.server),
-                              );
-                        },
-                        child: ListView.builder(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          padding: const EdgeInsets.all(16),
-                          itemCount: bookings.length,
-                          itemBuilder: (context, index) {
-                            final doc = bookings[index];
-
-                            return _BookingCard(
-                              key: ValueKey(doc.id),
-                              documentId: doc.id,
-                              data: doc.data(),
+                      return StreamBuilder<
+                          QuerySnapshot<Map<String, dynamic>>>(
+                        stream: FirebaseFirestore.instance
+                            .collection('bookings')
+                            .where('customerId', isEqualTo: user.uid)
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasError) {
+                            return _message(
+                              Icons.error_outline,
+                              _t(
+                                'Could Not Load Bookings',
+                                'बुकिंग लोड नहीं हुई',
+                                'বুকিং লোড করা যায়নি',
+                              ),
+                              _t(
+                                'Please check your connection and Firebase permissions.',
+                                'इंटरनेट कनेक्शन और Firebase permissions जाँचें।',
+                                'ইন্টারনেট সংযোগ ও Firebase অনুমতি পরীক্ষা করুন।',
+                              ),
+                              action: TextButton(
+                                onPressed: () => setState(() {}),
+                                child: Text(
+                                  _t('Refresh', 'रिफ्रेश', 'রিফ্রেশ'),
+                                ),
+                              ),
                             );
-                          },
-                        ),
+                          }
+
+                          if (snapshot.connectionState ==
+                                  ConnectionState.waiting &&
+                              !snapshot.hasData) {
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                color: bookingsOrange,
+                              ),
+                            );
+                          }
+
+                          final docs = snapshot.data?.docs ?? [];
+
+                          final bookings = docs.where((doc) {
+                            final status = _status(doc.data());
+
+                            switch (_selectedFilter) {
+                              case 1:
+                                return _isUpcoming(status);
+                              case 2:
+                                return status == 'completed';
+                              case 3:
+                                return _isCancelled(status);
+                              default:
+                                return true;
+                            }
+                          }).toList();
+
+                          bookings.sort((a, b) {
+                            return _date(b.data()['scheduledAt'])
+                                .compareTo(_date(a.data()['scheduledAt']));
+                          });
+
+                          if (bookings.isEmpty) {
+                            return _message(
+                              Icons.receipt_long,
+                              _t(
+                                'No Bookings Yet',
+                                'अभी कोई बुकिंग नहीं',
+                                'এখনও কোনো বুকিং নেই',
+                              ),
+                              _t(
+                                'Your dog walking bookings will appear here.',
+                                'आपकी डॉग वॉकिंग बुकिंग यहाँ दिखाई देंगी।',
+                                'আপনার ডগ ওয়াকিং বুকিং এখানে দেখা যাবে।',
+                              ),
+                            );
+                          }
+
+                          return RefreshIndicator(
+                            color: bookingsOrange,
+                            onRefresh: () async {
+                              await FirebaseFirestore.instance
+                                  .collection('bookings')
+                                  .where('customerId', isEqualTo: user.uid)
+                                  .get(
+                                    const GetOptions(source: Source.server),
+                                  );
+                            },
+                            child: ListView.builder(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              padding: const EdgeInsets.all(16),
+                              itemCount: bookings.length,
+                              itemBuilder: (context, index) {
+                                final doc = bookings[index];
+
+                                return _BookingCard(
+                                  key: ValueKey(doc.id),
+                                  documentId: doc.id,
+                                  data: doc.data(),
+                                );
+                              },
+                            ),
+                          );
+                        },
                       );
                     },
-                  );
-                },
-              ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildFilters() {
+    final filters = [
+      _t('All', 'सभी', 'সব'),
+      _t('Upcoming', 'आने वाली', 'আসন্ন'),
+      _t('Completed', 'पूरी हुई', 'সম্পন্ন'),
+      _t('Cancelled', 'रद्द', 'বাতিল'),
+    ];
+
     return SizedBox(
       height: 55,
       child: ListView.separated(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 18,
-          vertical: 5,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 5),
         scrollDirection: Axis.horizontal,
-        itemCount: _filters.length,
+        itemCount: filters.length,
         separatorBuilder: (_, __) => const SizedBox(width: 9),
         itemBuilder: (context, index) {
           final selected = index == _selectedFilter;
 
           return ChoiceChip(
-            label: Text(_filters[index]),
+            label: Text(filters[index]),
             selected: selected,
             onSelected: (_) => setState(() => _selectedFilter = index),
             selectedColor: bookingsOrange,
@@ -257,7 +446,6 @@ class _BookingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final pet = _petDetails(data);
     final status = _status(data);
-    final plan = _plan(data);
     final address = _address(data['pickupAddress']);
 
     return Card(
@@ -300,7 +488,11 @@ class _BookingCard extends StatelessWidget {
                         Text(
                           _text(
                             data['serviceName'],
-                            fallback: 'Dog Walking',
+                            fallback: _t(
+                              'Dog Walking',
+                              'डॉग वॉकिंग',
+                              'ডগ ওয়াকিং',
+                            ),
                           ),
                           style: const TextStyle(
                             fontSize: 16,
@@ -310,7 +502,8 @@ class _BookingCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Dog: ${_text(pet['name'] ?? data['petName'], fallback: 'Your dog')}',
+                          '${_t('Dog', 'कुत्ता', 'কুকুর')}: '
+                          '${_text(pet['name'] ?? data['petName'], fallback: _t('Your dog', 'आपका डॉग', 'আপনার কুকুর'))}',
                           style: const TextStyle(
                             color: bookingsMuted,
                             fontSize: 13,
@@ -318,7 +511,7 @@ class _BookingCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 3),
                         Text(
-                          '$plan · ${_duration(data)}',
+                          '${_plan(data)} · ${_duration(data)}',
                           style: const TextStyle(
                             fontSize: 12,
                             color: bookingsMuted,
@@ -333,19 +526,23 @@ class _BookingCard extends StatelessWidget {
               const Divider(height: 28),
               _row(
                 Icons.calendar_month_outlined,
-                'Date & Time',
+                _t('Date & Time', 'तारीख़ और समय', 'তারিখ ও সময়'),
                 '${_formatDate(_date(data['scheduledAt']))} · '
                     '${_text(data['preferredTime'], fallback: _formatTime(_date(data['scheduledAt'])))}',
               ),
               const SizedBox(height: 12),
               _row(
                 Icons.confirmation_number_outlined,
-                'Booking ID',
+                _t('Booking ID', 'बुकिंग ID', 'বুকিং ID'),
                 _text(data['bookingId'], fallback: documentId),
               ),
               if (address.isNotEmpty) ...[
                 const SizedBox(height: 12),
-                _row(Icons.location_on_outlined, 'Pickup', address),
+                _row(
+                  Icons.location_on_outlined,
+                  _t('Pickup', 'पिकअप', 'পিকআপ'),
+                  address,
+                ),
               ],
               const SizedBox(height: 18),
               SizedBox(
@@ -361,9 +558,13 @@ class _BookingCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
-                    'View Booking Details',
-                    style: TextStyle(fontWeight: FontWeight.w800),
+                  child: Text(
+                    _t(
+                      'View Booking Details',
+                      'बुकिंग की जानकारी देखें',
+                      'বুকিংয়ের বিবরণ দেখুন',
+                    ),
+                    style: const TextStyle(fontWeight: FontWeight.w800),
                   ),
                 ),
               ),
@@ -417,6 +618,31 @@ class _BookingCard extends StatelessWidget {
   }
 }
 
+Widget _statusBadge(String status) {
+  final color = status == 'completed'
+      ? Colors.green
+      : _isCancelled(status)
+          ? Colors.red
+          : bookingsOrange;
+
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+    decoration: BoxDecoration(
+      color: color.withValues(alpha: 0.10),
+      borderRadius: BorderRadius.circular(9),
+    ),
+    child: Text(
+      _statusText(status).toUpperCase(),
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        color: color,
+        fontSize: 10,
+        fontWeight: FontWeight.w900,
+      ),
+    ),
+  );
+}
+
 class BookingDetailsScreen extends StatelessWidget {
   const BookingDetailsScreen({
     super.key,
@@ -432,346 +658,518 @@ class BookingDetailsScreen extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
-      return const Scaffold(
+      return Scaffold(
         body: Center(
-          child: Text('Please log in to view this booking.'),
+          child: Text(
+            _t(
+              'Please log in to view this booking.',
+              'बुकिंग देखने के लिए लॉगिन करें।',
+              'এই বুকিং দেখতে লগইন করুন।',
+            ),
+          ),
         ),
       );
     }
 
-    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance
-          .collection('bookings')
-          .doc(documentId)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return Scaffold(
-            backgroundColor: bookingsBackground,
-            appBar: AppBar(title: const Text('Booking Details')),
-            body: const Center(
-              child: Text('Unable to load booking details.'),
-            ),
-          );
-        }
-
-        final data = snapshot.data?.data() ?? initialData;
-
-        if (data['customerId'] != user.uid) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('Booking Details')),
-            body: const Center(
-              child: Text('Booking not available.'),
-            ),
-          );
-        }
-
-        final pet = _petDetails(data);
-        final status = _status(data);
-        final address = _address(data['pickupAddress']);
-        final regular = _text(data['bookingPlan']).toLowerCase() == 'regular' ||
-            _text(data['serviceType']).toLowerCase() == 'regular_walk';
-
-        return Scaffold(
-          backgroundColor: bookingsBackground,
-          appBar: AppBar(
-            backgroundColor: bookingsBackground,
-            foregroundColor: bookingsText,
-            elevation: 0,
-            title: const Text(
-              'Booking Details',
-              style: TextStyle(fontWeight: FontWeight.w900),
-            ),
-          ),
-          body: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 28),
-            children: [
-              _section('Booking Summary', [
-                _detail(
-                  'Booking ID',
-                  _text(data['bookingId'], fallback: documentId),
-                ),
-                _detail('Plan', _plan(data)),
-                _detail('Duration', _duration(data)),
-                _detail('Date', _formatDate(_date(data['scheduledAt']))),
-                _detail(
-                  'Preferred Time',
-                  _text(
-                    data['preferredTime'],
-                    fallback: _formatTime(_date(data['scheduledAt'])),
+    return ValueListenableBuilder<Locale>(
+      valueListenable: appLocale,
+      builder: (context, locale, child) {
+        return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+          stream: FirebaseFirestore.instance
+              .collection('bookings')
+              .doc(documentId)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Scaffold(
+                backgroundColor: bookingsBackground,
+                appBar: AppBar(
+                  title: Text(
+                    _t('Booking Details', 'बुकिंग की जानकारी', 'বুকিংয়ের বিবরণ'),
                   ),
                 ),
-                _detail('Status', status.toUpperCase()),
-                _detail('Created', _formatDate(_date(data['createdAt']))),
-                _detail('Number of Walks', _text(data['walkCount'])),
-              ]),
-              const SizedBox(height: 14),
-              _section('Dog Details', [
-                _detail(
-                  'Dog Name',
-                  _text(pet['name'] ?? data['petName']),
-                ),
-                _detail('Dog ID', _text(data['dogId'])),
-                _detail('Breed', _text(pet['breed'])),
-                _detail('Age', _age(pet['age'] ?? pet['dob'])),
-                _detail('Size', _text(pet['size'])),
-                _detail('Gender', _text(pet['gender'])),
-                _detail('Behaviour', _displayList(pet['behaviour'])),
-                _detail('Special Care', _displayList(pet['specialCare'])),
-                _detail('Notes', _text(pet['notes'])),
-              ]),
-              const SizedBox(height: 14),
-              _section('Pickup Address', [
-                _detail(
-                  'Address Type',
-                  _text(_map(data['pickupAddress'])['label']),
-                ),
-                _detail(
-                  'Full Address',
-                  address.isEmpty ? 'Not provided' : address,
-                ),
-                _detail(
-                  'Landmark',
-                  _text(_map(data['pickupAddress'])['landmark']),
-                ),
-              ]),
-              const SizedBox(height: 14),
-              _section('Assigned Walker', [
-                _detail(
-                  'Walker ID',
-                  _text(data['walkerId'], fallback: 'Not assigned'),
-                ),
-                const Text(
-                  'Walker name and contact details will appear after '
-                  'the assignment process provides those fields.',
-                  style: TextStyle(
-                    color: bookingsMuted,
-                    fontSize: 12,
-                    height: 1.5,
-                  ),
-                ),
-              ]),
-              if (regular) ...[
-                const SizedBox(height: 14),
-                _section('Regular Walk Plan', [
-                  _detail('Frequency', _text(data['frequency'])),
-                  _detail('Walks Per Week', _text(data['walksPerWeek'])),
-                  _detail('Walks Per Day', _text(data['walksPerDay'])),
-                  _detail('Preferred Time', _text(data['preferredTime'])),
-                  const Text(
-                    'Saved walk schedules are shown in the booking record.',
-                    style: TextStyle(
-                      color: bookingsMuted,
-                      fontSize: 12,
-                      height: 1.5,
+                body: Center(
+                  child: Text(
+                    _t(
+                      'Unable to load booking details.',
+                      'बुकिंग की जानकारी लोड नहीं हुई।',
+                      'বুকিংয়ের বিবরণ লোড করা যায়নি।',
                     ),
                   ),
-                ]),
-              ],
-              if (data['walkSchedules'] is List) ...[
-                const SizedBox(height: 14),
-                _section(
-                  'Walk Schedule',
-                  _scheduleDetails(data['walkSchedules']),
                 ),
-              ],
-              const SizedBox(height: 14),
-              _CancellationSection(
-                documentId: documentId,
-                data: data,
+              );
+            }
+
+            final data = snapshot.data?.data() ?? initialData;
+
+            if (data['customerId'] != user.uid) {
+              return Scaffold(
+                appBar: AppBar(
+                  title: Text(
+                    _t('Booking Details', 'बुकिंग की जानकारी', 'বুকিংয়ের বিবরণ'),
+                  ),
+                ),
+                body: Center(
+                  child: Text(
+                    _t(
+                      'Booking not available.',
+                      'बुकिंग उपलब्ध नहीं है।',
+                      'বুকিং পাওয়া যায়নি।',
+                    ),
+                  ),
+                ),
+              );
+            }
+
+            final pet = _petDetails(data);
+            final address = _address(data['pickupAddress']);
+            final plan = _plan(data);
+            final regular = plan == _t(
+              'Regular Walk',
+              'रेगुलर वॉक',
+              'নিয়মিত ওয়াক',
+            );
+
+            final cancelRequest = _map(data['cancelRequest']);
+            final cancelStatus = data['cancelRequest'] == null
+                ? 'none'
+                : _text(cancelRequest['status'], fallback: 'pending')
+                    .toLowerCase();
+
+            return Scaffold(
+              backgroundColor: bookingsBackground,
+              appBar: AppBar(
+                backgroundColor: bookingsBackground,
+                foregroundColor: bookingsText,
+                elevation: 0,
+                title: Text(
+                  _t('Booking Details', 'बुकिंग की जानकारी', 'বুকিংয়ের বিবরণ'),
+                  style: const TextStyle(fontWeight: FontWeight.w900),
+                ),
               ),
-              const SizedBox(height: 14),
-              _section('Help & Support', const [
-                Text(
-                  'Booking mein koi problem hai? DOJO WALK Support se '
-                  'contact karein.',
-                  style: TextStyle(height: 1.5),
-                ),
-              ]),
-            ],
-          ),
+              body: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 28),
+                children: [
+                  _section(
+                    _t('Booking Summary', 'बुकिंग का सारांश', 'বুকিংয়ের সারাংশ'),
+                    [
+                      _detail(
+                        _t('Booking ID', 'बुकिंग ID', 'বুকিং ID'),
+                        _text(data['bookingId'], fallback: documentId),
+                      ),
+                      _detail(
+                        _t('Plan', 'प्लान', 'প্ল্যান'),
+                        plan,
+                      ),
+                      _detail(
+                        _t('Duration', 'अवधि', 'সময়কাল'),
+                        _duration(data),
+                      ),
+                      _detail(
+                        _t('Date', 'तारीख़', 'তারিখ'),
+                        _formatDate(_date(data['scheduledAt'])),
+                      ),
+                      _detail(
+                        _t('Preferred Time', 'पसंदीदा समय', 'পছন্দের সময়'),
+                        _text(
+                          data['preferredTime'],
+                          fallback: _formatTime(_date(data['scheduledAt'])),
+                        ),
+                      ),
+                      _detail(
+                        _t('Status', 'स्थिति', 'অবস্থা'),
+                        _statusText(_status(data)),
+                      ),
+                      _detail(
+                        _t('Number of Walks', 'वॉक की संख्या', 'ওয়াকের সংখ্যা'),
+                        _text(data['walkCount']),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  _section(
+                    _t('Dog Details', 'डॉग की जानकारी', 'কুকুরের বিবরণ'),
+                    [
+                      _detail(
+                        _t('Dog Name', 'डॉग का नाम', 'কুকুরের নাম'),
+                        _text(pet['name'] ?? data['petName']),
+                      ),
+                      _detail(
+                        _t('Dog ID', 'डॉग ID', 'কুকুরের ID'),
+                        _text(data['dogId']),
+                      ),
+                      _detail(
+                        _t('Breed', 'नस्ल', 'জাত'),
+                        _text(pet['breed']),
+                      ),
+                      _detail(
+                        _t('Age', 'उम्र', 'বয়স'),
+                        _age(pet['age'] ?? pet['dob']),
+                      ),
+                      _detail(
+                        _t('Size', 'आकार', 'আকার'),
+                        _text(pet['size']),
+                      ),
+                      _detail(
+                        _t('Gender', 'लिंग', 'লিঙ্গ'),
+                        _text(pet['gender']),
+                      ),
+                      _detail(
+                        _t('Behaviour', 'व्यवहार', 'আচরণ'),
+                        _text(pet['behaviour']),
+                      ),
+                      _detail(
+                        _t('Special Care', 'विशेष देखभाल', 'বিশেষ যত্ন'),
+                        _text(pet['specialCare']),
+                      ),
+                      _detail(
+                        _t('Notes', 'नोट्स', 'নোট'),
+                        _text(pet['notes']),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  _section(
+                    _t('Pickup Address', 'पिकअप का पता', 'পিকআপের ঠিকানা'),
+                    [
+                      _detail(
+                        _t('Address Type', 'पते का प्रकार', 'ঠিকানার ধরন'),
+                        _text(_map(data['pickupAddress'])['label']),
+                      ),
+                      _detail(
+                        _t('Full Address', 'पूरा पता', 'সম্পূর্ণ ঠিকানা'),
+                        address.isEmpty
+                            ? _t('Not provided', 'जानकारी उपलब्ध नहीं', 'তথ্য দেওয়া নেই')
+                            : address,
+                      ),
+                      _detail(
+                        _t('Landmark', 'नज़दीकी पहचान', 'ল্যান্ডমার্ক'),
+                        _text(_map(data['pickupAddress'])['landmark']),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  _section(
+                    _t('Assigned Walker', 'नियुक्त वॉकर', 'নিযুক্ত ওয়াকার'),
+                    [
+                      _detail(
+                        _t('Walker ID', 'वॉकर ID', 'ওয়াকার ID'),
+                        _text(
+                          data['walkerId'],
+                          fallback: _t(
+                            'Not assigned',
+                            'अभी नियुक्त नहीं',
+                            'এখনও নিযুক্ত নয়',
+                          ),
+                        ),
+                      ),
+                      Text(
+                        _t(
+                          'Walker name and contact details will appear when available in the booking record.',
+                          'वॉकर का नाम और संपर्क जानकारी बुकिंग रिकॉर्ड में उपलब्ध होने पर दिखाई जाएगी।',
+                          'বুকিং রেকর্ডে পাওয়া গেলে ওয়াকারের নাম ও যোগাযোগের তথ্য দেখা যাবে।',
+                        ),
+                        style: const TextStyle(
+                          color: bookingsMuted,
+                          fontSize: 12,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (regular) ...[
+                    const SizedBox(height: 14),
+                    _section(
+                      _t('Regular Walk Plan', 'रेगुलर वॉक प्लान', 'নিয়মিত ওয়াক প্ল্যান'),
+                      [
+                        _detail(
+                          _t('Frequency', 'आवृत्ति', 'কতবার'),
+                          _text(data['frequency']),
+                        ),
+                        _detail(
+                          _t('Walks Per Week', 'हर सप्ताह वॉक', 'প্রতি সপ্তাহে ওয়াক'),
+                          _text(data['walksPerWeek']),
+                        ),
+                        _detail(
+                          _t('Walks Per Day', 'हर दिन वॉक', 'প্রতিদিন ওয়াক'),
+                          _text(data['walksPerDay']),
+                        ),
+                      ],
+                    ),
+                  ],
+                  if (data['walkSchedules'] is List) ...[
+                    const SizedBox(height: 14),
+                    _section(
+                      _t('Walk Schedule', 'वॉक का शेड्यूल', 'ওয়াকের সময়সূচি'),
+                      _scheduleDetails(data['walkSchedules']),
+                    ),
+                  ],
+                  const SizedBox(height: 14),
+                  _section(
+                    _t('Cancel Request', 'रद्द करने का अनुरोध', 'বাতিলের অনুরোধ'),
+                    [
+                      _detail(
+                        _t('Request Status', 'अनुरोध की स्थिति', 'অনুরোধের অবস্থা'),
+                        _cancelStatusText(cancelStatus),
+                      ),
+                      if (_isCancelled(_status(data)))
+                        Text(
+                          _t(
+                            'This booking is already cancelled.',
+                            'यह बुकिंग पहले ही रद्द हो चुकी है।',
+                            'এই বুকিং ইতিমধ্যেই বাতিল হয়েছে।',
+                          ),
+                        )
+                      else if (_status(data) == 'completed')
+                        Text(
+                          _t(
+                            'Completed bookings cannot be cancelled here.',
+                            'पूरी हो चुकी बुकिंग यहाँ रद्द नहीं की जा सकती।',
+                            'সম্পন্ন বুকিং এখানে বাতিল করা যাবে না।',
+                          ),
+                        )
+                      else if (cancelStatus == 'pending')
+                        Text(
+                          _t(
+                            'Your cancellation request is awaiting review.',
+                            'आपका रद्द करने का अनुरोध जाँच के लिए लंबित है।',
+                            'আপনার বাতিলের অনুরোধ পর্যালোচনার অপেক্ষায় আছে।',
+                          ),
+                        )
+                      else if (cancelStatus == 'approved')
+                        Text(
+                          _t(
+                            'Cancellation request approved.',
+                            'रद्द करने का अनुरोध स्वीकार हुआ।',
+                            'বাতিলের অনুরোধ অনুমোদিত হয়েছে।',
+                          ),
+                        )
+                      else if (cancelStatus == 'rejected')
+                        Text(
+                          _t(
+                            'Your cancellation request was rejected.',
+                            'आपका रद्द करने का अनुरोध अस्वीकार हुआ।',
+                            'আপনার বাতিলের অনুরোধ প্রত্যাখ্যান করা হয়েছে।',
+                          ),
+                        )
+                      else if (_isUpcoming(_status(data)))
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            icon: const Icon(Icons.cancel_outlined),
+                            label: Text(
+                              _t(
+                                'Request Cancellation',
+                                'बुकिंग रद्द करने का अनुरोध करें',
+                                'বুকিং বাতিলের অনুরোধ করুন',
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.red,
+                              padding: const EdgeInsets.symmetric(vertical: 13),
+                            ),
+                            onPressed: () => _requestCancellation(
+                              context,
+                              documentId,
+                              user.uid,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  _section(
+                    _t('Help & Support', 'मदद और सहायता', 'সাহায্য ও সহায়তা'),
+                    [
+                      Text(
+                        _t(
+                          'If you have a problem with this booking, contact DOJO WALK Support.',
+                          'इस बुकिंग में समस्या होने पर DOJO WALK Support से संपर्क करें।',
+                          'এই বুকিংয়ে সমস্যা হলে DOJO WALK Support-এর সঙ্গে যোগাযোগ করুন।',
+                        ),
+                        style: const TextStyle(height: 1.5),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
         );
       },
     );
   }
 }
 
+String _cancelStatusText(String status) {
+  switch (status) {
+    case 'none':
+      return _t('Not Requested', 'अनुरोध नहीं किया', 'অনুরোধ করা হয়নি');
+    case 'pending':
+      return _t('Pending', 'लंबित', 'অপেক্ষমাণ');
+    case 'approved':
+      return _t('Approved', 'स्वीकृत', 'অনুমোদিত');
+    case 'rejected':
+      return _t('Rejected', 'अस्वीकृत', 'প্রত্যাখ্যাত');
+    default:
+      return status;
+  }
+}
+
+Future<void> _requestCancellation(
+  BuildContext context,
+  String documentId,
+  String userId,
+) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(
+        _t(
+          'Request Cancellation?',
+          'बुकिंग रद्द करने का अनुरोध?',
+          'বুকিং বাতিলের অনুরোধ করবেন?',
+        ),
+      ),
+      content: Text(
+        _t(
+          'Your request will be reviewed. This does not cancel the booking automatically.',
+          'आपके अनुरोध की जाँच होगी। इससे बुकिंग अपने-आप रद्द नहीं होगी।',
+          'আপনার অনুরোধ পর্যালোচনা করা হবে। এতে বুকিং স্বয়ংক্রিয়ভাবে বাতিল হবে না।',
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, false),
+          child: Text(_t('Go Back', 'वापस जाएँ', 'ফিরে যান')),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(dialogContext, true),
+          child: Text(_t('Confirm', 'पुष्टि करें', 'নিশ্চিত করুন')),
+        ),
+      ],
+    ),
+  );
+
+  if (confirmed != true || !context.mounted) return;
+
+  try {
+    final ref = FirebaseFirestore.instance
+        .collection('bookings')
+        .doc(documentId);
+
+    await FirebaseFirestore.instance.runTransaction((transaction) async {
+      final snapshot = await transaction.get(ref);
+
+      if (!snapshot.exists) {
+        throw Exception('Booking not found.');
+      }
+
+      final current = snapshot.data() ?? <String, dynamic>{};
+
+      if (current['customerId'] != userId) {
+        throw Exception('You cannot change this booking.');
+      }
+
+      final status = _status(current);
+
+      if (!_isUpcoming(status)) {
+        throw Exception('Cancellation is not available for this status.');
+      }
+
+      if (current['cancelRequest'] != null) {
+        throw Exception('A cancellation request already exists.');
+      }
+
+      transaction.update(ref, {
+        'cancelRequest': {
+          'status': 'pending',
+          'requestedBy': 'customer',
+          'customerId': userId,
+          'requestedAt': FieldValue.serverTimestamp(),
+        },
+      });
+    });
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _t(
+              'Cancellation request submitted.',
+              'रद्द करने का अनुरोध भेज दिया गया।',
+              'বাতিলের অনুরোধ পাঠানো হয়েছে।',
+            ),
+          ),
+        ),
+      );
+    }
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${_t('Request failed', 'अनुरोध असफल', 'অনুরোধ ব্যর্থ')}: '
+            '${e.toString().replaceFirst('Exception: ', '')}',
+          ),
+        ),
+      );
+    }
+  }
+}
+
 List<Widget> _scheduleDetails(dynamic value) {
   if (value is! List || value.isEmpty) {
-    return [_detail('Schedule', 'Not provided')];
+    return [
+      _detail(
+        _t('Schedule', 'शेड्यूल', 'সময়সূচি'),
+        _t('Not provided', 'जानकारी उपलब्ध नहीं', 'তথ্য দেওয়া নেই'),
+      ),
+    ];
   }
 
   return List<Widget>.generate(value.length, (index) {
     final walk = _map(value[index]);
 
     return _detail(
-      'Walk ${index + 1}',
-      '${_text(walk['time'], fallback: 'Time not provided')} · '
-          '${_text(walk['duration'], fallback: 'Duration not provided')}',
+      '${_t('Walk', 'वॉक', 'ওয়াক')} ${index + 1}',
+      '${_text(walk['time'])} · ${_text(walk['duration'])}',
     );
   });
 }
 
-class _CancellationSection extends StatelessWidget {
-  const _CancellationSection({
-    required this.documentId,
-    required this.data,
-  });
+String _age(dynamic value) {
+  if (value is Timestamp) {
+    final dob = value.toDate();
+    final now = DateTime.now();
 
-  final String documentId;
-  final Map<String, dynamic> data;
+    var years = now.year - dob.year;
 
-  @override
-  Widget build(BuildContext context) {
-    final request = data['cancelRequest'];
-    final requestMap = request is Map
-        ? Map<String, dynamic>.from(request)
-        : <String, dynamic>{};
-
-    final requestStatus = request == null
-        ? 'Not Requested'
-        : _text(requestMap['status'], fallback: 'pending');
-
-    final status = _status(data);
-    final terminal = status == 'completed' ||
-        status == 'cancelled' ||
-        status == 'canceled';
-
-    return _section('Cancel Request', [
-      _detail('Request Status', requestStatus),
-      if (status == 'cancelled' || status == 'canceled')
-        const Text('This booking is already cancelled.')
-      else if (status == 'completed')
-        const Text('Completed bookings cannot be cancelled here.')
-      else if (requestStatus.toLowerCase() == 'pending')
-        const Text(
-          'Request sent. The booking will not be cancelled automatically.',
-        )
-      else if (requestStatus.toLowerCase() == 'approved')
-        const Text(
-          'Request approved. Check the booking status for final cancellation.',
-        )
-      else if (requestStatus.toLowerCase() == 'rejected')
-        const Text('Your cancellation request was rejected.')
-      else if (!terminal)
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            icon: const Icon(Icons.cancel_outlined),
-            label: const Text('Request Cancellation'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.red,
-              padding: const EdgeInsets.symmetric(vertical: 13),
-            ),
-            onPressed: () => _request(context),
-          ),
-        ),
-    ]);
-  }
-
-  Future<void> _request(BuildContext context) async {
-    final user = FirebaseAuth.instance.currentUser;
-
-    if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please log in to request cancellation.'),
-        ),
-      );
-      return;
+    if (now.month < dob.month ||
+        (now.month == dob.month && now.day < dob.day)) {
+      years--;
     }
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Request Cancellation?'),
-        content: const Text(
-          'Your request will be sent for review. '
-          'Your booking will not be cancelled automatically.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Go Back'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Confirm'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true || !context.mounted) return;
-
-    try {
-      final ref = FirebaseFirestore.instance
-          .collection('bookings')
-          .doc(documentId);
-
-      await FirebaseFirestore.instance.runTransaction(
-        (transaction) async {
-          final snapshot = await transaction.get(ref);
-
-          if (!snapshot.exists) {
-            throw Exception('Booking not found.');
-          }
-
-          final current = snapshot.data() ?? <String, dynamic>{};
-
-          if (current['customerId'] != user.uid) {
-            throw Exception('You cannot change this booking.');
-          }
-
-          final currentStatus = _status(current);
-
-          if (![
-            'pending',
-            'finding_walker',
-            'walker_assigned',
-            'walker_arriving',
-          ].contains(currentStatus)) {
-            throw Exception(
-              'Cancellation requests are not allowed for this booking status.',
-            );
-          }
-
-          if (current['cancelRequest'] != null) {
-            throw Exception(
-              'A cancellation request has already been submitted.',
-            );
-          }
-
-          transaction.update(ref, {
-            'cancelRequest': {
-              'status': 'pending',
-              'requestedBy': 'customer',
-              'customerId': user.uid,
-              'requestedAt': FieldValue.serverTimestamp(),
-            },
-          });
-        },
-      );
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Cancellation request submitted successfully.'),
-          ),
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Request failed: ${e.toString().replaceFirst('Exception: ', '')}',
-            ),
-          ),
-        );
-      }
+    if (years < 0) {
+      return _t('Not provided', 'जानकारी उपलब्ध नहीं', 'তথ্য দেওয়া নেই');
     }
+
+    if (years == 0) {
+      return _t('Less than 1 year', '1 साल से कम', '১ বছরের কম');
+    }
+
+    return '$years ${_t('years', 'साल', 'বছর')}';
   }
+
+  final age = _text(value);
+
+  if (age == 'Not provided') return age;
+
+  if (RegExp(r'^\d+$').hasMatch(age)) {
+    return '$age ${_t('years', 'साल', 'বছর')}';
+  }
+
+  return age;
 }
 
 Widget _section(String title, List<Widget> children) {
@@ -833,185 +1231,4 @@ Widget _detail(String label, String value) {
       ),
     ],
   );
-}
-
-Widget _statusBadge(String status) {
-  final color = status == 'completed'
-      ? Colors.green
-      : (status == 'cancelled' || status == 'canceled')
-          ? Colors.red
-          : bookingsOrange;
-
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-    decoration: BoxDecoration(
-      color: color.withValues(alpha: 0.10),
-      borderRadius: BorderRadius.circular(9),
-    ),
-    child: Text(
-      status.replaceAll('_', ' ').toUpperCase(),
-      style: TextStyle(
-        color: color,
-        fontSize: 10,
-        fontWeight: FontWeight.w900,
-      ),
-    ),
-  );
-}
-
-Map<String, dynamic> _map(dynamic value) {
-  if (value is Map) {
-    return Map<String, dynamic>.from(value);
-  }
-  return <String, dynamic>{};
-}
-
-Map<String, dynamic> _petDetails(Map<String, dynamic> data) {
-  return _map(data['petDetails']);
-}
-
-String _status(Map<String, dynamic> data) {
-  return _text(data['status'], fallback: 'pending').toLowerCase();
-}
-
-bool _isUpcoming(String status) {
-  return [
-    'pending',
-    'finding_walker',
-    'walker_assigned',
-    'walker_arriving',
-    'confirmed',
-    'assigned',
-    'accepted',
-    'in_progress',
-    'in progress',
-  ].contains(status);
-}
-
-String _plan(Map<String, dynamic> data) {
-  final plan = _text(data['bookingPlan']).toLowerCase();
-  final service = _text(data['serviceType']).toLowerCase();
-
-  if (plan == 'regular' || service == 'regular_walk') {
-    return 'Regular Walk';
-  }
-
-  if (plan == 'customize' || service == 'custom_walk') {
-    return 'Choose Dates / Customize';
-  }
-
-  return 'One-Time Walk';
-}
-
-String _duration(Map<String, dynamic> data) {
-  final value = data['duration'];
-
-  if (value == null || value.toString().trim().isEmpty) {
-    return 'Not provided';
-  }
-
-  final text = value.toString().trim();
-
-  if (RegExp(r'^\d+$').hasMatch(text)) {
-    return '$text minutes';
-  }
-
-  return text.toLowerCase().contains('minute') ? text : '$text minutes';
-}
-
-String _text(dynamic value, {String fallback = 'Not provided'}) {
-  if (value == null) return fallback;
-
-  if (value is List) {
-    return value.map((e) => e.toString()).join(', ');
-  }
-
-  final result = value.toString().trim();
-  return result.isEmpty ? fallback : result;
-}
-
-String _displayList(dynamic value) {
-  if (value is List) {
-    final values = value
-        .map((e) => e.toString().trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
-
-    return values.isEmpty ? 'Not provided' : values.join(', ');
-  }
-
-  return _text(value);
-}
-
-String _age(dynamic value) {
-  if (value is Timestamp) {
-    final dob = value.toDate();
-    final now = DateTime.now();
-
-    var years = now.year - dob.year;
-
-    if (now.month < dob.month ||
-        (now.month == dob.month && now.day < dob.day)) {
-      years--;
-    }
-
-    if (years < 0) return 'Not provided';
-    if (years == 0) return 'Less than 1 year';
-    return years == 1 ? '1 year' : '$years years';
-  }
-
-  final age = _text(value);
-
-  if (age == 'Not provided') return age;
-
-  if (RegExp(r'^\d+$').hasMatch(age)) {
-    return age == '1' ? '1 year' : '$age years';
-  }
-
-  return age;
-}
-
-String _address(dynamic value) {
-  final address = _map(value);
-
-  return [
-    address['address'],
-    address['flatHouse'],
-    address['buildingSociety'],
-    address['area'],
-    address['landmark'],
-    address['city'],
-    address['pincode'],
-  ]
-      .where((v) => v != null && v.toString().trim().isNotEmpty)
-      .map((v) => v.toString().trim())
-      .toSet()
-      .join(', ');
-}
-
-DateTime _date(dynamic value) {
-  if (value is Timestamp) return value.toDate();
-  if (value is DateTime) return value;
-  if (value is String) return DateTime.tryParse(value) ?? DateTime(2000);
-  return DateTime(2000);
-}
-
-String _formatDate(DateTime date) {
-  if (date.year <= 2000) return 'Not provided';
-
-  const months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-  ];
-
-  return '${date.day} ${months[date.month - 1]} ${date.year}';
-}
-
-String _formatTime(DateTime date) {
-  if (date.year <= 2000) return 'Not provided';
-
-  final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
-  final minute = date.minute.toString().padLeft(2, '0');
-
-  return '$hour:$minute ${date.hour >= 12 ? 'PM' : 'AM'}';
 }
