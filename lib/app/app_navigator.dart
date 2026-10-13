@@ -1,5 +1,7 @@
+
 import 'package:flutter/material.dart';
 
+import 'app_language.dart';
 import '../features/home/screens/home_screen.dart';
 import '../features/booking/screens/my_bookings_screen.dart';
 import '../features/profile/screens/profile_screen.dart';
@@ -34,52 +36,86 @@ class _AppNavigatorState extends State<AppNavigator> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: navBackground,
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _screens,
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 18,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 8,
-            ),
-            child: Row(
-              children: [
-                _buildItem(
-                  index: 0,
-                  icon: Icons.home_rounded,
-                  label: 'Home',
-                ),
-                _buildItem(
-                  index: 1,
-                  icon: Icons.receipt_long_rounded,
-                  label: 'My Bookings',
-                ),
-                _buildItem(
-                  index: 2,
-                  icon: Icons.person_outline_rounded,
-                  label: 'Profile',
+    return ValueListenableBuilder<Locale>(
+      valueListenable: appLocale,
+      builder: (context, locale, child) {
+        final language = locale.languageCode;
+
+        String translate({
+          required String en,
+          required String hi,
+          required String bn,
+        }) {
+          switch (language) {
+            case 'hi':
+              return hi;
+            case 'bn':
+              return bn;
+            default:
+              return en;
+          }
+        }
+
+        return Scaffold(
+          backgroundColor: navBackground,
+          body: IndexedStack(
+            index: _selectedIndex,
+            children: _screens,
+          ),
+          bottomNavigationBar: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.06),
+                  blurRadius: 18,
+                  offset: const Offset(0, -4),
                 ),
               ],
             ),
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                child: Row(
+                  children: [
+                    _buildItem(
+                      index: 0,
+                      icon: Icons.home_rounded,
+                      label: translate(
+                        en: 'Home',
+                        hi: 'होम',
+                        bn: 'হোম',
+                      ),
+                    ),
+                    _buildItem(
+                      index: 1,
+                      icon: Icons.receipt_long_rounded,
+                      label: translate(
+                        en: 'My Bookings',
+                        hi: 'मेरी बुकिंग',
+                        bn: 'আমার বুকিং',
+                      ),
+                    ),
+                    _buildItem(
+                      index: 2,
+                      icon: Icons.person_outline_rounded,
+                      label: translate(
+                        en: 'Profile',
+                        hi: 'प्रोफ़ाइल',
+                        bn: 'প্রোফাইল',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -107,6 +143,9 @@ class _AppNavigatorState extends State<AppNavigator> {
               const SizedBox(height: 4),
               Text(
                 label,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: selected
