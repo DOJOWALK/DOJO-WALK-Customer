@@ -1,3 +1,4 @@
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,9 +15,13 @@ Future<void> main() async {
   final savedLanguage =
       prefs.getString('dojo_app_language') ?? 'en';
 
-  appLocale.value = Locale(
-    savedLanguage == 'hi' ? 'hi' : 'en',
-  );
+  const supportedLanguages = ['en', 'hi', 'bn'];
+
+  final languageCode = supportedLanguages.contains(savedLanguage)
+      ? savedLanguage
+      : 'en';
+
+  appLocale.value = Locale(languageCode);
 
   runApp(const DojoWalkApp());
 }
