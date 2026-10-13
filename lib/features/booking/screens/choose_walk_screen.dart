@@ -48,19 +48,83 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
       if (!mounted) return;
 
       if (user == null) {
-        // Booking intent will be preserved by the
-        // PhoneLoginScreen update in the next step.
-        await Navigator.of(context).push(
-          MaterialPageRoute<void>(
+        // Open login and wait for successful booking-flow completion.
+        final result = await Navigator.of(context).push<bool>(
+          MaterialPageRoute<bool>(
             builder: (_) => PhoneLoginScreen(
               bookingWalkType: selected.name,
             ),
           ),
         );
+
+        if (!mounted) return;
+
+        // Login/Profile must explicitly return true.
+        // Otherwise do not open Schedule.
+        if (result != true) return;
+
+        // Login screen has confirmed the customer can continue.
+        await Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => WalkScheduleScreen(
+              walkType: selected,
+            ),
+          ),
+        );
+
         return;
       }
 
-      // An authenticated customer can proceed to Schedule.
+      // Signed-in users must have a complete adult profile.
+      final profile = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (!mounted) return;
+
+      final data = profile.data() ?? <String, dynamic>{};
+      final name = (data['name'] ?? '').toString().trim();
+      final gender = (data['gender'] ?? '').toString();
+
+      DateTime? dob;
+      final rawDob = data['dateOfBirth'];
+
+      if (rawDob is Timestamp) {
+        dob = rawDob.toDate();
+      } else if (rawDob is String) {
+        dob = DateTime.tryParse(rawDob);
+      }
+
+      final today = DateTime.now();
+      var age = 0;
+
+      if (dob != null) {
+        age = today.year - dob.year;
+        if (today.month < dob.month ||
+            (today.month == dob.month && today.day < dob.day)) {
+          age--;
+        }
+      }
+
+      final profileComplete = name.isNotEmpty &&
+          ['male', 'female', 'other'].contains(gender) &&
+          dob != null &&
+          !dob.isAfter(today) &&
+          age >= 18;
+
+      if (!profileComplete) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Please complete your profile before booking.',
+            ),
+          ),
+        );
+
+        return;
+      }
+
       await Navigator.of(context).push(
         MaterialPageRoute<void>(
           builder: (_) => WalkScheduleScreen(
@@ -68,6 +132,16 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
           ),
         ),
       );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Unable to continue. Please check your internet connection and try again.',
+            ),
+          ),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() => _openingNextScreen = false);
@@ -112,7 +186,6 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
               ),
             ),
             const SizedBox(height: 26),
-
             _option(
               type: WalkBookingType.oneTime,
               title: 'Walk Now',
@@ -122,7 +195,6 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
               icon: Icons.directions_walk_rounded,
             ),
             const SizedBox(height: 14),
-
             _option(
               type: WalkBookingType.regular,
               title: 'Daily Walk',
@@ -132,7 +204,6 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
               icon: Icons.wb_sunny_outlined,
             ),
             const SizedBox(height: 14),
-
             _option(
               type: WalkBookingType.chooseDates,
               title: 'Choose Dates',
@@ -141,9 +212,7 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
               badge: 'FLEXIBLE',
               icon: Icons.calendar_month_rounded,
             ),
-
             const SizedBox(height: 24),
-
             Container(
               padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
@@ -176,9 +245,7 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
                 ],
               ),
             ),
-
             const SizedBox(height: 24),
-
             SizedBox(
               height: 54,
               child: ElevatedButton(
