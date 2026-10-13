@@ -18,6 +18,10 @@ dependencies:
   firebase_core: ^3.15.1
   firebase_auth: ^5.6.2
   cloud_firestore: ^5.6.11
+  firebase_storage: ^12.4.10
+
+  # Image Picker
+  image_picker: ^1.2.0
 
   # Google Maps and location
   google_maps_flutter: ^2.13.1
