@@ -1,3 +1,4 @@
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -22,8 +23,7 @@ class AccountDetailsScreen extends StatefulWidget {
       _AccountDetailsScreenState();
 }
 
-class _AccountDetailsScreenState
-    extends State<AccountDetailsScreen> {
+class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
 
@@ -64,8 +64,10 @@ class _AccountDetailsScreenState
           ? data['phoneNumber'] as String
           : widget.user.phoneNumber ?? '';
 
-      _gender = data['gender'] is String
-          ? data['gender'] as String
+      final gender = data['gender'];
+      _gender = gender is String &&
+              ['male', 'female', 'other'].contains(gender)
+          ? gender
           : '';
 
       _photoUrl = data['photoUrl'] is String
@@ -91,7 +93,14 @@ class _AccountDetailsScreenState
 
   DateTime _latestAllowedDob() {
     final now = DateTime.now();
-    return DateTime(now.year - 18, now.month, now.day);
+    final year = now.year - 18;
+
+    // Handles leap-day dates safely.
+    final day = now.month == 2 && now.day == 29
+        ? 28
+        : now.day;
+
+    return DateTime(year, now.month, day);
   }
 
   String _formatDate(DateTime? date) {
@@ -107,7 +116,8 @@ class _AccountDetailsScreenState
     final latest = _latestAllowedDob();
 
     final initial = _dateOfBirth != null &&
-            !_dateOfBirth!.isAfter(latest)
+            !_dateOfBirth!.isAfter(latest) &&
+            !_dateOfBirth!.isBefore(DateTime(1920))
         ? _dateOfBirth!
         : latest;
 
@@ -185,6 +195,19 @@ class _AccountDetailsScreenState
           behavior: SnackBarBehavior.floating,
         ),
       );
+  }
+
+  Future<void> _openMobileUpdate() async {
+    final updated = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => const ChangeMobileNumberScreen(),
+      ),
+    );
+
+    if (updated == true && mounted) {
+      setState(() => _loading = true);
+      await _loadProfile();
+    }
   }
 
   @override
@@ -279,20 +302,7 @@ class _AccountDetailsScreenState
                         ),
                       ),
                       TextButton(
-                        onPressed: () async {
-                          final updated =
-                              await Navigator.of(context).push<bool>(
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  const ChangeMobileNumberScreen(),
-                            ),
-                          );
-
-                          if (updated == true && mounted) {
-                            await _loadProfile();
-                            if (mounted) setState(() {});
-                          }
-                        },
+                        onPressed: _openMobileUpdate,
                         child: const Text(
                           'Update',
                           style: TextStyle(
@@ -373,7 +383,8 @@ class _AccountDetailsScreenState
                   const SizedBox(height: 20),
                   _label('Gender'),
                   DropdownButtonFormField<String>(
-                    value: _gender.isEmpty ? null : _gender,
+                    initialValue:
+                        _gender.isEmpty ? null : _gender,
                     decoration: _decoration('Select gender'),
                     items: const [
                       DropdownMenuItem(
