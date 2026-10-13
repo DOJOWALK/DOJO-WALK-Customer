@@ -1,8 +1,10 @@
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../auth/screens/phone_login_screen.dart';
+import '../../profile/screens/name_setup_screen.dart';
 import 'walk_schedule_screen.dart';
 
 const Color bookingOrange = Color(0xFFFF7900);
@@ -26,17 +28,75 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
   WalkBookingType? _selectedType;
   bool _openingNextScreen = false;
 
+  void _showMessage(String message) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+  }
+
+  DateTime? _parseDateOfBirth(dynamic value) {
+    if (value is Timestamp) return value.toDate();
+    if (value is String) return DateTime.tryParse(value);
+    return null;
+  }
+
+  int _calculateAge(DateTime dob) {
+    final today = DateTime.now();
+    var age = today.year - dob.year;
+
+    if (today.month < dob.month ||
+        (today.month == dob.month && today.day < dob.day)) {
+      age--;
+    }
+
+    return age;
+  }
+
+  bool _isAdult(DateTime? dob) {
+    if (dob == null || dob.isAfter(DateTime.now())) {
+      return false;
+    }
+
+    return _calculateAge(dob) >= 18;
+  }
+
+  Future<bool> _hasCompleteAdultProfile(User user) async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+
+    final data = snapshot.data() ?? <String, dynamic>{};
+
+    final name = (data['name'] ?? '').toString().trim();
+    final gender = (data['gender'] ?? '').toString();
+    final dob = _parseDateOfBirth(data['dateOfBirth']);
+
+    return snapshot.exists &&
+        name.length >= 2 &&
+        ['male', 'female', 'other'].contains(gender) &&
+        _isAdult(dob);
+  }
+
+  Future<void> _openSchedule(WalkBookingType selected) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => WalkScheduleScreen(walkType: selected),
+      ),
+    );
+  }
+
   Future<void> _continue() async {
     if (_openingNextScreen) return;
 
     final selected = _selectedType;
 
     if (selected == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a walk type first.'),
-        ),
-      );
+      _showMessage('Please select a walk type first.');
       return;
     }
 
@@ -47,8 +107,8 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
 
       if (!mounted) return;
 
+      // Guest: login first, then continue to the selected walk schedule.
       if (user == null) {
-        // Open login and wait for successful booking-flow completion.
         final result = await Navigator.of(context).push<bool>(
           MaterialPageRoute<bool>(
             builder: (_) => PhoneLoginScreen(
@@ -57,91 +117,65 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
           ),
         );
 
-        if (!mounted) return;
+        if (!mounted || result != true) return;
 
-        // Login/Profile must explicitly return true.
-        // Otherwise do not open Schedule.
-        if (result != true) return;
-
-        // Login screen has confirmed the customer can continue.
-        await Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) => WalkScheduleScreen(
-              walkType: selected,
-            ),
-          ),
-        );
-
+        // PhoneLoginScreen only returns true after login and profile
+        // validation have completed successfully.
+        await _openSchedule(selected);
         return;
       }
 
-      // Signed-in users must have a complete adult profile.
-      final profile = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
+      // Signed-in customer: validate profile before booking.
+      final profileComplete = await _hasCompleteAdultProfile(user);
 
       if (!mounted) return;
 
-      final data = profile.data() ?? <String, dynamic>{};
-      final name = (data['name'] ?? '').toString().trim();
-      final gender = (data['gender'] ?? '').toString();
-
-      DateTime? dob;
-      final rawDob = data['dateOfBirth'];
-
-      if (rawDob is Timestamp) {
-        dob = rawDob.toDate();
-      } else if (rawDob is String) {
-        dob = DateTime.tryParse(rawDob);
-      }
-
-      final today = DateTime.now();
-      var age = 0;
-
-      if (dob != null) {
-        age = today.year - dob.year;
-        if (today.month < dob.month ||
-            (today.month == dob.month && today.day < dob.day)) {
-          age--;
-        }
-      }
-
-      final profileComplete = name.isNotEmpty &&
-          ['male', 'female', 'other'].contains(gender) &&
-          dob != null &&
-          !dob.isAfter(today) &&
-          age >= 18;
-
-      if (!profileComplete) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Please complete your profile before booking.',
-            ),
-          ),
-        );
-
+      if (profileComplete) {
+        await _openSchedule(selected);
         return;
       }
 
-      await Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => WalkScheduleScreen(
-            walkType: selected,
+      // Incomplete or underage profile: open Profile Setup.
+      // Its booking flow returns true to this screen after saving.
+      final profileResult = await Navigator.of(context).push<bool>(
+        MaterialPageRoute<bool>(
+          builder: (_) => NameSetupScreen(
+            bookingWalkType: selected.name,
           ),
         ),
       );
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Unable to continue. Please check your internet connection and try again.',
-            ),
-          ),
-        );
+
+      if (!mounted || profileResult != true) return;
+
+      // Re-check the saved profile before allowing booking.
+      final updatedUser = FirebaseAuth.instance.currentUser;
+
+      if (updatedUser == null) {
+        _showMessage('Please log in again before booking.');
+        return;
       }
+
+      final updatedProfileComplete =
+          await _hasCompleteAdultProfile(updatedUser);
+
+      if (!mounted) return;
+
+      if (!updatedProfileComplete) {
+        _showMessage(
+          'Your profile must be complete and you must be at least 18 to book.',
+        );
+        return;
+      }
+
+      await _openSchedule(selected);
+    } on FirebaseException catch (error) {
+      _showMessage(
+        'Unable to continue. Please check your connection and Firebase permissions. (${error.code})',
+      );
+    } catch (_) {
+      _showMessage(
+        'Unable to continue. Please try again.',
+      );
     } finally {
       if (mounted) {
         setState(() => _openingNextScreen = false);
