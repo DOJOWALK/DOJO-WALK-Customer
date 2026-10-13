@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../addresses/screens/my_addresses_screen.dart';
+import '../../auth/screens/phone_login_screen.dart';
 import '../../booking/screens/my_bookings_screen.dart';
 import '../../support/screens/help_support_screen.dart';
 import 'my_dogs_screen.dart';
@@ -46,9 +47,9 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _signedOutView(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(18),
       children: [
-        const SizedBox(height: 30),
+        const SizedBox(height: 24),
         const CircleAvatar(
           radius: 46,
           backgroundColor: Color(0xFFFFEAD8),
@@ -79,24 +80,23 @@ class ProfileScreen extends StatelessWidget {
         ),
         const SizedBox(height: 22),
         SizedBox(
-          height: 50,
-          child: ElevatedButton(
-            onPressed: () {
-              _showMessage(
-                context,
-                'Connect this button to your existing phone login screen.',
-              );
-            },
+          height: 51,
+          child: ElevatedButton.icon(
+            onPressed: () => _open(
+              context,
+              const PhoneLoginScreen(),
+            ),
+            icon: const Icon(Icons.phone_android_rounded),
+            label: const Text(
+              'Login with Phone',
+              style: TextStyle(fontWeight: FontWeight.w900),
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: profileOrange,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),
-            ),
-            child: const Text(
-              'Login with Phone',
-              style: TextStyle(fontWeight: FontWeight.w800),
             ),
           ),
         ),
@@ -126,9 +126,9 @@ class ProfileScreen extends StatelessWidget {
           icon: Icons.privacy_tip_outlined,
           title: 'Privacy & Terms',
           subtitle: 'Your privacy and account policies',
-          onTap: () => _showMessage(
+          onTap: () => _open(
             context,
-            'Privacy & Terms page is not connected yet.',
+            const PrivacyTermsScreen(),
           ),
         ),
       ],
@@ -155,7 +155,6 @@ class ProfileScreen extends StatelessWidget {
             : (user.phoneNumber ?? 'Phone number not available');
 
         final photoUrl = _readString(data, 'photoUrl');
-        final accountStatus = _accountStatus(data);
 
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
@@ -223,36 +222,6 @@ class ProfileScreen extends StatelessWidget {
                       fontSize: 13,
                     ),
                   ),
-                  const SizedBox(height: 13),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 7,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.verified_user_outlined,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          accountStatus,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                   const SizedBox(height: 17),
                   SizedBox(
                     width: double.infinity,
@@ -280,18 +249,7 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 25),
-            const Padding(
-              padding: EdgeInsets.only(left: 4, bottom: 10),
-              child: Text(
-                'MY ACCOUNT',
-                style: TextStyle(
-                  color: profileMuted,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1,
-                ),
-              ),
-            ),
+            _sectionTitle('MY ACCOUNT'),
             _menuCard(
               context,
               icon: Icons.person_outline_rounded,
@@ -343,18 +301,7 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 15),
-            const Padding(
-              padding: EdgeInsets.only(left: 4, bottom: 10),
-              child: Text(
-                'SUPPORT & INFORMATION',
-                style: TextStyle(
-                  color: profileMuted,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1,
-                ),
-              ),
-            ),
+            _sectionTitle('SUPPORT & INFORMATION'),
             _menuCard(
               context,
               icon: Icons.support_agent_rounded,
@@ -370,9 +317,9 @@ class ProfileScreen extends StatelessWidget {
               icon: Icons.settings_outlined,
               title: 'Settings',
               subtitle: 'Account preferences',
-              onTap: () => _showMessage(
+              onTap: () => _open(
                 context,
-                'Settings screen is not connected yet.',
+                const SettingsScreen(),
               ),
             ),
             _menuCard(
@@ -380,9 +327,9 @@ class ProfileScreen extends StatelessWidget {
               icon: Icons.privacy_tip_outlined,
               title: 'Privacy & Terms',
               subtitle: 'Privacy policy and terms of service',
-              onTap: () => _showMessage(
+              onTap: () => _open(
                 context,
-                'Privacy & Terms page is not connected yet.',
+                const PrivacyTermsScreen(),
               ),
             ),
             const SizedBox(height: 14),
@@ -412,22 +359,19 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  String _accountStatus(Map<String, dynamic> data) {
-    if (data['isActive'] == true ||
-        data['accountStatus'] == 'active' ||
-        data['status'] == 'active') {
-      return 'Account Active';
-    }
-
-    if (data['isActive'] == false ||
-        data['accountStatus'] == 'inactive' ||
-        data['accountStatus'] == 'suspended' ||
-        data['status'] == 'inactive' ||
-        data['status'] == 'suspended') {
-      return 'Account Inactive';
-    }
-
-    return 'Account Status Unavailable';
+  Widget _sectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 10),
+      child: Text(
+        title,
+        style: const TextStyle(
+          color: profileMuted,
+          fontSize: 12,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 1,
+        ),
+      ),
+    );
   }
 
   String _readString(Map<String, dynamic> data, String key) {
@@ -529,17 +473,14 @@ class ProfileScreen extends StatelessWidget {
 
     try {
       await FirebaseAuth.instance.signOut();
-    } catch (error) {
+    } catch (_) {
       if (context.mounted) {
-        _showMessage(
-          context,
-          'Could not log out. Please try again.',
-        );
+        _message(context, 'Could not log out. Please try again.');
       }
     }
   }
 
-  void _showMessage(BuildContext context, String message) {
+  void _message(BuildContext context, String message) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
@@ -700,11 +641,8 @@ class _MyProfileAccountScreenState
                           ),
                         ),
                         validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Please enter your name.';
-                          }
-                          if (value.trim().length < 2) {
-                            return 'Name must contain at least 2 characters.';
+                          if (value == null || value.trim().length < 2) {
+                            return 'Enter a name with at least 2 characters.';
                           }
                           return null;
                         },
@@ -828,6 +766,110 @@ class CouponsOffersScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class SettingsScreen extends StatelessWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: profileBackground,
+      appBar: AppBar(
+        backgroundColor: profileBackground,
+        title: const Text(
+          'Settings',
+          style: TextStyle(
+            color: profileText,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ),
+      body: const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Text(
+            'Account settings will be available here soon.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: profileMuted),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class PrivacyTermsScreen extends StatelessWidget {
+  const PrivacyTermsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: profileBackground,
+      appBar: AppBar(
+        backgroundColor: profileBackground,
+        title: const Text(
+          'Privacy & Terms',
+          style: TextStyle(
+            color: profileText,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ),
+      body: const ListView(
+        padding: EdgeInsets.all(20),
+        children: [
+          Text(
+            'Your Privacy',
+            style: TextStyle(
+              color: profileText,
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'DOJO WALK uses your account details to provide dog-walking '
+            'services, manage bookings and support your requests. '
+            'Your data should be handled according to the service privacy policy.',
+            style: TextStyle(
+              color: profileMuted,
+              height: 1.6,
+            ),
+          ),
+          SizedBox(height: 24),
+          Text(
+            'Terms of Service',
+            style: TextStyle(
+              color: profileText,
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Please confirm service details, pickup instructions and booking '
+            'information before submitting a booking. Cancellation, refunds '
+            'and service rules are subject to DOJO WALK’s published policies.',
+            style: TextStyle(
+              color: profileMuted,
+              height: 1.6,
+            ),
+          ),
+          SizedBox(height: 16),
+          Text(
+            'Note: Replace this draft with your approved legal Privacy Policy '
+            'and Terms before launching the app publicly.',
+            style: TextStyle(
+              color: Colors.deepOrange,
+              height: 1.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
       ),
     );
   }
