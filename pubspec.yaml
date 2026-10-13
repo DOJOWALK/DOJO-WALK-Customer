@@ -39,11 +39,11 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/images/dojo_icon.png
+    - "assets/images/DOJO WALK.png"
 
 flutter_launcher_icons:
   android: true
   ios: false
-  image_path: "assets/images/dojo_icon.png"
+  image_path: "assets/images/DOJO WALK.png"
   adaptive_icon_background: "#FFFAF5"
-  adaptive_icon_foreground: "assets/images/dojo_icon.png"
+  adaptive_icon_foreground: "assets/images/DOJO WALK.png"
