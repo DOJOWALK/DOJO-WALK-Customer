@@ -27,6 +27,17 @@ class _SettingsScreenState extends State<SettingsScreen>
   bool _locationEnabled = false;
   bool _loadingLocation = true;
 
+  String _t(String en, String hi, String bn) {
+    switch (_language) {
+      case 'hi':
+        return hi;
+      case 'bn':
+        return bn;
+      default:
+        return en;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -51,26 +62,30 @@ class _SettingsScreenState extends State<SettingsScreen>
     try {
       final prefs = await SharedPreferences.getInstance();
       final info = await PackageInfo.fromPlatform();
-      final savedLanguage =
-          prefs.getString('dojo_app_language') ?? 'en';
+      final saved = prefs.getString('dojo_app_language') ?? 'en';
+      final language = ['en', 'hi', 'bn'].contains(saved)
+          ? saved
+          : 'en';
 
       if (!mounted) return;
 
       setState(() {
-        _language = savedLanguage == 'hi' ? 'hi' : 'en';
+        _language = language;
         _appVersion = '${info.version}+${info.buildNumber}';
       });
 
-      // Keep the app locale in sync with saved preference.
-      appLocale.value = Locale(_language);
-
+      appLocale.value = Locale(language);
       await _checkLocation();
     } catch (_) {
       if (!mounted) return;
-      setState(() {
-        _appVersion = 'Unavailable';
-      });
-      _message('Could not load app settings.');
+      setState(() => _appVersion = 'Unavailable');
+      _message(
+        _t(
+          'Could not load app settings.',
+          'ऐप सेटिंग लोड नहीं हो सकीं।',
+          'অ্যাপের সেটিংস লোড করা যায়নি।',
+        ),
+      );
     }
   }
 
@@ -93,11 +108,14 @@ class _SettingsScreenState extends State<SettingsScreen>
     } catch (_) {
       if (!mounted) return;
 
-      setState(() {
-        _loadingLocation = false;
-      });
-
-      _message('Could not check location status.');
+      setState(() => _loadingLocation = false);
+      _message(
+        _t(
+          'Could not check location status.',
+          'लोकेशन की स्थिति जाँची नहीं जा सकी।',
+          'লোকেশনের অবস্থা যাচাই করা যায়নি।',
+        ),
+      );
     }
   }
 
@@ -117,9 +135,13 @@ class _SettingsScreenState extends State<SettingsScreen>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Choose App Language',
-                style: TextStyle(
+              Text(
+                _t(
+                  'Choose App Language',
+                  'ऐप की भाषा चुनें',
+                  'অ্যাপের ভাষা বেছে নিন',
+                ),
+                style: const TextStyle(
                   fontSize: 19,
                   fontWeight: FontWeight.w900,
                   color: settingsText,
@@ -127,7 +149,8 @@ class _SettingsScreenState extends State<SettingsScreen>
               ),
               const SizedBox(height: 12),
               _languageOption(sheetContext, 'en', 'English'),
-              _languageOption(sheetContext, 'hi', 'हिंदी'),
+              _languageOption(sheetContext, 'hi', 'हिन्दी'),
+              _languageOption(sheetContext, 'bn', 'বাংলা'),
             ],
           ),
         ),
@@ -138,25 +161,28 @@ class _SettingsScreenState extends State<SettingsScreen>
 
     try {
       final prefs = await SharedPreferences.getInstance();
-
       await prefs.setString('dojo_app_language', selected);
 
       if (!mounted) return;
 
-      setState(() {
-        _language = selected;
-      });
-
-      // Updates the locale listened to by DojoWalkApp.
+      setState(() => _language = selected);
       appLocale.value = Locale(selected);
 
       _message(
-        selected == 'hi'
-            ? 'भाषा की पसंद सेव हो गई।'
-            : 'Language preference saved.',
+        _t(
+          'Language preference saved.',
+          'भाषा की पसंद सेव हो गई।',
+          'ভাষার পছন্দ সংরক্ষণ করা হয়েছে।',
+        ),
       );
     } catch (_) {
-      _message('Could not save language preference.');
+      _message(
+        _t(
+          'Could not save language preference.',
+          'भाषा सेव नहीं हो सकी।',
+          'ভাষার পছন্দ সংরক্ষণ করা যায়নি।',
+        ),
+      );
     }
   }
 
@@ -208,35 +234,79 @@ class _SettingsScreenState extends State<SettingsScreen>
 
       await _checkLocation();
 
-      if (permission == LocationPermission.denied) {
-        _message('Location permission has not been granted.');
-      } else {
-        _message('Location permission status updated.');
-      }
+      _message(
+        permission == LocationPermission.denied
+            ? _t(
+                'Location permission has not been granted.',
+                'लोकेशन की अनुमति नहीं मिली।',
+                'লোকেশনের অনুমতি দেওয়া হয়নি।',
+              )
+            : _t(
+                'Location permission status updated.',
+                'लोकेशन अनुमति की स्थिति अपडेट हुई।',
+                'লোকেশনের অনুমতির অবস্থা আপডেট হয়েছে।',
+              ),
+      );
     } catch (_) {
-      _message('Could not open location settings.');
+      _message(
+        _t(
+          'Could not open location settings.',
+          'लोकेशन सेटिंग नहीं खुल सकीं।',
+          'লোকেশন সেটিংস খোলা যায়নি।',
+        ),
+      );
     }
   }
 
   String get _locationStatus {
-    if (_loadingLocation) return 'Checking permission...';
+    if (_loadingLocation) {
+      return _t(
+        'Checking permission...',
+        'अनुमति जाँची जा रही है...',
+        'অনুমতি যাচাই করা হচ্ছে...',
+      );
+    }
 
     if (!_locationEnabled) {
-      return 'Phone location is turned off';
+      return _t(
+        'Phone location is turned off',
+        'फोन की लोकेशन बंद है',
+        'ফোনের লোকেশন বন্ধ আছে',
+      );
     }
 
     switch (_permission) {
       case LocationPermission.always:
-        return 'Allowed all the time';
+        return _t(
+          'Allowed all the time',
+          'हर समय अनुमति है',
+          'সব সময় অনুমতি দেওয়া আছে',
+        );
       case LocationPermission.whileInUse:
-        return 'Allowed while using the app';
+        return _t(
+          'Allowed while using the app',
+          'ऐप इस्तेमाल करते समय अनुमति है',
+          'অ্যাপ ব্যবহার করার সময় অনুমতি আছে',
+        );
       case LocationPermission.denied:
-        return 'Permission not granted';
+        return _t(
+          'Permission not granted',
+          'अनुमति नहीं मिली',
+          'অনুমতি দেওয়া হয়নি',
+        );
       case LocationPermission.deniedForever:
-        return 'Permission blocked in phone settings';
+        return _t(
+          'Permission blocked in phone settings',
+          'फोन सेटिंग में अनुमति ब्लॉक है',
+          'ফোনের সেটিংসে অনুমতি বন্ধ করা আছে',
+        );
       case LocationPermission.unableToDetermine:
       case null:
-        return 'Status unavailable';
+        return _t(
+          'Status unavailable',
+          'स्थिति उपलब्ध नहीं है',
+          'অবস্থা পাওয়া যাচ্ছে না',
+        );
     }
   }
 
@@ -260,12 +330,10 @@ class _SettingsScreenState extends State<SettingsScreen>
       appBar: AppBar(
         backgroundColor: settingsBackground,
         elevation: 0,
-        iconTheme: const IconThemeData(
-          color: settingsText,
-        ),
-        title: const Text(
-          'Settings',
-          style: TextStyle(
+        iconTheme: const IconThemeData(color: settingsText),
+        title: Text(
+          _t('Settings', 'सेटिंग्स', 'সেটিংস'),
+          style: const TextStyle(
             color: settingsText,
             fontWeight: FontWeight.w900,
           ),
@@ -278,36 +346,41 @@ class _SettingsScreenState extends State<SettingsScreen>
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [
-                  settingsOrange,
-                  Color(0xFFFFA34D),
-                ],
+                colors: [settingsOrange, Color(0xFFFFA34D)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(22),
             ),
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
+                const Icon(
                   Icons.tune_rounded,
                   color: Colors.white,
                   size: 32,
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Text(
-                  'App Preferences',
-                  style: TextStyle(
+                  _t(
+                    'App Preferences',
+                    'ऐप की प्राथमिकताएँ',
+                    'অ্যাপের পছন্দসমূহ',
+                  ),
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 21,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-                SizedBox(height: 5),
+                const SizedBox(height: 5),
                 Text(
-                  'Customize your DOJO WALK experience.',
-                  style: TextStyle(
+                  _t(
+                    'Customize your DOJO WALK experience.',
+                    'अपने DOJO WALK अनुभव को अपनी पसंद के अनुसार बनाएँ।',
+                    'আপনার পছন্দ অনুযায়ী DOJO WALK ব্যবহার করুন।',
+                  ),
+                  style: const TextStyle(
                     color: Colors.white,
                     height: 1.5,
                   ),
@@ -316,33 +389,53 @@ class _SettingsScreenState extends State<SettingsScreen>
             ),
           ),
           const SizedBox(height: 26),
-          _sectionTitle('APP SETTINGS'),
+          _sectionTitle(
+            _t('APP SETTINGS', 'ऐप सेटिंग्स', 'অ্যাপ সেটিংস'),
+          ),
           _settingsTile(
             icon: Icons.language_rounded,
-            title: 'App Language',
-            subtitle: _language == 'hi' ? 'हिंदी' : 'English',
+            title: _t('App Language', 'ऐप की भाषा', 'অ্যাপের ভাষা'),
+            subtitle: switch (_language) {
+              'hi' => 'हिन्दी',
+              'bn' => 'বাংলা',
+              _ => 'English',
+            },
             onTap: _chooseLanguage,
           ),
           _settingsTile(
             icon: Icons.location_on_outlined,
-            title: 'Location Permission',
+            title: _t(
+              'Location Permission',
+              'लोकेशन अनुमति',
+              'লোকেশনের অনুমতি',
+            ),
             subtitle: _locationStatus,
             onTap: _manageLocation,
           ),
           const SizedBox(height: 18),
-          _sectionTitle('APP INFORMATION'),
+          _sectionTitle(
+            _t(
+              'APP INFORMATION',
+              'ऐप की जानकारी',
+              'অ্যাপের তথ্য',
+            ),
+          ),
           _settingsTile(
             icon: Icons.info_outline_rounded,
-            title: 'App Version',
+            title: _t('App Version', 'ऐप संस्करण', 'অ্যাপের সংস্করণ'),
             subtitle: _appVersion,
             showArrow: false,
             onTap: () {},
           ),
           const SizedBox(height: 24),
-          const Center(
+          Center(
             child: Text(
-              'DOJO WALK • Customer App',
-              style: TextStyle(
+              _t(
+                'DOJO WALK • Customer App',
+                'DOJO WALK • ग्राहक ऐप',
+                'DOJO WALK • গ্রাহক অ্যাপ',
+              ),
+              style: const TextStyle(
                 color: settingsMuted,
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
@@ -356,10 +449,7 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   Widget _sectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.only(
-        left: 4,
-        bottom: 10,
-      ),
+      padding: const EdgeInsets.only(left: 4, bottom: 10),
       child: Text(
         title,
         style: const TextStyle(
@@ -384,9 +474,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(17),
-        border: Border.all(
-          color: const Color(0xFFF0ECE8),
-        ),
+        border: Border.all(color: const Color(0xFFF0ECE8)),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(
@@ -400,11 +488,7 @@ class _SettingsScreenState extends State<SettingsScreen>
             color: const Color(0xFFFFF0E3),
             borderRadius: BorderRadius.circular(13),
           ),
-          child: Icon(
-            icon,
-            color: settingsOrange,
-            size: 23,
-          ),
+          child: Icon(icon, color: settingsOrange, size: 23),
         ),
         title: Text(
           title,
