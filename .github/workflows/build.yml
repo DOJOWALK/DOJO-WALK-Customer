@@ -52,7 +52,7 @@ jobs:
         run: flutter pub get
 
       - name: Check App Icon Image
-        run: test -s assets/images/dojo_icon.png
+        run: test -s "assets/images/DOJO WALK.png"
 
       - name: Generate Android App Icon
         run: dart run flutter_launcher_icons
