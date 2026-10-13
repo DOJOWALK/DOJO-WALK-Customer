@@ -31,6 +31,7 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
 
   bool _loading = true;
   bool _saving = false;
+  String? _loadError;
 
   User? get _user => FirebaseAuth.instance.currentUser;
 
@@ -57,12 +58,33 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
     );
   }
 
+  int _calculateAge(DateTime dob) {
+    final today = DateTime.now();
+    var age = today.year - dob.year;
+
+    if (today.month < dob.month ||
+        (today.month == dob.month && today.day < dob.day)) {
+      age--;
+    }
+
+    return age;
+  }
+
   Future<void> _loadExistingProfile() async {
+    if (!mounted) return;
+
+    setState(() {
+      _loading = true;
+      _loadError = null;
+    });
+
     try {
       final user = _user;
 
       if (user == null) {
-        _showMessage('Please log in with your mobile number.');
+        setState(() {
+          _loadError = 'Please log in with your mobile number first.';
+        });
         return;
       }
 
@@ -74,7 +96,7 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
       if (!mounted) return;
 
       if (snapshot.exists) {
-        final data = snapshot.data() ?? {};
+        final data = snapshot.data() ?? <String, dynamic>{};
 
         _nameController.text = (data['name'] ?? '').toString();
 
@@ -85,11 +107,17 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
         }
 
         final savedDob = data['dateOfBirth'];
+        DateTime? parsedDob;
 
         if (savedDob is Timestamp) {
-          _dateOfBirth = savedDob.toDate();
+          parsedDob = savedDob.toDate();
         } else if (savedDob is String) {
-          _dateOfBirth = DateTime.tryParse(savedDob);
+          parsedDob = DateTime.tryParse(savedDob);
+        }
+
+        if (parsedDob != null &&
+            !parsedDob.isAfter(DateTime.now())) {
+          _dateOfBirth = parsedDob;
         }
 
         final savedPhoto = data['photoUrl'];
@@ -98,7 +126,12 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
         }
       }
     } catch (e) {
-      _showMessage('Unable to load profile: $e');
+      if (mounted) {
+        setState(() {
+          _loadError =
+              'Unable to load your profile. Please check your internet connection.';
+        });
+      }
     } finally {
       if (mounted) {
         setState(() => _loading = false);
@@ -107,24 +140,30 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
   }
 
   Future<void> _selectDateOfBirth() async {
+    if (_saving) return;
+
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
-    final defaultDate = DateTime(now.year - 18, now.month, 1);
-    final currentDate = _dateOfBirth ?? defaultDate;
+    final defaultDate = DateTime(
+      today.year - 18,
+      today.month,
+      today.day,
+    );
 
-    final initialDate =
-        currentDate.isAfter(today) ? today : currentDate;
+    final currentDate = _dateOfBirth ?? defaultDate;
+    final initialDate = currentDate.isAfter(today)
+        ? today
+        : currentDate;
 
     final picked = await showDatePicker(
       context: context,
       initialDate: initialDate,
       firstDate: DateTime(1900, 1, 1),
       lastDate: today,
-      helpText: 'Select Date of Birth',
+      helpText: 'SELECT DATE OF BIRTH',
       cancelText: 'CANCEL',
       confirmText: 'SELECT',
-      initialEntryMode: DatePickerEntryMode.calendar,
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -156,16 +195,19 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
       );
 
       if (picked != null && mounted) {
-        setState(() => _selectedPhoto = File(picked.path));
+        setState(() {
+          _selectedPhoto = File(picked.path);
+        });
       }
     } catch (e) {
-      _showMessage('Unable to select photo: $e');
+      _showMessage('Unable to select the photo. Please try again.');
     }
   }
 
   String _formatDate(DateTime date) {
     final day = date.day.toString().padLeft(2, '0');
     final month = date.month.toString().padLeft(2, '0');
+
     return '$day/$month/${date.year}';
   }
 
@@ -178,16 +220,18 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
         .child(uid)
         .child('profile.jpg');
 
-    final uploadTask = await storageRef.putFile(
+    await storageRef.putFile(
       _selectedPhoto!,
       SettableMetadata(contentType: 'image/jpeg'),
     );
 
-    return uploadTask.ref.getDownloadURL();
+    return await storageRef.getDownloadURL();
   }
 
   Future<void> _saveProfile() async {
     if (_saving || _loading) return;
+
+    FocusScope.of(context).unfocus();
 
     if (!_formKey.currentState!.validate()) return;
 
@@ -201,70 +245,412 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
       return;
     }
 
+    final dob = _dateOfBirth!;
+    final today = DateTime.now();
+
+    if (dob.isAfter(today)) {
+      _showMessage('Date of birth cannot be in the future.');
+      return;
+    }
+
+    final age = _calculateAge(dob);
+
+    if (age < 18) {
+      _showMessage(
+        'You must be at least 18 years old to create a DOJO WALK account.',
+      );
+      return;
+    }
+
     final user = _user;
 
     if (user == null) {
-      _showMessage('Please log in with your mobile number.');
+      _showMessage('Your session has expired. Please log in again.');
       return;
     }
 
     setState(() => _saving = true);
 
     try {
-      final firestore = FirebaseFirestore.instance;
-      final profileRef = firestore.collection('users').doc(user.uid);
+      final userRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid);
 
-      final existing = await profileRef.get();
-
-      if (!mounted) return;
+      final existingSnapshot = await userRef.get();
+      final existingData =
+          existingSnapshot.data() ?? <String, dynamic>{};
 
       final uploadedPhotoUrl = await _uploadPhoto(user.uid);
 
-      if (!mounted) return;
-
-      final selectedDob = _dateOfBirth!;
-
       final profileData = <String, dynamic>{
         'uid': user.uid,
-        'role': 'customer',
         'name': _nameController.text.trim(),
         'gender': _gender,
-        'dateOfBirth': Timestamp.fromDate(
-          DateTime(
-            selectedDob.year,
-            selectedDob.month,
-            selectedDob.day,
-          ),
-        ),
+        'dateOfBirth': Timestamp.fromDate(dob),
         'phoneNumber': user.phoneNumber ?? '',
         'photoUrl': uploadedPhotoUrl ?? '',
+        'role': 'customer',
+        'profileCompleted': true,
         'updatedAt': FieldValue.serverTimestamp(),
       };
 
-      if (!existing.exists) {
+      if (!existingSnapshot.exists ||
+          existingData['createdAt'] == null) {
         profileData['createdAt'] = FieldValue.serverTimestamp();
       }
 
-      await profileRef.set(
-        profileData,
-        SetOptions(merge: true),
-      );
+      await userRef.set(profileData, SetOptions(merge: true));
 
       if (!mounted) return;
 
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute<void>(
+        MaterialPageRoute(
           builder: (_) => const AppNavigator(),
         ),
         (route) => false,
       );
     } catch (e) {
-      _showMessage('Unable to save profile: $e');
+      _showMessage(
+        'Unable to save your profile. Please check your connection and try again.',
+      );
     } finally {
       if (mounted) {
         setState(() => _saving = false);
       }
     }
+  }
+
+  InputDecoration _inputDecoration({
+    required String label,
+    required IconData icon,
+    String? hint,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      hintText: hint,
+      prefixIcon: Icon(icon, color: profileOrange),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 16,
+      ),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Color(0xFFE8E0D8)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Color(0xFFE8E0D8)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(
+          color: profileOrange,
+          width: 1.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPhotoPicker() {
+    ImageProvider? imageProvider;
+
+    if (_selectedPhoto != null) {
+      imageProvider = FileImage(_selectedPhoto!);
+    } else if (_photoUrl != null && _photoUrl!.isNotEmpty) {
+      imageProvider = NetworkImage(_photoUrl!);
+    }
+
+    return Center(
+      child: Column(
+        children: [
+          Stack(
+            children: [
+              CircleAvatar(
+                radius: 49,
+                backgroundColor: const Color(0xFFFFE7D2),
+                backgroundImage: imageProvider,
+                child: imageProvider == null
+                    ? const Icon(
+                        Icons.person_outline_rounded,
+                        size: 48,
+                        color: profileOrange,
+                      )
+                    : null,
+              ),
+              Positioned(
+                right: 0,
+                bottom: 0,
+                child: Material(
+                  color: profileOrange,
+                  shape: const CircleBorder(),
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: _saving ? null : _selectPhoto,
+                    child: const Padding(
+                      padding: EdgeInsets.all(9),
+                      child: Icon(
+                        Icons.camera_alt_outlined,
+                        size: 18,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          TextButton(
+            onPressed: _saving ? null : _selectPhoto,
+            child: const Text(
+              'Add Profile Photo (Optional)',
+              style: TextStyle(
+                color: profileOrange,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGenderSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Gender',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            _genderOption('male', 'Male', Icons.male_rounded),
+            const SizedBox(width: 8),
+            _genderOption('female', 'Female', Icons.female_rounded),
+            const SizedBox(width: 8),
+            _genderOption('other', 'Other', Icons.person_outline),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _genderOption(String value, String label, IconData icon) {
+    final selected = _gender == value;
+
+    return Expanded(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: _saving
+            ? null
+            : () => setState(() => _gender = value),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(
+            vertical: 13,
+            horizontal: 4,
+          ),
+          decoration: BoxDecoration(
+            color: selected
+                ? const Color(0xFFFFE7D2)
+                : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: selected
+                  ? profileOrange
+                  : const Color(0xFFE8E0D8),
+              width: selected ? 1.5 : 1,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                icon,
+                color: selected ? profileOrange : Colors.black54,
+              ),
+              const SizedBox(height: 5),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight:
+                      selected ? FontWeight.w700 : FontWeight.w500,
+                  color: selected ? profileOrange : Colors.black87,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDatePicker() {
+    return InkWell(
+      onTap: _saving ? null : _selectDateOfBirth,
+      borderRadius: BorderRadius.circular(14),
+      child: InputDecorator(
+        decoration: _inputDecoration(
+          label: 'Date of Birth',
+          icon: Icons.calendar_month_outlined,
+          hint: 'DD/MM/YYYY',
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                _dateOfBirth == null
+                    ? 'Select your date of birth'
+                    : _formatDate(_dateOfBirth!),
+                style: TextStyle(
+                  color: _dateOfBirth == null
+                      ? Colors.black45
+                      : Colors.black87,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+            const Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: Colors.black54,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileForm() {
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildPhotoPicker(),
+          const SizedBox(height: 22),
+
+          const Text(
+            'Your Name',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          TextFormField(
+            controller: _nameController,
+            enabled: !_saving,
+            textCapitalization: TextCapitalization.words,
+            textInputAction: TextInputAction.done,
+            maxLength: 60,
+            decoration: _inputDecoration(
+              label: 'Full Name',
+              icon: Icons.person_outline_rounded,
+              hint: 'Enter your full name',
+            ).copyWith(counterText: ''),
+            validator: (value) {
+              final name = value?.trim() ?? '';
+
+              if (name.isEmpty) {
+                return 'Please enter your name.';
+              }
+
+              if (name.length < 2) {
+                return 'Name must be at least 2 characters.';
+              }
+
+              if (name.length > 60) {
+                return 'Name cannot exceed 60 characters.';
+              }
+
+              return null;
+            },
+          ),
+
+          const SizedBox(height: 20),
+          _buildGenderSelector(),
+          const SizedBox(height: 20),
+          _buildDatePicker(),
+
+          const SizedBox(height: 12),
+          const Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.info_outline_rounded,
+                size: 17,
+                color: Colors.black54,
+              ),
+              SizedBox(width: 7),
+              Expanded(
+                child: Text(
+                  'You must be at least 18 years old to create a DOJO WALK account.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.45,
+                    color: Colors.black54,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 28),
+
+          SizedBox(
+            height: 54,
+            child: ElevatedButton(
+              onPressed: _saving ? null : _saveProfile,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: profileOrange,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: Colors.orange.shade200,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+              ),
+              child: _saving
+                  ? const SizedBox(
+                      height: 23,
+                      width: 23,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text(
+                      'Save and Continue',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+            ),
+          ),
+
+          const SizedBox(height: 18),
+          const Text(
+            'Your information helps us provide a safer and more reliable dog-walking experience.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.black54,
+              fontSize: 12,
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -274,246 +660,100 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
       appBar: AppBar(
         backgroundColor: profileBackground,
         elevation: 0,
+        scrolledUnderElevation: 0,
         automaticallyImplyLeading: false,
         title: const Text(
-          'Set Up Your Profile',
+          'Complete Your Profile',
           style: TextStyle(
             color: Colors.black87,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w700,
+            fontSize: 19,
           ),
         ),
       ),
-      body: _loading
-          ? const Center(
-              child: CircularProgressIndicator(
-                color: profileOrange,
-              ),
-            )
-          : SafeArea(
-              child: Form(
-                key: _formKey,
-                child: ListView(
-                  padding: const EdgeInsets.all(20),
-                  children: [
-                    const Text(
-                      'Welcome to DOJO WALK!',
-                      style: TextStyle(
-                        fontSize: 23,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Add your details to set up your customer account.',
-                      style: TextStyle(
-                        color: Colors.black54,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 28),
-
-                    Center(
+      body: SafeArea(
+        child: _loading
+            ? const Center(
+                child: CircularProgressIndicator(
+                  color: profileOrange,
+                ),
+              )
+            : _loadError != null
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          GestureDetector(
-                            onTap: _saving ? null : _selectPhoto,
-                            child: CircleAvatar(
-                              radius: 48,
-                              backgroundColor: const Color(0xFFFFE3CC),
-                              backgroundImage: _selectedPhoto != null
-                                  ? FileImage(_selectedPhoto!)
-                                  : (_photoUrl != null
-                                      ? NetworkImage(_photoUrl!)
-                                      : null) as ImageProvider?,
-                              child: _selectedPhoto == null &&
-                                      _photoUrl == null
-                                  ? const Icon(
-                                      Icons.camera_alt_outlined,
-                                      size: 34,
-                                      color: profileOrange,
-                                    )
-                                  : null,
-                            ),
+                          const Icon(
+                            Icons.cloud_off_outlined,
+                            size: 48,
+                            color: profileOrange,
                           ),
-                          const SizedBox(height: 8),
-                          TextButton(
-                            onPressed: _saving ? null : _selectPhoto,
-                            child: const Text(
-                              'Add Profile Photo (Optional)',
-                              style: TextStyle(color: profileOrange),
+                          const SizedBox(height: 16),
+                          Text(
+                            _loadError!,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 18),
+                          ElevatedButton(
+                            onPressed: _loadExistingProfile,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: profileOrange,
+                              foregroundColor: Colors.white,
                             ),
+                            child: const Text('Try Again'),
                           ),
                         ],
                       ),
                     ),
-
-                    const SizedBox(height: 16),
-
-                    const Text(
-                      'Customer Name *',
-                      style: TextStyle(fontWeight: FontWeight.w600),
+                  )
+                : SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(
+                      22,
+                      12,
+                      22,
+                      30,
                     ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _nameController,
-                      enabled: !_saving,
-                      textCapitalization: TextCapitalization.words,
-                      keyboardType: TextInputType.name,
-                      decoration: _decoration(
-                        hint: 'Enter your full name',
-                        icon: Icons.person_outline,
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please enter your name.';
-                        }
-
-                        if (value.trim().length < 2) {
-                          return 'Name must contain at least 2 characters.';
-                        }
-
-                        return null;
-                      },
-                    ),
-
-                    const SizedBox(height: 22),
-
-                    const Text(
-                      'Gender *',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 8),
-                    DropdownButtonFormField<String>(
-                      initialValue: _gender,
-                      decoration: _decoration(
-                        hint: 'Select gender',
-                        icon: Icons.person_search_outlined,
-                      ),
-                      items: const [
-                        DropdownMenuItem(
-                          value: 'male',
-                          child: Text('Male'),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Center(
+                          child: Icon(
+                            Icons.pets_rounded,
+                            color: profileOrange,
+                            size: 38,
+                          ),
                         ),
-                        DropdownMenuItem(
-                          value: 'female',
-                          child: Text('Female'),
+                        const SizedBox(height: 12),
+                        const Center(
+                          child: Text(
+                            'Welcome to DOJO WALK',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 23,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.black87,
+                            ),
+                          ),
                         ),
-                        DropdownMenuItem(
-                          value: 'other',
-                          child: Text('Other'),
+                        const SizedBox(height: 8),
+                        const Center(
+                          child: Text(
+                            'Tell us a little about yourself to get started.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.black54,
+                              height: 1.5,
+                            ),
+                          ),
                         ),
+                        const SizedBox(height: 28),
+                        _buildProfileForm(),
                       ],
-                      onChanged: _saving
-                          ? null
-                          : (value) => setState(() => _gender = value),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please select your gender.';
-                        }
-
-                        return null;
-                      },
                     ),
-
-                    const SizedBox(height: 22),
-
-                    const Text(
-                      'Date of Birth *',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 8),
-                    InkWell(
-                      onTap: _saving ? null : _selectDateOfBirth,
-                      borderRadius: BorderRadius.circular(12),
-                      child: InputDecorator(
-                        decoration: _decoration(
-                          hint: 'Select your date of birth',
-                          icon: Icons.calendar_month_outlined,
-                        ),
-                        child: Text(
-                          _dateOfBirth == null
-                              ? 'Select Date'
-                              : _formatDate(_dateOfBirth!),
-                          style: TextStyle(
-                            color: _dateOfBirth == null
-                                ? Colors.black54
-                                : Colors.black87,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    SizedBox(
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: _saving ? null : _saveProfile,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: profileOrange,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                        child: _saving
-                            ? const SizedBox(
-                                height: 22,
-                                width: 22,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text(
-                                'Save & Continue',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-                  ],
-                ),
-              ),
-            ),
-    );
-  }
-
-  InputDecoration _decoration({
-    required String hint,
-    required IconData icon,
-  }) {
-    return InputDecoration(
-      hintText: hint,
-      prefixIcon: Icon(icon, color: profileOrange),
-      filled: true,
-      fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 14,
-        vertical: 16,
-      ),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: Color(0xFFE8E0D9),
-        ),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: Color(0xFFE8E0D9),
-        ),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: profileOrange,
-          width: 1.5,
-        ),
+                  ),
       ),
     );
   }
