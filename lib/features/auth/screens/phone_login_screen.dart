@@ -1,8 +1,11 @@
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'otp_verification_screen.dart';
+import '../../profile/screens/name_setup_screen.dart';
+import '../../../app/app_navigator.dart';
 
 const Color dojoOrange = Color(0xFFFF7900);
 const Color dojoBackground = Color(0xFFFFFAF5);
@@ -17,6 +20,7 @@ class PhoneLoginScreen extends StatefulWidget {
 class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
   final _phoneController = TextEditingController();
   bool _loading = false;
+  bool _openingNextScreen = false;
 
   @override
   void dispose() {
@@ -29,6 +33,57 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(text)),
     );
+  }
+
+  Future<void> _continueAfterLogin() async {
+    if (_openingNextScreen || !mounted) return;
+
+    _openingNextScreen = true;
+    setState(() => _loading = true);
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user == null) {
+        throw Exception('Login session नहीं मिली। दोबारा OTP verify करें।');
+      }
+
+      final profile = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (!mounted) return;
+
+      final data = profile.data();
+      final name = data?['name'];
+      final gender = data?['gender'];
+      final dob = data?['dateOfBirth'];
+
+      final hasName = name is String && name.trim().length >= 2;
+      final hasGender = gender is String &&
+          ['male', 'female', 'other'].contains(gender);
+      final hasDob = dob is Timestamp ||
+          (dob is String && DateTime.tryParse(dob) != null);
+
+      final Widget nextScreen =
+          profile.exists && hasName && hasGender && hasDob
+              ? const AppNavigator()
+              : const NameSetupScreen();
+
+      await Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(
+          builder: (_) => nextScreen,
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        _message('आगे नहीं बढ़ पाए: $e');
+      }
+    } finally {
+      _openingNextScreen = false;
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   Future<void> _sendOtp() async {
@@ -47,40 +102,29 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
       await FirebaseAuth.instance.verifyPhoneNumber(
         phoneNumber: '+91$phone',
         timeout: const Duration(seconds: 60),
-
         verificationCompleted: (credential) async {
           try {
-            final result = await FirebaseAuth.instance
-                .signInWithCredential(credential);
-
-            if (!mounted) return;
-
-            if (result.user != null) {
-              Navigator.of(context).pop(true);
-            }
+            await FirebaseAuth.instance.signInWithCredential(credential);
+            await _continueAfterLogin();
           } on FirebaseAuthException catch (e) {
-            _message(e.message ?? 'Login पूरा नहीं हुआ।');
+            if (mounted) _message(e.message ?? 'Login पूरा नहीं हुआ।');
           } finally {
-            if (mounted) setState(() => _loading = false);
+            if (mounted && !_openingNextScreen) {
+              setState(() => _loading = false);
+            }
           }
         },
-
         verificationFailed: (error) {
           if (!mounted) return;
           setState(() => _loading = false);
-
-          _message(
-            error.message ?? 'OTP नहीं भेजा जा सका।',
-          );
+          _message(error.message ?? 'OTP नहीं भेजा जा सका।');
         },
-
         codeSent: (verificationId, resendToken) async {
           if (!mounted) return;
-
           setState(() => _loading = false);
 
           final verified = await Navigator.of(context).push<bool>(
-            MaterialPageRoute(
+            MaterialPageRoute<bool>(
               builder: (_) => OtpVerificationScreen(
                 phoneNumber: '+91$phone',
                 verificationId: verificationId,
@@ -92,20 +136,19 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
           if (!mounted) return;
 
           if (verified == true) {
-            Navigator.of(context).pop(true);
+            await _continueAfterLogin();
           }
         },
-
         codeAutoRetrievalTimeout: (verificationId) {},
       );
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
       _message(e.message ?? 'OTP भेजने में समस्या हुई।');
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      _message('इंटरनेट और Firebase सेटिंग जाँचें।');
+      _message('समस्या हुई: $e');
     }
   }
 
@@ -131,27 +174,16 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 35),
-              const Icon(
-                Icons.phone_android,
-                size: 54,
-                color: dojoOrange,
-              ),
+              const Icon(Icons.phone_android, size: 54, color: dojoOrange),
               const SizedBox(height: 22),
               const Text(
                 'Welcome to DOJO WALK',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
               const Text(
                 'बुकिंग जारी रखने के लिए अपना मोबाइल नंबर डालें।',
-                style: TextStyle(
-                  color: Colors.black54,
-                  fontSize: 15,
-                  height: 1.5,
-                ),
+                style: TextStyle(color: Colors.black54, fontSize: 15),
               ),
               const SizedBox(height: 32),
               const Text(
@@ -217,22 +249,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
               const Center(
                 child: Text(
                   'Secure login with DOJO WALK',
-                  style: TextStyle(
-                    color: Colors.black45,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 18),
-              Center(
-                child: TextButton(
-                  onPressed: _loading
-                      ? null
-                      : () => Navigator.of(context).pop(false),
-                  child: const Text(
-                    'Cancel',
-                    style: TextStyle(color: Colors.black54),
-                  ),
+                  style: TextStyle(color: Colors.black45, fontSize: 12),
                 ),
               ),
             ],
