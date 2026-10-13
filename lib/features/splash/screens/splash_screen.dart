@@ -1,8 +1,11 @@
+
 import 'dart:async';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../app/app_navigator.dart';
+import '../../auth/screens/phone_login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -13,20 +16,38 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   Timer? _timer;
+  bool _navigated = false;
 
   @override
   void initState() {
     super.initState();
 
-    _timer = Timer(const Duration(seconds: 2), () {
-      if (!mounted) return;
+    _timer = Timer(
+      const Duration(seconds: 2),
+      _checkLoginAndNavigate,
+    );
+  }
 
+  void _checkLoginAndNavigate() {
+    if (!mounted || _navigated) return;
+
+    _navigated = true;
+
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
           builder: (_) => const AppNavigator(),
         ),
       );
-    });
+    } else {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(
+          builder: (_) => const PhoneLoginScreen(),
+        ),
+      );
+    }
   }
 
   @override
