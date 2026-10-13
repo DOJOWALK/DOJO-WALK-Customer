@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'app_language.dart';
 import '../features/splash/screens/splash_screen.dart';
@@ -14,11 +15,21 @@ class DojoWalkApp extends StatelessWidget {
         return MaterialApp(
           title: 'DOJO WALK',
           debugShowCheckedModeBanner: false,
+
           locale: locale,
+
           supportedLocales: const [
             Locale('en'),
             Locale('hi'),
+            Locale('bn'),
           ],
+
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+
           theme: ThemeData(
             useMaterial3: true,
             colorScheme: ColorScheme.fromSeed(
@@ -27,6 +38,7 @@ class DojoWalkApp extends StatelessWidget {
             ),
             scaffoldBackgroundColor: Colors.white,
           ),
+
           home: const SplashScreen(),
         );
       },
