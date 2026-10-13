@@ -38,6 +38,12 @@ class _BookingConfirmationScreenState
       widget.walkType == WalkBookingType.regular ||
       widget.schedule['isRegular'] == true;
 
+  bool get _isOneTime =>
+      widget.walkType == WalkBookingType.oneTime && !_isRegular;
+
+  bool get _isChooseDates =>
+      widget.walkType == WalkBookingType.chooseDates && !_isRegular;
+
   String get _dogName =>
       (widget.dogDetails['name'] ??
               widget.dogDetails['petName'] ??
@@ -74,6 +80,7 @@ class _BookingConfirmationScreenState
 
   int _duration(Map<String, dynamic> walk) {
     final value = walk['duration'];
+
     if (value is num) return value.toInt();
 
     final match = RegExp(r'\d+').firstMatch('$value');
@@ -82,18 +89,22 @@ class _BookingConfirmationScreenState
 
   int? _price(Map<String, dynamic> walk) {
     final configured = walk['price'];
+
     if (configured is num) return configured.toInt();
 
-    // Only the configured 30-minute rate is known.
+    // Existing configured fallback: 30-minute walk.
     if (_duration(walk) == 30) return 149;
+
     return null;
   }
 
   int? get _dailyPrice {
     final prices = _walks.map(_price).toList();
+
     if (prices.isEmpty || prices.any((price) => price == null)) {
       return null;
     }
+
     return prices.fold<int>(0, (sum, price) => sum + price!);
   }
 
@@ -117,6 +128,7 @@ class _BookingConfirmationScreenState
       'pincode',
     ]) {
       final value = widget.pickupAddress[key]?.toString().trim();
+
       if (value != null &&
           value.isNotEmpty &&
           !parts.contains(value)) {
@@ -136,6 +148,7 @@ class _BookingConfirmationScreenState
 
     if (raw != null) {
       final value = raw.toString().trim();
+
       final parsed = DateTime.tryParse(value);
       if (parsed != null) return parsed;
 
@@ -157,11 +170,22 @@ class _BookingConfirmationScreenState
 
   String _formatDate() {
     final date = _selectedDate();
+
     if (date == null) return 'Not selected';
 
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
 
     return '${date.day} ${months[date.month - 1]} ${date.year}';
@@ -190,23 +214,148 @@ class _BookingConfirmationScreenState
     }
 
     if (hour == 0) hour = 12;
+
     return '$hour:$minute $period';
   }
 
-  String get _planName =>
-      _isRegular ? 'Regular Daily Walk' : 'One-Time Walk';
+  /// Converts a displayed time such as "7:00 AM" into a DateTime.
+  DateTime? _dateTimeForWalk(DateTime date, String rawTime) {
+    final match = RegExp(
+      r'^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)$',
+      caseSensitive: false,
+    ).firstMatch(rawTime.trim());
+
+    if (match == null) return null;
+
+    final displayedHour = int.tryParse(match.group(1)!);
+    final minute = int.tryParse(match.group(2) ?? '00');
+    final period = match.group(3)!.toUpperCase();
+
+    if (displayedHour == null ||
+        minute == null ||
+        displayedHour < 1 ||
+        displayedHour > 12 ||
+        minute < 0 ||
+        minute > 59) {
+      return null;
+    }
+
+    var hour = displayedHour % 12;
+
+    if (period == 'PM') {
+      hour += 12;
+    }
+
+    return DateTime(
+      date.year,
+      date.month,
+      date.day,
+      hour,
+      minute,
+    );
+  }
+
+  String get _planName {
+    if (_isRegular) return 'Regular Daily Walk';
+    if (_isChooseDates) return 'Customize Walk';
+    return 'One-Time Walk';
+  }
+
+  String get _bookingPlan {
+    if (_isRegular) return 'regular';
+    if (_isChooseDates) return 'customize';
+    return 'one_time';
+  }
+
+  String get _serviceType {
+    if (_isRegular) return 'regular_walk';
+    if (_isChooseDates) return 'custom_walk';
+    return 'temporary_walk';
+  }
 
   void _message(String message) {
     if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
+  }
+
+  String? _validateSchedule(DateTime date, List<Map<String, dynamic>> walks) {
+    if (walks.isEmpty) {
+      return 'Please walk ka time select karein.';
+    }
+
+    if (_isOneTime && walks.length != 1) {
+      return 'One-Time Plan mein sirf ek walk select karein.';
+    }
+
+    if ((_isRegular || _isChooseDates) &&
+        (walks.length < 1 || walks.length > 3)) {
+      return 'Ek din mein 1 se 3 walks select karein.';
+    }
+
+    final now = DateTime.now();
+
+    for (final walk in walks) {
+      final rawTime = (walk['time'] ?? '').toString().trim();
+      final duration = _duration(walk);
+
+      if (rawTime.isEmpty || duration <= 0) {
+        return 'Har walk ka valid time aur duration select karein.';
+      }
+
+      final scheduledAt = _dateTimeForWalk(date, rawTime);
+
+      if (scheduledAt == null) {
+        return 'Walk ka time sahi format mein nahi hai. Time dobara select karein.';
+      }
+
+      if (!scheduledAt.isAfter(now)) {
+        return 'Walk ka time beet chuka hai. Future ka time select karein.';
+      }
+    }
+
+    // Prevent selected walks from overlapping each other.
+    final sortedWalks = [...walks];
+
+    sortedWalks.sort((a, b) {
+      final timeA = _dateTimeForWalk(date, '${a['time'] ?? ''}');
+      final timeB = _dateTimeForWalk(date, '${b['time'] ?? ''}');
+
+      if (timeA == null || timeB == null) return 0;
+      return timeA.compareTo(timeB);
+    });
+
+    for (var i = 0; i < sortedWalks.length - 1; i++) {
+      final first = sortedWalks[i];
+      final second = sortedWalks[i + 1];
+
+      final firstStart =
+          _dateTimeForWalk(date, '${first['time'] ?? ''}');
+      final secondStart =
+          _dateTimeForWalk(date, '${second['time'] ?? ''}');
+
+      if (firstStart == null || secondStart == null) {
+        return 'Walk ka time dobara select karein.';
+      }
+
+      final firstEnd =
+          firstStart.add(Duration(minutes: _duration(first)));
+
+      if (secondStart.isBefore(firstEnd)) {
+        return 'Do walks ka time overlap ho raha hai. Time change karein.';
+      }
+    }
+
+    return null;
   }
 
   Future<void> _submitBooking() async {
     if (_isSubmitting || _submitted) return;
 
     final user = FirebaseAuth.instance.currentUser;
+
     if (user == null) {
       _message('Booking submit karne ke liye pehle login karein.');
       return;
@@ -223,35 +372,20 @@ class _BookingConfirmationScreenState
     }
 
     final walks = _walks;
-
-    if (walks.isEmpty) {
-      _message('Please walk ka time select karein.');
-      return;
-    }
-
-    if (_isRegular && (walks.length < 1 || walks.length > 3)) {
-      _message('Regular plan mein 1 se 3 walks select karein.');
-      return;
-    }
-
-    if (!_isRegular && walks.length != 1) {
-      _message('One-Time Plan mein sirf ek walk select karein.');
-      return;
-    }
-
     final date = _selectedDate();
+
     if (date == null) {
       _message('Please walk ki date select karein.');
       return;
     }
 
-    for (final walk in walks) {
-      final time = (walk['time'] ?? '').toString().trim();
+    // Validate again at submission time because time may have passed
+    // while the customer was reviewing the booking.
+    final scheduleError = _validateSchedule(date, walks);
 
-      if (time.isEmpty || _duration(walk) <= 0) {
-        _message('Har walk ka valid time aur duration select karein.');
-        return;
-      }
+    if (scheduleError != null) {
+      _message(scheduleError);
+      return;
     }
 
     setState(() => _isSubmitting = true);
@@ -259,7 +393,7 @@ class _BookingConfirmationScreenState
     try {
       final firestore = FirebaseFirestore.instance;
 
-      // Confirm that the selected dog still exists.
+      // Verify that the selected dog still exists in the customer's account.
       final petDoc = await firestore
           .collection('users')
           .doc(user.uid)
@@ -274,6 +408,7 @@ class _BookingConfirmationScreenState
       }
 
       final savedDog = petDoc.data() ?? <String, dynamic>{};
+
       final dogName = (savedDog['name'] ??
               savedDog['petName'] ??
               _dogName)
@@ -284,8 +419,21 @@ class _BookingConfirmationScreenState
         throw StateError('Dog ka naam available nahi hai.');
       }
 
+      // Check once more after the network request.
+      final finalScheduleError = _validateSchedule(date, walks);
+
+      if (finalScheduleError != null) {
+        throw StateError(finalScheduleError);
+      }
+
       final bookingRef = firestore.collection('bookings').doc();
-      final selectedDate = DateTime(date.year, date.month, date.day);
+
+      final selectedDate = DateTime(
+        date.year,
+        date.month,
+        date.day,
+      );
+
       final firstWalk = walks.first;
 
       final pickup = <String, dynamic>{
@@ -293,15 +441,17 @@ class _BookingConfirmationScreenState
         'address': _addressText(),
       };
 
-      // Save EVERY selected walk in the same booking document.
-      // Keep schedule item fields simple and consistent.
       final walkSchedules = walks.asMap().entries.map((entry) {
         final index = entry.key;
         final walk = entry.value;
+        final walkTime = (walk['time'] ?? '').toString().trim();
+        final walkStart = _dateTimeForWalk(date, walkTime);
 
         return <String, dynamic>{
           'walkNumber': index + 1,
-          'time': (walk['time'] ?? '').toString().trim(),
+          'time': walkTime,
+          'startHour': walkStart?.hour,
+          'startMinute': walkStart?.minute,
           'duration': _duration(walk),
           if (_price(walk) != null) 'price': _price(walk),
         };
@@ -311,10 +461,10 @@ class _BookingConfirmationScreenState
         'bookingId': bookingRef.id,
         'customerId': user.uid,
         'walkType': 'scheduled',
-        'bookingPlan': _isRegular ? 'regular' : 'one_time',
-        'serviceType':
-            _isRegular ? 'regular_walk' : 'temporary_walk',
+        'bookingPlan': _bookingPlan,
+        'serviceType': _serviceType,
         'serviceName': _planName,
+
         'petName': dogName,
         'dogId': _dogId,
         'petDetails': {
@@ -324,14 +474,19 @@ class _BookingConfirmationScreenState
           'breed': savedDog['breed'] ?? _dogBreed,
           'gender': savedDog['gender'] ?? _dogGender,
         },
+
         'pickupAddressId': _addressId,
         'pickupAddress': pickup,
         'scheduledAt': Timestamp.fromDate(selectedDate),
 
-        // Keep these compatibility fields for existing booking screens.
-        // They describe the first walk; walkSchedules contains all walks.
+        // Compatibility fields for existing booking screens.
+        // These describe the first walk.
         'duration': '${_duration(firstWalk)} minutes',
         'preferredTime': firstWalk['time'].toString(),
+
+        // Save all selected walks for every booking plan.
+        'walkCount': walks.length,
+        'walkSchedules': walkSchedules,
 
         'status': 'pending',
         'walkerId': null,
@@ -342,12 +497,17 @@ class _BookingConfirmationScreenState
           'frequency': 'daily',
           'walksPerWeek': 7,
           'walksPerDay': walks.length,
-          'walkSchedules': walkSchedules,
+          'planStatus': 'active',
+        },
+
+        if (_isChooseDates) ...{
+          'walksPerDay': walks.length,
         },
       };
 
-      // Write one booking only. Do not create walk_requests here:
-      // client writes to that collection are denied by the current rules.
+      // Write one booking document.
+      // Do not create walk_requests here because the current Firebase
+      // rules deny client writes to that collection.
       await bookingRef.set(bookingData);
 
       if (!mounted) return;
@@ -401,10 +561,12 @@ class _BookingConfirmationScreenState
       );
     } on StateError catch (e) {
       if (!mounted) return;
+
       setState(() => _isSubmitting = false);
       _message(e.message.toString());
     } on FirebaseException catch (e) {
       if (!mounted) return;
+
       setState(() => _isSubmitting = false);
 
       _message(
@@ -414,6 +576,7 @@ class _BookingConfirmationScreenState
       );
     } catch (e) {
       if (!mounted) return;
+
       setState(() => _isSubmitting = false);
       _message('Booking save nahi hui: $e');
     }
@@ -422,6 +585,7 @@ class _BookingConfirmationScreenState
   @override
   Widget build(BuildContext context) {
     final address = _addressText();
+    final total = _dailyPrice;
 
     return Scaffold(
       backgroundColor: confirmationBackground,
@@ -452,7 +616,9 @@ class _BookingConfirmationScreenState
                 ],
               ),
             ),
+
             const SizedBox(height: 14),
+
             _sectionCard(
               icon: Icons.calendar_month,
               title: 'Walk Details',
@@ -461,14 +627,31 @@ class _BookingConfirmationScreenState
                 children: [
                   _detail('Plan', _planName),
                   _detail('Start date', _formatDate()),
+
                   if (_isRegular)
                     const Padding(
                       padding: EdgeInsets.only(bottom: 8),
                       child: Text(
-                        'Daily, Monday to Sunday',
-                        style: TextStyle(color: confirmationMuted),
+                        'Daily plan: Monday to Sunday, continuously. '
+                        'No automatic 7-day expiry.',
+                        style: TextStyle(
+                          color: confirmationMuted,
+                          height: 1.4,
+                        ),
                       ),
                     ),
+
+                  if (_isChooseDates)
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        'Customized schedule for the selected date.',
+                        style: TextStyle(
+                          color: confirmationMuted,
+                        ),
+                      ),
+                    ),
+
                   ..._walks.asMap().entries.map((entry) {
                     final index = entry.key;
                     final walk = entry.value;
@@ -497,7 +680,9 @@ class _BookingConfirmationScreenState
                 ],
               ),
             ),
+
             const SizedBox(height: 14),
+
             _sectionCard(
               icon: Icons.location_on_outlined,
               title: 'Pickup Location',
@@ -509,7 +694,9 @@ class _BookingConfirmationScreenState
                 ),
               ),
             ),
+
             const SizedBox(height: 14),
+
             _sectionCard(
               icon: Icons.receipt_long,
               title: 'Price Summary',
@@ -517,23 +704,31 @@ class _BookingConfirmationScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _dailyPrice == null
+                    total == null
                         ? 'Selected walk price needs confirmation.'
-                        : 'Estimated selected-walk total: ₹$_dailyPrice',
+                        : _isRegular
+                            ? 'Estimated total per day: ₹$total'
+                            : 'Estimated selected-walk total: ₹$total',
                     style: const TextStyle(
                       color: confirmationText,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+
                   if (_isRegular)
                     const Padding(
                       padding: EdgeInsets.only(top: 8),
                       child: Text(
-                        'Regular plan ka final weekly/monthly amount confirmation ke baad bataya jayega.',
-                        style: TextStyle(color: confirmationMuted),
+                        'Regular plan ka final weekly/monthly amount '
+                        'confirmation ke baad bataya jayega.',
+                        style: TextStyle(
+                          color: confirmationMuted,
+                        ),
                       ),
                     ),
+
                   const SizedBox(height: 8),
+
                   const Text(
                     'Final price booking confirmation se pehle confirm hoga.',
                     style: TextStyle(
@@ -544,7 +739,9 @@ class _BookingConfirmationScreenState
                 ],
               ),
             ),
+
             const SizedBox(height: 20),
+
             SizedBox(
               height: 54,
               child: FilledButton.icon(
@@ -573,18 +770,24 @@ class _BookingConfirmationScreenState
                       : _submitted
                           ? 'Request Submitted'
                           : 'Submit Booking Request',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
+
             const SizedBox(height: 10),
+
             OutlinedButton(
               onPressed: _isSubmitting
                   ? null
                   : () => Navigator.of(context).maybePop(),
               style: OutlinedButton.styleFrom(
                 foregroundColor: confirmationOrange,
-                side: const BorderSide(color: confirmationOrange),
+                side: const BorderSide(
+                  color: confirmationOrange,
+                ),
                 minimumSize: const Size.fromHeight(50),
               ),
               child: const Text('Go Back & Edit'),
@@ -605,14 +808,20 @@ class _BookingConfirmationScreenState
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFF0E2D5)),
+        border: Border.all(
+          color: const Color(0xFFF0E2D5),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, color: confirmationOrange, size: 24),
+              Icon(
+                icon,
+                color: confirmationOrange,
+                size: 24,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -643,7 +852,9 @@ class _BookingConfirmationScreenState
             width: 95,
             child: Text(
               label,
-              style: const TextStyle(color: confirmationMuted),
+              style: const TextStyle(
+                color: confirmationMuted,
+              ),
             ),
           ),
           Expanded(
