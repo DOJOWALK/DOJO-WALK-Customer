@@ -11,7 +11,14 @@ const Color dojoOrange = Color(0xFFFF7900);
 const Color dojoBackground = Color(0xFFFFFAF5);
 
 class PhoneLoginScreen extends StatefulWidget {
-  const PhoneLoginScreen({super.key});
+  /// Walk type selected before login.
+  /// Null means this is a normal login, not booking login.
+  final String? bookingWalkType;
+
+  const PhoneLoginScreen({
+    super.key,
+    this.bookingWalkType,
+  });
 
   @override
   State<PhoneLoginScreen> createState() => _PhoneLoginScreenState();
@@ -41,14 +48,36 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
       );
   }
 
+  DateTime? _parseDateOfBirth(dynamic value) {
+    if (value is Timestamp) {
+      return value.toDate();
+    }
+
+    if (value is String) {
+      return DateTime.tryParse(value);
+    }
+
+    return null;
+  }
+
+  int _calculateAge(DateTime dob) {
+    final today = DateTime.now();
+
+    var age = today.year - dob.year;
+
+    if (today.month < dob.month ||
+        (today.month == dob.month && today.day < dob.day)) {
+      age--;
+    }
+
+    return age;
+  }
+
   Future<void> _continueAfterLogin() async {
     if (!mounted || _openingNextScreen) return;
 
     _openingNextScreen = true;
-
-    if (mounted) {
-      setState(() => _loading = true);
-    }
+    setState(() => _loading = true);
 
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -70,7 +99,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
 
       final name = data?['name'];
       final gender = data?['gender'];
-      final dob = data?['dateOfBirth'];
+      final dob = _parseDateOfBirth(data?['dateOfBirth']);
 
       final hasName =
           name is String && name.trim().length >= 2;
@@ -78,19 +107,42 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
       final hasGender = gender is String &&
           ['male', 'female', 'other'].contains(gender);
 
-      final hasDob = dob is Timestamp ||
-          (dob is String && DateTime.tryParse(dob) != null);
+      final hasValidDob =
+          dob != null && !dob.isAfter(DateTime.now());
 
-      final Widget nextScreen =
-          profile.exists && hasName && hasGender && hasDob
-              ? const AppNavigator()
-              : const NameSetupScreen();
+      final isAdult =
+          hasValidDob && _calculateAge(dob) >= 18;
 
-      if (!mounted) return;
+      final profileComplete = profile.exists &&
+          hasName &&
+          hasGender &&
+          hasValidDob &&
+          isAdult;
 
+      if (!profileComplete) {
+        // Preserve the selected walk type while completing
+        // the customer profile.
+        await Navigator.of(context).pushReplacement(
+          MaterialPageRoute<void>(
+            builder: (_) => NameSetupScreen(
+              bookingWalkType: widget.bookingWalkType,
+            ),
+          ),
+        );
+        return;
+      }
+
+      if (widget.bookingWalkType != null) {
+        // Return to ChooseWalkScreen. It will continue to
+        // Schedule after this login screen closes.
+        Navigator.of(context).pop();
+        return;
+      }
+
+      // Normal login from Profile or another non-booking entry.
       await Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
-          builder: (_) => nextScreen,
+          builder: (_) => const AppNavigator(),
         ),
       );
     } on FirebaseException catch (error) {
@@ -133,7 +185,8 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
         phoneNumber: '+91$phone',
         timeout: const Duration(seconds: 60),
 
-        verificationCompleted: (PhoneAuthCredential credential) async {
+        verificationCompleted:
+            (PhoneAuthCredential credential) async {
           if (!mounted || _openingNextScreen) return;
 
           try {
@@ -153,13 +206,16 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
 
             setState(() => _loading = false);
             _message(
-              error.message ?? 'Automatic verification नहीं हुआ।',
+              error.message ??
+                  'Automatic verification नहीं हुआ।',
             );
           } catch (_) {
             if (!mounted) return;
 
             setState(() => _loading = false);
-            _message('Login में समस्या हुई। OTP से कोशिश करें।');
+            _message(
+              'Login में समस्या हुई। OTP से कोशिश करें।',
+            );
           }
         },
 
@@ -214,7 +270,9 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
       if (!mounted) return;
 
       setState(() => _loading = false);
-      _message('समस्या हुई। इंटरनेट जाँचकर दोबारा कोशिश करें।');
+      _message(
+        'समस्या हुई। इंटरनेट जाँचकर दोबारा कोशिश करें।',
+      );
     }
   }
 
