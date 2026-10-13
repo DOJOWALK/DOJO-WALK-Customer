@@ -11,8 +11,8 @@ const Color dojoOrange = Color(0xFFFF7900);
 const Color dojoBackground = Color(0xFFFFFAF5);
 
 class PhoneLoginScreen extends StatefulWidget {
-  /// Walk type selected before login.
-  /// Null means this is a normal login, not booking login.
+  /// Null means normal login.
+  /// Otherwise preserves the selected booking type.
   final String? bookingWalkType;
 
   const PhoneLoginScreen({
@@ -49,20 +49,13 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
   }
 
   DateTime? _parseDateOfBirth(dynamic value) {
-    if (value is Timestamp) {
-      return value.toDate();
-    }
-
-    if (value is String) {
-      return DateTime.tryParse(value);
-    }
-
+    if (value is Timestamp) return value.toDate();
+    if (value is String) return DateTime.tryParse(value);
     return null;
   }
 
   int _calculateAge(DateTime dob) {
     final today = DateTime.now();
-
     var age = today.year - dob.year;
 
     if (today.month < dob.month ||
@@ -83,9 +76,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
       final user = FirebaseAuth.instance.currentUser;
 
       if (user == null) {
-        throw Exception(
-          'Login session नहीं मिली। दोबारा OTP verify करें।',
-        );
+        throw Exception('Login session नहीं मिली। दोबारा OTP verify करें।');
       }
 
       final profile = await FirebaseFirestore.instance
@@ -95,11 +86,11 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
 
       if (!mounted) return;
 
-      final data = profile.data();
+      final data = profile.data() ?? <String, dynamic>{};
 
-      final name = data?['name'];
-      final gender = data?['gender'];
-      final dob = _parseDateOfBirth(data?['dateOfBirth']);
+      final name = data['name'];
+      final gender = data['gender'];
+      final dob = _parseDateOfBirth(data['dateOfBirth']);
 
       final hasName =
           name is String && name.trim().length >= 2;
@@ -120,27 +111,43 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
           isAdult;
 
       if (!profileComplete) {
-        // Preserve the selected walk type while completing
-        // the customer profile.
-        await Navigator.of(context).pushReplacement(
-          MaterialPageRoute<void>(
-            builder: (_) => NameSetupScreen(
-              bookingWalkType: widget.bookingWalkType,
+        if (widget.bookingWalkType != null) {
+          // Keep PhoneLogin underneath Profile Setup.
+          // Profile Setup returns true after saving successfully.
+          final result = await Navigator.of(context).push<bool>(
+            MaterialPageRoute<bool>(
+              builder: (_) => NameSetupScreen(
+                bookingWalkType: widget.bookingWalkType,
+              ),
             ),
+          );
+
+          if (!mounted) return;
+
+          if (result == true) {
+            Navigator.of(context).pop(true);
+          }
+
+          return;
+        }
+
+        // Normal login: Profile Setup leads to AppNavigator.
+        await Navigator.of(context).pushReplacement<void, void>(
+          MaterialPageRoute<void>(
+            builder: (_) => const NameSetupScreen(),
           ),
         );
         return;
       }
 
       if (widget.bookingWalkType != null) {
-        // Return to ChooseWalkScreen. It will continue to
-        // Schedule after this login screen closes.
-        Navigator.of(context).pop();
+        // Let ChooseWalkScreen continue to Schedule.
+        Navigator.of(context).pop(true);
         return;
       }
 
-      // Normal login from Profile or another non-booking entry.
-      await Navigator.of(context).pushReplacement(
+      // Normal login goes to the main application.
+      await Navigator.of(context).pushReplacement<void, void>(
         MaterialPageRoute<void>(
           builder: (_) => const AppNavigator(),
         ),
@@ -213,9 +220,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
             if (!mounted) return;
 
             setState(() => _loading = false);
-            _message(
-              'Login में समस्या हुई। OTP से कोशिश करें।',
-            );
+            _message('Login में समस्या हुई। OTP से कोशिश करें।');
           }
         },
 
@@ -270,9 +275,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
       if (!mounted) return;
 
       setState(() => _loading = false);
-      _message(
-        'समस्या हुई। इंटरनेट जाँचकर दोबारा कोशिश करें।',
-      );
+      _message('समस्या हुई। इंटरनेट जाँचकर दोबारा कोशिश करें।');
     }
   }
 
