@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 const Color dojoOrange = Color(0xFFFF7900);
 const Color dojoBackground = Color(0xFFFFFAF5);
@@ -33,8 +34,8 @@ class _OtpVerificationScreenState
   int? _resendToken;
 
   bool _loading = false;
-  bool _finished = false;
   bool _resending = false;
+  bool _finished = false;
 
   int _secondsRemaining = 60;
   Timer? _timer;
@@ -67,40 +68,36 @@ class _OtpVerificationScreenState
   String _friendlyError(FirebaseAuthException error) {
     switch (error.code) {
       case 'invalid-verification-code':
-        return 'OTP गलत है। दोबारा जाँचें।';
+        return 'Invalid OTP. Please check and try again.';
 
       case 'session-expired':
       case 'invalid-verification-id':
-        return 'OTP की समय सीमा समाप्त हो गई। नया OTP मँगाएँ।';
+        return 'OTP expired. Please request a new OTP.';
 
       case 'too-many-requests':
-        return 'बहुत बार कोशिश हुई है। कुछ देर बाद फिर कोशिश करें।';
+        return 'Too many attempts. Please try again later.';
 
       case 'quota-exceeded':
-        return 'Firebase SMS की सीमा पूरी हो गई है। बाद में कोशिश करें।';
+        return 'Firebase SMS quota exceeded. Please try later.';
 
       case 'network-request-failed':
-        return 'इंटरनेट कनेक्शन जाँचें और फिर कोशिश करें।';
+        return 'Check your internet connection and try again.';
 
       case 'operation-not-allowed':
-        return 'Firebase में Phone Authentication चालू नहीं है।';
+        return 'Phone Authentication is not enabled in Firebase.';
+
+      case 'app-not-authorized':
+        return 'This app is not authorized in Firebase.';
 
       default:
-        return error.message ?? 'समस्या हुई। दोबारा कोशिश करें।';
+        return error.message ?? 'Something went wrong. Please try again.';
     }
   }
 
   void _startTimer() {
     _timer?.cancel();
 
-    if (!mounted) {
-      _secondsRemaining = 60;
-      return;
-    }
-
-    setState(() {
-      _secondsRemaining = 60;
-    });
+    _secondsRemaining = 60;
 
     _timer = Timer.periodic(
       const Duration(seconds: 1),
@@ -133,32 +130,12 @@ class _OtpVerificationScreenState
     Navigator.of(context).pop(true);
   }
 
-  Future<void> _verifyOtp() async {
-    if (_loading || _finished || _resending) return;
-
-    final otp = _otpController.text.trim();
-    final verificationId = _verificationId;
-
-    if (verificationId == null || verificationId.isEmpty) {
-      _message('पहले OTP मँगाएँ।');
-      return;
-    }
-
-    if (!RegExp(r'^\d{6}$').hasMatch(otp)) {
-      _message('6 अंकों का OTP डालें।');
-      return;
-    }
-
-    setState(() {
-      _loading = true;
-    });
+  Future<void> _signInWithCredential(
+    PhoneAuthCredential credential,
+  ) async {
+    if (!mounted || _finished) return;
 
     try {
-      final credential = PhoneAuthProvider.credential(
-        verificationId: verificationId,
-        smsCode: otp,
-      );
-
       final result = await FirebaseAuth.instance
           .signInWithCredential(credential);
 
@@ -169,14 +146,17 @@ class _OtpVerificationScreenState
       } else {
         setState(() {
           _loading = false;
+          _resending = false;
         });
-        _message('Login पूरा नहीं हुआ। दोबारा कोशिश करें।');
+
+        _message('Login was unsuccessful. Please try again.');
       }
     } on FirebaseAuthException catch (error) {
       if (!mounted || _finished) return;
 
       setState(() {
         _loading = false;
+        _resending = false;
       });
 
       _message(_friendlyError(error));
@@ -185,10 +165,39 @@ class _OtpVerificationScreenState
 
       setState(() {
         _loading = false;
+        _resending = false;
       });
 
-      _message('OTP verify नहीं हुआ। दोबारा कोशिश करें।');
+      _message('Login failed. Please try again.');
     }
+  }
+
+  Future<void> _verifyOtp() async {
+    if (_loading || _finished || _resending) return;
+
+    final otp = _otpController.text.trim();
+    final verificationId = _verificationId;
+
+    if (verificationId == null || verificationId.isEmpty) {
+      _message('Please request an OTP first.');
+      return;
+    }
+
+    if (!RegExp(r'^\d{6}$').hasMatch(otp)) {
+      _message('Please enter the 6-digit OTP.');
+      return;
+    }
+
+    setState(() {
+      _loading = true;
+    });
+
+    final credential = PhoneAuthProvider.credential(
+      verificationId: verificationId,
+      smsCode: otp,
+    );
+
+    await _signInWithCredential(credential);
   }
 
   Future<void> _resendOtp() async {
@@ -210,37 +219,10 @@ class _OtpVerificationScreenState
         timeout: const Duration(seconds: 60),
         forceResendingToken: _resendToken,
 
-        verificationCompleted: (PhoneAuthCredential credential) async {
+        verificationCompleted: (PhoneAuthCredential credential) {
           if (!mounted || _finished) return;
 
-          try {
-            final result = await FirebaseAuth.instance
-                .signInWithCredential(credential);
-
-            if (!mounted || _finished) return;
-
-            if (result.user != null) {
-              _finishLogin();
-            }
-          } on FirebaseAuthException catch (error) {
-            if (!mounted || _finished) return;
-
-            setState(() {
-              _loading = false;
-              _resending = false;
-            });
-
-            _message(_friendlyError(error));
-          } catch (_) {
-            if (!mounted || _finished) return;
-
-            setState(() {
-              _loading = false;
-              _resending = false;
-            });
-
-            _message('Auto-verification नहीं हुआ। OTP डालकर कोशिश करें।');
-          }
+          _signInWithCredential(credential);
         },
 
         verificationFailed: (FirebaseAuthException error) {
@@ -266,7 +248,7 @@ class _OtpVerificationScreenState
           });
 
           _startTimer();
-          _message('नया OTP भेज दिया गया है।');
+          _message('A new OTP has been sent.');
         },
 
         codeAutoRetrievalTimeout: (String verificationId) {
@@ -292,7 +274,7 @@ class _OtpVerificationScreenState
         _resending = false;
       });
 
-      _message('OTP दोबारा नहीं भेजा जा सका।');
+      _message('Unable to resend OTP. Please try again.');
     }
   }
 
@@ -345,7 +327,7 @@ class _OtpVerificationScreenState
               const SizedBox(height: 10),
 
               const Text(
-                'हमने इस नंबर पर OTP भेजा है:',
+                'We sent an OTP to this number:',
                 style: TextStyle(
                   color: Colors.black54,
                   fontSize: 15,
@@ -378,6 +360,9 @@ class _OtpVerificationScreenState
                 enabled: !_loading,
                 autofocus: true,
                 keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                ],
                 maxLength: 6,
                 onSubmitted: (_) {
                   if (!_loading) {
