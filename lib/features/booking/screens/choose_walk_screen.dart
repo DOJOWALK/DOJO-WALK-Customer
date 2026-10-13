@@ -1,6 +1,8 @@
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../auth/screens/phone_login_screen.dart';
 import 'walk_schedule_screen.dart';
 
 const Color bookingOrange = Color(0xFFFF7900);
@@ -22,8 +24,11 @@ class ChooseWalkScreen extends StatefulWidget {
 
 class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
   WalkBookingType? _selectedType;
+  bool _openingNextScreen = false;
 
-  void _continue() {
+  Future<void> _continue() async {
+    if (_openingNextScreen) return;
+
     final selected = _selectedType;
 
     if (selected == null) {
@@ -35,13 +40,39 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
       return;
     }
 
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => WalkScheduleScreen(
-          walkType: selected,
+    setState(() => _openingNextScreen = true);
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (!mounted) return;
+
+      if (user == null) {
+        // Booking intent will be preserved by the
+        // PhoneLoginScreen update in the next step.
+        await Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => PhoneLoginScreen(
+              bookingWalkType: selected.name,
+            ),
+          ),
+        );
+        return;
+      }
+
+      // An authenticated customer can proceed to Schedule.
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => WalkScheduleScreen(
+            walkType: selected,
+          ),
         ),
-      ),
-    );
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _openingNextScreen = false);
+      }
+    }
   }
 
   @override
@@ -85,7 +116,8 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
             _option(
               type: WalkBookingType.oneTime,
               title: 'Walk Now',
-              subtitle: 'Request a one-time walk as soon as possible.',
+              subtitle:
+                  'Request a one-time walk as soon as possible.',
               badge: 'ONE-TIME',
               icon: Icons.directions_walk_rounded,
             ),
@@ -117,7 +149,9 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(15),
-                border: Border.all(color: const Color(0xFFEEEEEE)),
+                border: Border.all(
+                  color: const Color(0xFFEEEEEE),
+                ),
               ),
               child: const Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,29 +182,43 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
             SizedBox(
               height: 54,
               child: ElevatedButton(
-                onPressed: _continue,
+                onPressed: _openingNextScreen ? null : _continue,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: bookingOrange,
                   foregroundColor: Colors.white,
+                  disabledBackgroundColor:
+                      bookingOrange.withValues(alpha: 0.6),
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),
                   ),
                 ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Continue',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
+                child: _openingNextScreen
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                      )
+                    : const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Continue',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Icon(Icons.arrow_forward_rounded),
+                        ],
                       ),
-                    ),
-                    SizedBox(width: 8),
-                    Icon(Icons.arrow_forward_rounded),
-                  ],
-                ),
               ),
             ),
           ],
@@ -189,7 +237,9 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
     final selected = _selectedType == type;
 
     return InkWell(
-      onTap: () => setState(() => _selectedType = type),
+      onTap: _openingNextScreen
+          ? null
+          : () => setState(() => _selectedType = type),
       borderRadius: BorderRadius.circular(18),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
@@ -198,7 +248,9 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: selected ? bookingOrange : const Color(0xFFE7E7E7),
+            color: selected
+                ? bookingOrange
+                : const Color(0xFFE7E7E7),
             width: selected ? 2 : 1,
           ),
         ),
@@ -211,7 +263,11 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
                 color: bookingOrange.withValues(alpha: 0.10),
                 borderRadius: BorderRadius.circular(15),
               ),
-              child: Icon(icon, color: bookingOrange, size: 28),
+              child: Icon(
+                icon,
+                color: bookingOrange,
+                size: 28,
+              ),
             ),
             const SizedBox(width: 13),
             Expanded(
