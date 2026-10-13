@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import 'booking_start_screen.dart';
+import 'choose_walk_screen.dart';
 
 const Color confirmationOrange = Color(0xFFFF7900);
 const Color confirmationBackground = Color(0xFFFFFAF5);
