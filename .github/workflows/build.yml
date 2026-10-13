@@ -63,13 +63,18 @@ jobs:
       - name: Build Release APK
         run: flutter build apk --release
 
+      - name: Rename APK
+        run: |
+          cp build/app/outputs/flutter-apk/app-release.apk \
+             build/app/outputs/flutter-apk/Dojo-Walk.apk
+
       - name: Check APK
-        run: test -s build/app/outputs/flutter-apk/app-release.apk
+        run: test -s build/app/outputs/flutter-apk/Dojo-Walk.apk
 
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
-          name: dojo-walk-customer-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: Dojo-Walk
+          path: build/app/outputs/flutter-apk/Dojo-Walk.apk
           if-no-files-found: error
           retention-days: 7
