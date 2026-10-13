@@ -40,6 +40,7 @@ flutter:
 
   assets:
     - "assets/images/DOJO WALK.png"
+    - "assets/images/dojo_splash.png"
 
 flutter_launcher_icons:
   android: true
