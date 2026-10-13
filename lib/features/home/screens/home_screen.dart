@@ -1,6 +1,10 @@
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../address/models/saved_address.dart';
+import '../../address/services/address_service.dart';
+import '../../address/screens/address_form_screen.dart';
 import '../../booking/screens/choose_walk_screen.dart';
 import '../../notifications/screens/notifications_screen.dart';
 import '../../profile/screens/my_dogs_screen.dart';
@@ -20,15 +24,77 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String _selectedAddress = 'Select your location';
+  SavedAddress? _selectedSavedAddress;
 
-  Future<void> _openAddressSelector() async {
-    final controller = TextEditingController(
-      text: _selectedAddress == 'Select your location'
-          ? ''
-          : _selectedAddress,
+  final AddressService _addressService = AddressService();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDefaultAddress();
+  }
+
+  Future<void> _loadDefaultAddress() async {
+    if (FirebaseAuth.instance.currentUser == null) return;
+
+    try {
+      final addresses = await _addressService.getAddresses();
+
+      if (!mounted || addresses.isEmpty) return;
+
+      final selected = addresses.firstWhere(
+        (address) => address.isDefault,
+        orElse: () => addresses.first,
+      );
+
+      setState(() {
+        _selectedSavedAddress = selected;
+        _selectedAddress = _formatSavedAddress(selected);
+      });
+    } catch (_) {
+      // Keep the prompt visible if addresses cannot be loaded.
+    }
+  }
+
+  String _formatSavedAddress(SavedAddress address) {
+    final parts = [
+      address.flatHouse,
+      address.buildingSociety,
+      address.area,
+      address.city,
+      address.pincode,
+    ].where((part) => part.trim().isNotEmpty).toList();
+
+    if (parts.isEmpty) return address.label;
+
+    return '${address.label} · ${parts.join(', ')}';
+  }
+
+  Future<void> _openAddressForm(
+    BuildContext sheetContext,
+  ) async {
+    await Navigator.of(sheetContext).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => const AddressFormScreen(),
+      ),
     );
 
-    final address = await showModalBottomSheet<String>(
+    // The address list uses a Firestore stream, so newly saved
+    // addresses will appear automatically when the stream updates.
+  }
+
+  Future<void> _openAddressSelector() async {
+    if (FirebaseAuth.instance.currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please sign in to choose a saved address.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    final selected = await showModalBottomSheet<SavedAddress>(
       context: context,
       isScrollControlled: true,
       backgroundColor: dojoBackground,
@@ -38,114 +104,331 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       builder: (sheetContext) {
-        return Padding(
-          padding: EdgeInsets.fromLTRB(
-            20,
-            24,
-            20,
-            MediaQuery.of(sheetContext).viewInsets.bottom + 24,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Pickup Location',
-                style: TextStyle(
-                  color: dojoText,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 7),
-              const Text(
-                'Where should the walker pick up your dog?',
-                style: TextStyle(
-                  color: dojoMuted,
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: controller,
-                autofocus: true,
-                maxLines: 2,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: InputDecoration(
-                  hintText: 'Enter area or full address',
-                  prefixIcon: const Icon(
-                    Icons.location_on_outlined,
-                    color: dojoOrange,
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
-                    borderSide: const BorderSide(
-                      color: Color(0xFFE7E7E7),
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
-                    borderSide: const BorderSide(
-                      color: Color(0xFFE7E7E7),
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
-                    borderSide: const BorderSide(
-                      color: dojoOrange,
-                      width: 1.5,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: () {
-                    final value = controller.text.trim();
-
-                    if (value.isEmpty) {
-                      ScaffoldMessenger.of(sheetContext).showSnackBar(
-                        const SnackBar(
-                          content: Text('Please enter your location.'),
+        return SafeArea(
+          child: SizedBox(
+            height: MediaQuery.of(sheetContext).size.height * 0.76,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 12, 12),
+                  child: Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Choose Pickup Address',
+                          style: TextStyle(
+                            color: dojoText,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
-                      );
-                      return;
-                    }
-
-                    Navigator.of(sheetContext).pop(value);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: dojoOrange,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
+                      ),
+                      IconButton(
+                        onPressed: () =>
+                            Navigator.of(sheetContext).pop(),
+                        icon: const Icon(Icons.close_rounded),
+                      ),
+                    ],
                   ),
-                  child: const Text(
-                    'Save Location',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Where should the walker pick up your dog?',
+                      style: TextStyle(
+                        color: dojoMuted,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 14),
+                Expanded(
+                  child: StreamBuilder<List<SavedAddress>>(
+                    stream: _addressService.watchAddresses(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(24),
+                            child: Text(
+                              'Could not load addresses. '
+                              'Please check your connection and try again.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: dojoMuted,
+                                height: 1.5,
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+
+                      if (snapshot.connectionState ==
+                              ConnectionState.waiting &&
+                          !snapshot.hasData) {
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            color: dojoOrange,
+                          ),
+                        );
+                      }
+
+                      final addresses = snapshot.data ?? [];
+
+                      if (addresses.isEmpty) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.location_off_outlined,
+                                  size: 48,
+                                  color: dojoOrange,
+                                ),
+                                const SizedBox(height: 14),
+                                const Text(
+                                  'No saved addresses yet',
+                                  style: TextStyle(
+                                    color: dojoText,
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                                const SizedBox(height: 7),
+                                const Text(
+                                  'Add your home or another pickup location.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: dojoMuted,
+                                    height: 1.4,
+                                  ),
+                                ),
+                                const SizedBox(height: 18),
+                                ElevatedButton.icon(
+                                  onPressed: () =>
+                                      _openAddressForm(sheetContext),
+                                  icon: const Icon(
+                                    Icons.add_location_alt_rounded,
+                                  ),
+                                  label: const Text('Add New Address'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: dojoOrange,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          BorderRadius.circular(14),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+
+                      return ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+                        itemCount: addresses.length,
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: 10),
+                        itemBuilder: (context, index) {
+                          final address = addresses[index];
+                          final details = [
+                            address.flatHouse,
+                            address.buildingSociety,
+                            address.area,
+                            address.landmark,
+                            address.city,
+                            address.pincode,
+                          ]
+                              .where((part) => part.trim().isNotEmpty)
+                              .join(', ');
+
+                          final isSelected =
+                              _selectedSavedAddress?.id == address.id;
+
+                          return Material(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(16),
+                              onTap: () {
+                                Navigator.of(sheetContext).pop(address);
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(15),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? dojoOrange
+                                        : const Color(0xFFEEEEEE),
+                                    width: isSelected ? 1.5 : 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(9),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFFFF0E3),
+                                        borderRadius:
+                                            BorderRadius.circular(12),
+                                      ),
+                                      child: Icon(
+                                        address.label == 'Home'
+                                            ? Icons.home_rounded
+                                            : address.label == 'Work'
+                                                ? Icons.work_outline_rounded
+                                                : Icons.location_on_outlined,
+                                        color: dojoOrange,
+                                        size: 23,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  address.label,
+                                                  style: const TextStyle(
+                                                    color: dojoText,
+                                                    fontSize: 15,
+                                                    fontWeight:
+                                                        FontWeight.w900,
+                                                  ),
+                                                ),
+                                              ),
+                                              if (address.isDefault)
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets
+                                                          .symmetric(
+                                                    horizontal: 7,
+                                                    vertical: 4,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(
+                                                      0xFFFFEAD8,
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                      12,
+                                                    ),
+                                                  ),
+                                                  child: const Text(
+                                                    'DEFAULT',
+                                                    style: TextStyle(
+                                                      color: dojoOrange,
+                                                      fontSize: 9,
+                                                      fontWeight:
+                                                          FontWeight.w900,
+                                                    ),
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            details.isEmpty
+                                                ? 'Address details unavailable'
+                                                : details,
+                                            style: const TextStyle(
+                                              color: dojoMuted,
+                                              fontSize: 12,
+                                              height: 1.45,
+                                            ),
+                                          ),
+                                          if (address.pickupInstructions
+                                              .trim()
+                                              .isNotEmpty) ...[
+                                            const SizedBox(height: 6),
+                                            Text(
+                                              'Pickup instructions: '
+                                              '${address.pickupInstructions}',
+                                              style: const TextStyle(
+                                                color: dojoMuted,
+                                                fontSize: 11,
+                                                height: 1.4,
+                                              ),
+                                            ),
+                                          ],
+                                          const SizedBox(height: 8),
+                                          const Text(
+                                            'Tap to select',
+                                            style: TextStyle(
+                                              color: dojoOrange,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Icon(
+                                      isSelected
+                                          ? Icons.check_circle_rounded
+                                          : Icons.chevron_right_rounded,
+                                      color: isSelected
+                                          ? dojoOrange
+                                          : dojoMuted,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: OutlinedButton.icon(
+                      onPressed: () => _openAddressForm(sheetContext),
+                      icon: const Icon(Icons.add_location_alt_rounded),
+                      label: const Text(
+                        'Add New Address',
+                        style: TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: dojoOrange,
+                        side: const BorderSide(color: dojoOrange),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
     );
 
-    controller.dispose();
-
-    if (address != null && mounted) {
-      setState(() => _selectedAddress = address);
+    if (selected != null && mounted) {
+      setState(() {
+        _selectedSavedAddress = selected;
+        _selectedAddress = _formatSavedAddress(selected);
+      });
     }
   }
 
@@ -169,21 +452,11 @@ class _HomeScreenState extends State<HomeScreen> {
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
-            SliverToBoxAdapter(
-              child: _buildHeader(),
-            ),
-            SliverToBoxAdapter(
-              child: _buildAddressSelector(),
-            ),
-            SliverToBoxAdapter(
-              child: _buildBookingSection(),
-            ),
-            SliverToBoxAdapter(
-              child: _buildMyDogsSection(),
-            ),
-            SliverToBoxAdapter(
-              child: _buildHelpSection(),
-            ),
+            SliverToBoxAdapter(child: _buildHeader()),
+            SliverToBoxAdapter(child: _buildAddressSelector()),
+            SliverToBoxAdapter(child: _buildBookingSection()),
+            SliverToBoxAdapter(child: _buildMyDogsSection()),
+            SliverToBoxAdapter(child: _buildHelpSection()),
             const SliverToBoxAdapter(
               child: SizedBox(height: 28),
             ),
@@ -508,7 +781,8 @@ class _HomeScreenState extends State<HomeScreen> {
       child: _sectionCard(
         icon: Icons.pets_rounded,
         title: 'My Dogs',
-        subtitle: 'Save your dog’s details once and reuse them when booking.',
+        subtitle:
+            'Save your dog’s details once and reuse them when booking.',
         actionLabel: 'Manage Dogs',
         onTap: () => _openScreen(const MyDogsScreen()),
       ),
@@ -521,7 +795,8 @@ class _HomeScreenState extends State<HomeScreen> {
       child: _sectionCard(
         icon: Icons.support_agent_rounded,
         title: 'Help & Support',
-        subtitle: 'Find answers about bookings, walkers and dog safety.',
+        subtitle:
+            'Find answers about bookings, walkers and dog safety.',
         actionLabel: 'Get Help',
         onTap: () => _openScreen(const HelpSupportScreen()),
       ),
