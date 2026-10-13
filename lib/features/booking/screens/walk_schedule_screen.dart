@@ -49,6 +49,12 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
   bool get _isChooseDates =>
       widget.walkType == WalkBookingType.chooseDates;
 
+  bool get _isOneTime =>
+      widget.walkType == WalkBookingType.oneTime;
+
+  // A One-Time booking can contain exactly one walk.
+  int get _effectiveWalkCount => _isOneTime ? 1 : _walkCount;
+
   String get _planTitle {
     if (_isRegular) return 'Daily Walk Plan';
     if (_isChooseDates) return 'Choose-Date Walk';
@@ -117,16 +123,34 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
   bool _sameTime(TimeOfDay a, TimeOfDay b) =>
       a.hour == b.hour && a.minute == b.minute;
 
+  DateTime _dateTimeForSlot(_WalkSlot slot) {
+    return DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      slot.time.hour,
+      slot.time.minute,
+    );
+  }
+
   int get _totalMinutes => _slots
-      .take(_walkCount)
+      .take(_effectiveWalkCount)
       .fold(0, (total, slot) => total + slot.durationMinutes);
 
   int? get _dailyPrice => WalkPricingService.dailyEstimate(
         _slots
-            .take(_walkCount)
+            .take(_effectiveWalkCount)
             .map((slot) => slot.durationMinutes)
             .toList(),
       );
+
+  void _showMessage(String message) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
 
   Future<void> _chooseDate() async {
     final today = DateUtils.dateOnly(DateTime.now());
@@ -221,12 +245,8 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
               final value = int.tryParse(controller.text.trim());
 
               if (value == null || value < 1 || value > 240) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Enter a duration between 1 and 240 minutes.',
-                    ),
-                  ),
+                _showMessage(
+                  'Enter a duration between 1 and 240 minutes.',
                 );
                 return;
               }
@@ -249,48 +269,65 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
   }
 
   bool _hasOverlappingWalks() {
-    final slots = _slots.take(_walkCount).toList()
+    final slots = _slots.take(_effectiveWalkCount).toList()
       ..sort((a, b) {
-        final aMinutes = a.time.hour * 60 + a.time.minute;
-        final bMinutes = b.time.hour * 60 + b.time.minute;
-        return aMinutes.compareTo(bMinutes);
+        return _dateTimeForSlot(a).compareTo(_dateTimeForSlot(b));
       });
 
     for (var i = 0; i < slots.length - 1; i++) {
-      final currentStart =
-          slots[i].time.hour * 60 + slots[i].time.minute;
-      final currentEnd = currentStart + slots[i].durationMinutes;
-      final nextStart =
-          slots[i + 1].time.hour * 60 + slots[i + 1].time.minute;
+      final currentStart = _dateTimeForSlot(slots[i]);
+      final currentEnd = currentStart.add(
+        Duration(minutes: slots[i].durationMinutes),
+      );
+      final nextStart = _dateTimeForSlot(slots[i + 1]);
 
-      if (currentEnd > nextStart) return true;
+      if (currentEnd.isAfter(nextStart)) return true;
     }
 
     return false;
   }
 
-  void _continueToDogDetails() {
-    if (_selectedDate.isBefore(DateUtils.dateOnly(DateTime.now()))) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select today or a future date.'),
-        ),
-      );
-      return;
+  String? _validateSchedule() {
+    final today = DateUtils.dateOnly(DateTime.now());
+    final selectedDay = DateUtils.dateOnly(_selectedDate);
+
+    if (selectedDay.isBefore(today)) {
+      return 'Please select today or a future date.';
+    }
+
+    final now = DateTime.now();
+    final selectedSlots = _slots.take(_effectiveWalkCount).toList();
+
+    for (final slot in selectedSlots) {
+      final start = _dateTimeForSlot(slot);
+
+      if (!start.isAfter(now)) {
+        return 'Selected walk time has passed. Please choose a future time.';
+      }
+
+      if (slot.durationMinutes < 1 ||
+          slot.durationMinutes > 240) {
+        return 'Walk duration must be between 1 and 240 minutes.';
+      }
     }
 
     if (_hasOverlappingWalks()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Walk timings overlap. Please change the time or duration.',
-          ),
-        ),
-      );
+      return 'Walk timings overlap. Please change the time or duration.';
+    }
+
+    return null;
+  }
+
+  void _continueToDogDetails() {
+    final validationMessage = _validateSchedule();
+
+    if (validationMessage != null) {
+      _showMessage(validationMessage);
       return;
     }
 
-    final selectedSlots = _slots.take(_walkCount).toList();
+    final selectedSlots = _slots.take(_effectiveWalkCount).toList();
+
     final times = selectedSlots
         .map((slot) => _formatTime(slot.time))
         .toList();
@@ -305,9 +342,14 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
       'time': times.first,
       'duration': selectedSlots.first.durationMinutes,
       'isRegular': _isRegular,
-      'frequency': _isRegular ? 'Daily' : 'One-Time',
+      'isChooseDates': _isChooseDates,
+      'frequency': _isRegular
+          ? 'Daily'
+          : _isChooseDates
+              ? 'Custom'
+              : 'One-Time',
       'walksPerWeek': _isRegular ? 7 : 0,
-      'walkCount': _walkCount,
+      'walkCount': _effectiveWalkCount,
       'walks': selectedSlots.map((slot) {
         return <String, dynamic>{
           'time': _formatTime(slot.time),
@@ -524,6 +566,8 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final count = _effectiveWalkCount;
+
     return Scaffold(
       backgroundColor: scheduleBackground,
       appBar: AppBar(
@@ -605,48 +649,82 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            _sectionTitle('How many walks per day?'),
-            const SizedBox(height: 9),
-            Row(
-              children: [1, 2, 3].map((count) {
-                final selected = _walkCount == count;
 
-                return Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      right: count == 3 ? 0 : 8,
+            if (_isOneTime) ...[
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF0E3),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      color: scheduleOrange,
                     ),
-                    child: OutlinedButton(
-                      onPressed: () {
-                        setState(() {
-                          _walkCount = count;
-                        });
-                      },
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: selected
-                            ? const Color(0xFFFFE8D5)
-                            : Colors.white,
-                        foregroundColor: selected
-                            ? const Color(0xFFC65C00)
-                            : scheduleText,
-                        side: BorderSide(
-                          color: selected
-                              ? scheduleOrange
-                              : const Color(0xFFE8E1DA),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
+                    SizedBox(width: 8),
+                    Expanded(
                       child: Text(
-                        '$count ${count == 1 ? 'Walk' : 'Walks'}',
-                        style: const TextStyle(fontSize: 12),
+                        'One-Time booking mein sirf ek walk select kar sakte hain.',
+                        style: TextStyle(
+                          color: scheduleText,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
-                  ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 16),
-            ...List.generate(_walkCount, _walkCard),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+            ] else ...[
+              _sectionTitle('How many walks per day?'),
+              const SizedBox(height: 9),
+              Row(
+                children: [1, 2, 3].map((countOption) {
+                  final selected = _walkCount == countOption;
+
+                  return Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        right: countOption == 3 ? 0 : 8,
+                      ),
+                      child: OutlinedButton(
+                        onPressed: () {
+                          setState(() {
+                            _walkCount = countOption;
+                          });
+                        },
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: selected
+                              ? const Color(0xFFFFE8D5)
+                              : Colors.white,
+                          foregroundColor: selected
+                              ? const Color(0xFFC65C00)
+                              : scheduleText,
+                          side: BorderSide(
+                            color: selected
+                                ? scheduleOrange
+                                : const Color(0xFFE8E1DA),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                          ),
+                        ),
+                        child: Text(
+                          '$countOption ${countOption == 1 ? 'Walk' : 'Walks'}',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 16),
+            ],
+
+            ...List.generate(count, _walkCard),
+
             const SizedBox(height: 4),
             Container(
               padding: const EdgeInsets.all(16),
@@ -667,7 +745,7 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  _summaryRow('Walks per day', '$_walkCount'),
+                  _summaryRow('Walks per day', '$count'),
                   const SizedBox(height: 8),
                   _summaryRow(
                     'Total walking time',
@@ -675,7 +753,9 @@ class _WalkScheduleScreenState extends State<WalkScheduleScreen> {
                   ),
                   const Divider(height: 24),
                   _summaryRow(
-                    _isRegular ? 'Estimated daily total' : 'Estimated total',
+                    _isRegular
+                        ? 'Estimated daily total'
+                        : 'Estimated total',
                     _dailyPrice == null
                         ? 'Price to be confirmed'
                         : '₹$_dailyPrice',
