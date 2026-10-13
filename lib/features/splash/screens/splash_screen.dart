@@ -6,7 +6,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../app/app_navigator.dart';
-import '../../auth/screens/phone_login_screen.dart';
 import '../../profile/screens/name_setup_screen.dart';
 
 const Color splashOrange = Color(0xFFFF7900);
@@ -68,12 +67,13 @@ class _SplashScreenState extends State<SplashScreen> {
     try {
       final user = FirebaseAuth.instance.currentUser;
 
-      // Login is mandatory.
+      // Guest users can browse the app without logging in.
       if (user == null) {
-        _openNextScreen(const PhoneLoginScreen());
+        _openNextScreen(const AppNavigator());
         return;
       }
 
+      // Verify the profile of an authenticated customer.
       final profile = await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
@@ -95,14 +95,14 @@ class _SplashScreenState extends State<SplashScreen> {
 
       final dob = _parseDateOfBirth(dobValue);
 
-      final hasValidDob = dob != null &&
-          !dob.isAfter(DateTime.now());
+      final hasValidDob =
+          dob != null && !dob.isAfter(DateTime.now());
 
       final isAdult =
           hasValidDob && _calculateAge(dob) >= 18;
 
-      // Incomplete profiles and profiles under 18 must
-      // complete profile setup instead of entering the app.
+      // Incomplete profiles must be completed first.
+      // Under-18 users must correct their profile DOB.
       if (!profile.exists ||
           !hasName ||
           !hasGender ||
@@ -118,7 +118,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
       setState(() {
         _error =
-            'Unable to verify your account.\nPlease check your internet connection and try again.';
+            'Unable to verify your account.\n'
+            'Please check your internet connection and try again.';
       });
     } finally {
       _checking = false;
