@@ -6,9 +6,12 @@ import '../../../app/app_language.dart';
 import '../../addresses/screens/my_addresses_screen.dart';
 import '../../auth/screens/phone_login_screen.dart';
 import '../../booking/screens/my_bookings_screen.dart';
+import '../../coupons/screens/coupons_offers_screen.dart';
+import '../../settings/screens/settings_screen.dart';
 import '../../support/screens/help_support_screen.dart';
 import 'account_details_screen.dart';
 import 'my_dogs_screen.dart';
+import 'privacy_terms_screen.dart';
 
 const Color profileOrange = Color(0xFFFF7900);
 const Color profileBackground = Color(0xFFFFFAF5);
@@ -45,7 +48,11 @@ class ProfileScreen extends StatelessWidget {
                 backgroundColor: profileBackground,
                 elevation: 0,
                 title: Text(
-                  _tr('My Profile', 'मेरी प्रोफ़ाइल', 'আমার প্রোফাইল'),
+                  _tr(
+                    'My Profile',
+                    'मेरी प्रोफ़ाइल',
+                    'আমার প্রোফাইল',
+                  ),
                   style: const TextStyle(
                     color: profileText,
                     fontWeight: FontWeight.w900,
@@ -68,6 +75,10 @@ class ProfileScreen extends StatelessWidget {
       },
     );
   }
+
+  // --------------------------------------------------
+  // SIGNED-OUT PROFILE
+  // --------------------------------------------------
 
   Widget _signedOutView(BuildContext context) {
     return ListView(
@@ -127,7 +138,9 @@ class ProfileScreen extends StatelessWidget {
                 'फोन से लॉगिन करें',
                 'ফোন দিয়ে লগইন করুন',
               ),
-              style: const TextStyle(fontWeight: FontWeight.w900),
+              style: const TextStyle(
+                fontWeight: FontWeight.w900,
+              ),
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: profileOrange,
@@ -139,42 +152,70 @@ class ProfileScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 28),
+
         _menuCard(
           context,
           icon: Icons.local_offer_outlined,
-          title: _tr('Coupons & Offers', 'कूपन और ऑफ़र', 'কুপন ও অফার'),
+          title: _tr(
+            'Coupons & Offers',
+            'कूपन और ऑफ़र',
+            'কুপন ও অফার',
+          ),
           subtitle: _tr(
             'View available offers',
             'उपलब्ध ऑफ़र देखें',
             'উপলব্ধ অফার দেখুন',
           ),
-          onTap: () => _open(context, const CouponsOffersScreen()),
+          onTap: () => _open(
+            context,
+            const CouponsOffersScreen(),
+          ),
         ),
+
         _menuCard(
           context,
           icon: Icons.support_agent_rounded,
-          title: _tr('Help & Support', 'सहायता और सपोर्ट', 'সাহায্য ও সাপোর্ট'),
+          title: _tr(
+            'Help & Support',
+            'सहायता और सपोर्ट',
+            'সাহায্য ও সাপোর্ট',
+          ),
           subtitle: _tr(
             'Get help with DOJO WALK',
             'DOJO WALK से सहायता पाएँ',
             'DOJO WALK-এর সাহায্য নিন',
           ),
-          onTap: () => _open(context, const HelpSupportScreen()),
+          onTap: () => _open(
+            context,
+            const HelpSupportScreen(),
+          ),
         ),
+
         _menuCard(
           context,
           icon: Icons.privacy_tip_outlined,
-          title: _tr('Privacy & Terms', 'गोपनीयता और नियम', 'গোপনীয়তা ও শর্তাবলি'),
+          title: _tr(
+            'Privacy & Terms',
+            'गोपनीयता और नियम',
+            'গোপনীয়তা ও শর্তাবলি',
+          ),
           subtitle: _tr(
             'Your privacy and account policies',
             'आपकी गोपनीयता और अकाउंट नीतियाँ',
             'আপনার গোপনীয়তা ও অ্যাকাউন্ট নীতি',
           ),
-          onTap: () => _open(context, const PrivacyTermsScreen()),
+          onTap: () => _open(
+            context,
+            const PrivacyTermsScreen(),
+          ),
         ),
       ],
     );
   }
+
+  // --------------------------------------------------
+  // SIGNED-IN PROFILE
+  // --------------------------------------------------
 
   Widget _signedInView(BuildContext context, User user) {
     return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
@@ -186,6 +227,7 @@ class ProfileScreen extends StatelessWidget {
         final data = snapshot.data?.data() ?? {};
 
         final storedName = _readString(data, 'name');
+
         final name = storedName.isNotEmpty
             ? storedName
             : (user.displayName?.trim().isNotEmpty == true
@@ -197,11 +239,24 @@ class ProfileScreen extends StatelessWidget {
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
           children: [
-            _profileCard(context, user, name, photoUrl),
-            const SizedBox(height: 25),
-            _sectionTitle(
-              _tr('MY ACCOUNT', 'मेरा अकाउंट', 'আমার অ্যাকাউন্ট'),
+            _profileCard(
+              context,
+              user,
+              name,
+              photoUrl,
             ),
+
+            const SizedBox(height: 25),
+
+            _sectionTitle(
+              _tr(
+                'MY ACCOUNT',
+                'मेरा अकाउंट',
+                'আমার অ্যাকাউন্ট',
+              ),
+            ),
+
+            // MY PROFILE & ACCOUNT
             _menuCard(
               context,
               icon: Icons.person_outline_rounded,
@@ -220,28 +275,48 @@ class ProfileScreen extends StatelessWidget {
                 AccountDetailsScreen(user: user),
               ),
             ),
+
+            // MY DOGS
             _menuCard(
               context,
               icon: Icons.pets_rounded,
-              title: _tr('My Dogs', 'मेरे कुत्ते', 'আমার কুকুর'),
+              title: _tr(
+                'My Dogs',
+                'मेरे कुत्ते',
+                'আমার কুকুর',
+              ),
               subtitle: _tr(
                 'Manage your saved dogs',
                 'अपने सेव किए गए कुत्तों को मैनेज करें',
                 'আপনার সংরক্ষিত কুকুর পরিচালনা করুন',
               ),
-              onTap: () => _open(context, const MyDogsScreen()),
+              onTap: () => _open(
+                context,
+                const MyDogsScreen(),
+              ),
             ),
+
+            // MY BOOKINGS
             _menuCard(
               context,
               icon: Icons.calendar_month_rounded,
-              title: _tr('My Bookings', 'मेरी बुकिंग', 'আমার বুকিং'),
+              title: _tr(
+                'My Bookings',
+                'मेरी बुकिंग',
+                'আমার বুকিং',
+              ),
               subtitle: _tr(
                 'View walks and booking details',
                 'वॉक और बुकिंग की जानकारी देखें',
                 'ওয়াক ও বুকিংয়ের বিবরণ দেখুন',
               ),
-              onTap: () => _open(context, const MyBookingsScreen()),
+              onTap: () => _open(
+                context,
+                const MyBookingsScreen(),
+              ),
             ),
+
+            // SAVED ADDRESSES
             _menuCard(
               context,
               icon: Icons.location_on_outlined,
@@ -255,20 +330,34 @@ class ProfileScreen extends StatelessWidget {
                 'अपने पिकअप पते मैनेज करें',
                 'আপনার পিকআপের ঠিকানা পরিচালনা করুন',
               ),
-              onTap: () => _open(context, const MyAddressesScreen()),
+              onTap: () => _open(
+                context,
+                const MyAddressesScreen(),
+              ),
             ),
+
+            // COUPONS
             _menuCard(
               context,
               icon: Icons.local_offer_outlined,
-              title: _tr('Coupons & Offers', 'कूपन और ऑफ़र', 'কুপন ও অফার'),
+              title: _tr(
+                'Coupons & Offers',
+                'कूपन और ऑफ़र',
+                'কুপন ও অফার',
+              ),
               subtitle: _tr(
                 'See offers available to your account',
                 'अपने अकाउंट के लिए उपलब्ध ऑफ़र देखें',
                 'আপনার অ্যাকাউন্টের জন্য উপলব্ধ অফার দেখুন',
               ),
-              onTap: () => _open(context, const CouponsOffersScreen()),
+              onTap: () => _open(
+                context,
+                const CouponsOffersScreen(),
+              ),
             ),
+
             const SizedBox(height: 15),
+
             _sectionTitle(
               _tr(
                 'SUPPORT & INFORMATION',
@@ -276,44 +365,78 @@ class ProfileScreen extends StatelessWidget {
                 'সাহায্য ও তথ্য',
               ),
             ),
+
+            // HELP & SUPPORT
             _menuCard(
               context,
               icon: Icons.support_agent_rounded,
-              title: _tr('Help & Support', 'सहायता और सपोर्ट', 'সাহায্য ও সাপোর্ট'),
+              title: _tr(
+                'Help & Support',
+                'सहायता और सपोर्ट',
+                'সাহায্য ও সাপোর্ট',
+              ),
               subtitle: _tr(
                 'Get help with a booking',
                 'बुकिंग में सहायता पाएँ',
                 'বুকিংয়ের জন্য সাহায্য নিন',
               ),
-              onTap: () => _open(context, const HelpSupportScreen()),
+              onTap: () => _open(
+                context,
+                const HelpSupportScreen(),
+              ),
             ),
+
+            // SETTINGS — CORRECT FILE PATH
             _menuCard(
               context,
               icon: Icons.settings_outlined,
-              title: _tr('Settings', 'सेटिंग्स', 'সেটিংস'),
+              title: _tr(
+                'Settings',
+                'सेटिंग्स',
+                'সেটিংস',
+              ),
               subtitle: _tr(
                 'Account preferences',
                 'अकाउंट की प्राथमिकताएँ',
                 'অ্যাকাউন্টের পছন্দসমূহ',
               ),
-              onTap: () => _open(context, const SettingsScreen()),
+              onTap: () => _open(
+                context,
+                const SettingsScreen(),
+              ),
             ),
+
+            // PRIVACY & TERMS
             _menuCard(
               context,
               icon: Icons.privacy_tip_outlined,
-              title: _tr('Privacy & Terms', 'गोपनीयता और नियम', 'গোপনীয়তা ও শর্তাবলি'),
+              title: _tr(
+                'Privacy & Terms',
+                'गोपनीयता और नियम',
+                'গোপনীয়তা ও শর্তাবলি',
+              ),
               subtitle: _tr(
                 'Privacy policy and terms of service',
                 'गोपनीयता नीति और सेवा की शर्तें',
                 'গোপনীয়তা নীতি ও পরিষেবার শর্তাবলি',
               ),
-              onTap: () => _open(context, const PrivacyTermsScreen()),
+              onTap: () => _open(
+                context,
+                const PrivacyTermsScreen(),
+              ),
             ),
+
             const SizedBox(height: 14),
+
+            // LOG OUT
             _menuCard(
               context,
               icon: Icons.logout_rounded,
-              title: _tr('Log Out', 'लॉग आउट', 'লগ আউট'),
+              title: _tr(
+                'Log Out',
+                'लॉग आउट',
+                'লগ আউট',
+              ),
               subtitle: _tr(
                 'Sign out from this device',
                 'इस डिवाइस से लॉग आउट करें',
@@ -323,7 +446,9 @@ class ProfileScreen extends StatelessWidget {
               titleColor: Colors.red,
               onTap: () => _confirmLogout(context),
             ),
+
             const SizedBox(height: 12),
+
             Center(
               child: Text(
                 'DOJO WALK • ${_tr('Customer App', 'कस्टमर ऐप', 'কাস্টমার অ্যাপ')}',
@@ -339,6 +464,10 @@ class ProfileScreen extends StatelessWidget {
       },
     );
   }
+
+  // --------------------------------------------------
+  // PROFILE HEADER
+  // --------------------------------------------------
 
   Widget _profileCard(
     BuildContext context,
@@ -381,8 +510,9 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 child: CircleAvatar(
                   backgroundColor: const Color(0xFFFFEAD8),
-                  backgroundImage:
-                      photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
+                  backgroundImage: photoUrl.isNotEmpty
+                      ? NetworkImage(photoUrl)
+                      : null,
                   child: photoUrl.isEmpty
                       ? const Icon(
                           Icons.person_rounded,
@@ -392,7 +522,9 @@ class ProfileScreen extends StatelessWidget {
                       : null,
                 ),
               ),
+
               const SizedBox(width: 15),
+
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -423,7 +555,11 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      _tr('Dog Parent 🐾', 'डॉग पैरेंट 🐾', 'কুকুরের অভিভাবক 🐾'),
+                      _tr(
+                        'Dog Parent 🐾',
+                        'डॉग पैरेंट 🐾',
+                        'কুকুরের অভিভাবক 🐾',
+                      ),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 13,
@@ -433,6 +569,7 @@ class ProfileScreen extends StatelessWidget {
                   ],
                 ),
               ),
+
               const Icon(
                 Icons.pets_rounded,
                 color: Colors.white,
@@ -440,7 +577,9 @@ class ProfileScreen extends StatelessWidget {
               ),
             ],
           ),
+
           const SizedBox(height: 22),
+
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
@@ -464,7 +603,9 @@ class ProfileScreen extends StatelessWidget {
                   'प्रोफ़ाइल और अकाउंट देखें',
                   'প্রোফাইল ও অ্যাকাউন্ট দেখুন',
                 ),
-                style: const TextStyle(fontWeight: FontWeight.w900),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                ),
               ),
             ),
           ),
@@ -472,6 +613,10 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
+
+  // --------------------------------------------------
+  // REUSABLE WIDGETS
+  // --------------------------------------------------
 
   Widget _sectionTitle(String title) {
     return Padding(
@@ -488,7 +633,10 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  String _readString(Map<String, dynamic> data, String key) {
+  String _readString(
+    Map<String, dynamic> data,
+    String key,
+  ) {
     final value = data[key];
     return value is String ? value.trim() : '';
   }
@@ -507,7 +655,9 @@ class ProfileScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(17),
-        border: Border.all(color: const Color(0xFFF0ECE8)),
+        border: Border.all(
+          color: const Color(0xFFF0ECE8),
+        ),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(
@@ -523,7 +673,11 @@ class ProfileScreen extends StatelessWidget {
                 : const Color(0xFFFFF0E3),
             borderRadius: BorderRadius.circular(13),
           ),
-          child: Icon(icon, color: iconColor, size: 22),
+          child: Icon(
+            icon,
+            color: iconColor,
+            size: 22,
+          ),
         ),
         title: Text(
           title,
@@ -552,45 +706,69 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  // --------------------------------------------------
+  // NAVIGATION
+  // --------------------------------------------------
+
   void _open(BuildContext context, Widget screen) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => screen),
+      MaterialPageRoute<void>(
+        builder: (_) => screen,
+      ),
     );
   }
+
+  // --------------------------------------------------
+  // LOG OUT
+  // --------------------------------------------------
 
   Future<void> _confirmLogout(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(
-          _tr('Log out?', 'लॉग आउट करें?', 'লগ আউট করবেন?'),
-        ),
-        content: Text(
-          _tr(
-            'Are you sure you want to log out of DOJO WALK?',
-            'क्या आप DOJO WALK से लॉग आउट करना चाहते हैं?',
-            'আপনি কি DOJO WALK থেকে লগ আউট করতে চান?',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(
-              _tr('Stay', 'नहीं', 'থাকুন'),
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(
+            _tr(
+              'Log out?',
+              'लॉग आउट करें?',
+              'লগ আউট করবেন?',
             ),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: profileOrange,
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(
-              _tr('Log Out', 'लॉग आउट', 'লগ আউট'),
+          content: Text(
+            _tr(
+              'Are you sure you want to log out of DOJO WALK?',
+              'क्या आप DOJO WALK से लॉग आउट करना चाहते हैं?',
+              'আপনি কি DOJO WALK থেকে লগ আউট করতে চান?',
             ),
           ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(false);
+              },
+              child: Text(
+                _tr('Stay', 'नहीं', 'থাকুন'),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: profileOrange,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () {
+                Navigator.of(dialogContext).pop(true);
+              },
+              child: Text(
+                _tr(
+                  'Log Out',
+                  'लॉग आउट',
+                  'লগ আউট',
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
 
     if (confirmed != true) return;
@@ -598,236 +776,20 @@ class ProfileScreen extends StatelessWidget {
     try {
       await FirebaseAuth.instance.signOut();
     } catch (_) {
-      if (context.mounted) {
-        _message(
-          context,
-          _tr(
-            'Could not log out. Please try again.',
-            'लॉग आउट नहीं हो पाया। कृपया फिर कोशिश करें।',
-            'লগ আউট করা যায়নি। আবার চেষ্টা করুন।',
-          ),
-        );
-      }
-    }
-  }
+      if (!context.mounted) return;
 
-  void _message(BuildContext context, String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(message),
+          content: Text(
+            _tr(
+              'Could not log out. Please try again.',
+              'लॉग आउट नहीं हो पाया। कृपया फिर कोशिश करें।',
+              'লগ আউট করা যায়নি। আবার চেষ্টা করুন।',
+            ),
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
-  }
-}
-
-class CouponsOffersScreen extends StatelessWidget {
-  const CouponsOffersScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder<Locale>(
-      valueListenable: appLocale,
-      builder: (context, locale, child) {
-        return Scaffold(
-          backgroundColor: profileBackground,
-          appBar: AppBar(
-            backgroundColor: profileBackground,
-            title: Text(
-              _tr('Coupons & Offers', 'कूपन और ऑफ़र', 'কুপন ও অফার'),
-              style: const TextStyle(
-                color: profileText,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ),
-          body: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(28),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 82,
-                    height: 82,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFFFEAD8),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.local_offer_outlined,
-                      size: 40,
-                      color: profileOrange,
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  Text(
-                    _tr(
-                      'No Offers Available Yet',
-                      'अभी कोई ऑफ़र उपलब्ध नहीं है',
-                      'এখনও কোনো অফার উপলব্ধ নেই',
-                    ),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: profileText,
-                      fontSize: 19,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _tr(
-                      'New DOJO WALK offers will appear here when they become available.',
-                      'नए DOJO WALK ऑफ़र उपलब्ध होने पर यहाँ दिखाई देंगे।',
-                      'নতুন DOJO WALK অফার পাওয়া গেলে এখানে দেখা যাবে।',
-                    ),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: profileMuted,
-                      height: 1.5,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder<Locale>(
-      valueListenable: appLocale,
-      builder: (context, locale, child) {
-        return Scaffold(
-          backgroundColor: profileBackground,
-          appBar: AppBar(
-            backgroundColor: profileBackground,
-            title: Text(
-              _tr('Settings', 'सेटिंग्स', 'সেটিংস'),
-              style: const TextStyle(
-                color: profileText,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ),
-          body: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Text(
-                _tr(
-                  'Account settings will be available here soon.',
-                  'अकाउंट सेटिंग्स जल्द यहाँ उपलब्ध होंगी।',
-                  'অ্যাকাউন্ট সেটিংস শীঘ্রই এখানে উপলব্ধ হবে।',
-                ),
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: profileMuted),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class PrivacyTermsScreen extends StatelessWidget {
-  const PrivacyTermsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder<Locale>(
-      valueListenable: appLocale,
-      builder: (context, locale, child) {
-        return Scaffold(
-          backgroundColor: profileBackground,
-          appBar: AppBar(
-            backgroundColor: profileBackground,
-            title: Text(
-              _tr(
-                'Privacy & Terms',
-                'गोपनीयता और नियम',
-                'গোপনীয়তা ও শর্তাবলি',
-              ),
-              style: const TextStyle(
-                color: profileText,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ),
-          body: ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
-              Text(
-                _tr('Your Privacy', 'आपकी गोपनीयता', 'আপনার গোপনীয়তা'),
-                style: const TextStyle(
-                  color: profileText,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _tr(
-                  'DOJO WALK uses your account details to provide dog-walking services, manage bookings and support your requests. Your data should be handled according to the service privacy policy.',
-                  'DOJO WALK आपके अकाउंट की जानकारी का उपयोग डॉग-वॉकिंग सेवाएँ देने, बुकिंग मैनेज करने और आपके अनुरोधों में सहायता के लिए करता है। आपके डेटा को सेवा की गोपनीयता नीति के अनुसार संभाला जाना चाहिए।',
-                  'DOJO WALK আপনার অ্যাকাউন্টের তথ্য কুকুর হাঁটানোর পরিষেবা, বুকিং পরিচালনা এবং আপনার অনুরোধে সহায়তার জন্য ব্যবহার করে। আপনার তথ্য পরিষেবার গোপনীয়তা নীতি অনুযায়ী পরিচালনা করা উচিত।',
-                ),
-                style: const TextStyle(
-                  color: profileMuted,
-                  height: 1.6,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                _tr(
-                  'Terms of Service',
-                  'सेवा की शर्तें',
-                  'পরিষেবার শর্তাবলি',
-                ),
-                style: const TextStyle(
-                  color: profileText,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _tr(
-                  'Please confirm service details, pickup instructions and booking information before submitting a booking. Cancellation, refunds and service rules are subject to DOJO WALK’s published policies.',
-                  'बुकिंग करने से पहले सेवा का विवरण, पिकअप निर्देश और बुकिंग की जानकारी जाँच लें। कैंसिलेशन, रिफंड और सेवा के नियम DOJO WALK की प्रकाशित नीतियों के अनुसार होंगे।',
-                  'বুকিং জমা দেওয়ার আগে পরিষেবার বিবরণ, পিকআপ নির্দেশনা এবং বুকিংয়ের তথ্য যাচাই করুন। বাতিলকরণ, ফেরত এবং পরিষেবার নিয়ম DOJO WALK-এর প্রকাশিত নীতি অনুযায়ী হবে।',
-                ),
-                style: const TextStyle(
-                  color: profileMuted,
-                  height: 1.6,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                _tr(
-                  'Note: Replace this draft with your approved legal Privacy Policy and Terms before launching the app publicly.',
-                  'ध्यान दें: ऐप को सार्वजनिक रूप से लॉन्च करने से पहले इस ड्राफ्ट की जगह अपनी स्वीकृत कानूनी गोपनीयता नीति और सेवा की शर्तें जोड़ें।',
-                  'দ্রষ্টব্য: অ্যাপটি প্রকাশ্যে চালু করার আগে এই খসড়ার পরিবর্তে অনুমোদিত আইনি গোপনীয়তা নীতি ও পরিষেবার শর্তাবলি যোগ করুন।',
-                ),
-                style: const TextStyle(
-                  color: Colors.deepOrange,
-                  height: 1.5,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+    }
   }
 }
