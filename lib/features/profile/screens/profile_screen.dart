@@ -641,7 +641,8 @@ class _MyProfileAccountScreenState
                           ),
                         ),
                         validator: (value) {
-                          if (value == null || value.trim().length < 2) {
+                          if (value == null ||
+                              value.trim().length < 2) {
                             return 'Enter a name with at least 2 characters.';
                           }
                           return null;
@@ -819,9 +820,9 @@ class PrivacyTermsScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: const ListView(
-        padding: EdgeInsets.all(20),
-        children: [
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: const [
           Text(
             'Your Privacy',
             style: TextStyle(
