@@ -1,4 +1,3 @@
-
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -67,13 +66,13 @@ class _SplashScreenState extends State<SplashScreen> {
     try {
       final user = FirebaseAuth.instance.currentUser;
 
-      // Guest users can browse the app without logging in.
+      // Guest users can browse without logging in.
       if (user == null) {
         _openNextScreen(const AppNavigator());
         return;
       }
 
-      // Verify the profile of an authenticated customer.
+      // Verify authenticated customer's profile.
       final profile = await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
@@ -101,8 +100,7 @@ class _SplashScreenState extends State<SplashScreen> {
       final isAdult =
           hasValidDob && _calculateAge(dob) >= 18;
 
-      // Incomplete profiles must be completed first.
-      // Under-18 users must correct their profile DOB.
+      // Incomplete or invalid profiles must be completed.
       if (!profile.exists ||
           !hasName ||
           !hasGender ||
@@ -153,48 +151,58 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Stack(
           fit: StackFit.expand,
           children: [
+            // Full-screen DOJO WALK wallpaper.
             Image.asset(
-              'assets/images/dojo_splash.png',
+              'assets/images/DOJO WALK SPLASH.png',
               fit: BoxFit.fill,
               errorBuilder: (context, error, stackTrace) {
                 return const ColoredBox(
                   color: splashOrange,
-                  child: Center(
-                    child: Text(
-                      'DOJO WALK',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 30,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 2,
-                      ),
-                    ),
-                  ),
                 );
               },
             ),
 
+            // Loading and branding stay together near the bottom.
             if (_error == null)
               Positioned(
                 left: 0,
                 right: 0,
-                bottom:
-                    MediaQuery.of(context).size.height * 0.105,
-                child: const Center(
-                  child: SizedBox(
-                    width: 27,
-                    height: 27,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 3,
-                      valueColor:
-                          AlwaysStoppedAnimation<Color>(
-                        Colors.white,
+                bottom: MediaQuery.of(context).size.height * 0.105,
+                child: SafeArea(
+                  top: false,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(
+                        width: 27,
+                        height: 27,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(
+                            Colors.black,
+                          ),
+                        ),
                       ),
-                    ),
+
+                      const SizedBox(height: 28),
+
+                      const Text(
+                        'Powered by DOJO WALK',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
 
+            // Retry message if account verification fails.
             if (_error != null)
               Positioned(
                 left: 24,
