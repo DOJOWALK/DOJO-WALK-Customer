@@ -8,6 +8,7 @@ const Color bookingsOrange = Color(0xFFFF7900);
 const Color bookingsBackground = Color(0xFFFFFAF5);
 const Color bookingsText = Color(0xFF202020);
 const Color bookingsMuted = Color(0xFF777777);
+const Color bookingsBorder = Color(0xFFF0E9E2);
 
 String _t(String en, String hi, String bn) {
   switch (appLocale.value.languageCode) {
@@ -20,14 +21,20 @@ String _t(String en, String hi, String bn) {
   }
 }
 
-String _text(dynamic value, {String? fallback}) {
+String _text(
+  dynamic value, {
+  String? fallback,
+}) {
   if (value == null || value.toString().trim().isEmpty) {
-    return fallback ?? _t('Not provided', 'जानकारी उपलब्ध नहीं', 'তথ্য দেওয়া নেই');
+    return fallback ??
+        _t(
+          'Not provided',
+          'जानकारी उपलब्ध नहीं',
+          'তথ্য দেওয়া নেই',
+        );
   }
 
-  if (value is List) {
-    return value.join(', ');
-  }
+  if (value is List) return value.join(', ');
 
   return value.toString().trim();
 }
@@ -36,15 +43,21 @@ Map<String, dynamic> _map(dynamic value) {
   if (value is Map) {
     return Map<String, dynamic>.from(value);
   }
+
   return <String, dynamic>{};
 }
 
-Map<String, dynamic> _petDetails(Map<String, dynamic> data) {
+Map<String, dynamic> _petDetails(
+  Map<String, dynamic> data,
+) {
   return _map(data['petDetails']);
 }
 
 String _status(Map<String, dynamic> data) {
-  return _text(data['status'], fallback: 'pending').toLowerCase();
+  return _text(
+    data['status'],
+    fallback: 'pending',
+  ).toLowerCase();
 }
 
 bool _isCancelled(String status) {
@@ -69,24 +82,60 @@ String _statusText(String status) {
   switch (status.toLowerCase()) {
     case 'pending':
       return _t('Pending', 'लंबित', 'অপেক্ষমাণ');
+
     case 'finding_walker':
-      return _t('Finding Walker', 'वॉकर खोज रहे हैं', 'ওয়াকার খোঁজা হচ্ছে');
+      return _t(
+        'Finding Walker',
+        'वॉकर खोज रहे हैं',
+        'ওয়াকার খোঁজা হচ্ছে',
+      );
+
     case 'walker_assigned':
     case 'assigned':
-      return _t('Walker Assigned', 'वॉकर नियुक्त', 'ওয়াকার নিযুক্ত');
+      return _t(
+        'Walker Assigned',
+        'वॉकर नियुक्त',
+        'ওয়াকার নিযুক্ত',
+      );
+
     case 'walker_arriving':
-      return _t('Walker Arriving', 'वॉकर आ रहे हैं', 'ওয়াকার আসছেন');
+      return _t(
+        'Walker Arriving',
+        'वॉकर आ रहे हैं',
+        'ওয়াকার আসছেন',
+      );
+
     case 'confirmed':
     case 'accepted':
-      return _t('Confirmed', 'पुष्टि हो गई', 'নিশ্চিত');
+      return _t(
+        'Confirmed',
+        'पुष्टि हो गई',
+        'নিশ্চিত',
+      );
+
     case 'in_progress':
     case 'in progress':
-      return _t('In Progress', 'जारी है', 'চলছে');
+      return _t(
+        'In Progress',
+        'जारी है',
+        'চলছে',
+      );
+
     case 'completed':
-      return _t('Completed', 'पूरा हुआ', 'সম্পন্ন');
+      return _t(
+        'Completed',
+        'पूरा हुआ',
+        'সম্পন্ন',
+      );
+
     case 'cancelled':
     case 'canceled':
-      return _t('Cancelled', 'रद्द', 'বাতিল');
+      return _t(
+        'Cancelled',
+        'रद्द',
+        'বাতিল',
+      );
+
     default:
       return status.replaceAll('_', ' ');
   }
@@ -94,21 +143,38 @@ String _statusText(String status) {
 
 DateTime _date(dynamic value) {
   if (value is Timestamp) return value.toDate();
+
   if (value is DateTime) return value;
+
   if (value is String) {
     return DateTime.tryParse(value) ?? DateTime(2000);
   }
+
   return DateTime(2000);
 }
 
 String _formatDate(DateTime date) {
   if (date.year <= 2000) {
-    return _t('Not provided', 'जानकारी उपलब्ध नहीं', 'তথ্য দেওয়া নেই');
+    return _t(
+      'Not provided',
+      'जानकारी उपलब्ध नहीं',
+      'তথ্য দেওয়া নেই',
+    );
   }
 
   const months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
 
   return '${date.day} ${months[date.month - 1]} ${date.year}';
@@ -116,7 +182,11 @@ String _formatDate(DateTime date) {
 
 String _formatTime(DateTime date) {
   if (date.year <= 2000) {
-    return _t('Not provided', 'जानकारी उपलब्ध नहीं', 'তথ্য দেওয়া নেই');
+    return _t(
+      'Not provided',
+      'जानकारी उपलब्ध नहीं',
+      'তথ্য দেওয়া নেই',
+    );
   }
 
   final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
@@ -129,7 +199,11 @@ String _duration(Map<String, dynamic> data) {
   final value = data['duration'];
 
   if (value == null || value.toString().trim().isEmpty) {
-    return _t('Not provided', 'जानकारी उपलब्ध नहीं', 'তথ্য দেওয়া নেই');
+    return _t(
+      'Not provided',
+      'जानकारी उपलब्ध नहीं',
+      'তথ্য দেওয়া নেই',
+    );
   }
 
   final duration = value.toString().trim();
@@ -142,18 +216,37 @@ String _duration(Map<String, dynamic> data) {
 }
 
 String _plan(Map<String, dynamic> data) {
-  final plan = _text(data['bookingPlan'], fallback: '').toLowerCase();
-  final service = _text(data['serviceType'], fallback: '').toLowerCase();
+  final plan = _text(
+    data['bookingPlan'],
+    fallback: '',
+  ).toLowerCase();
+
+  final service = _text(
+    data['serviceType'],
+    fallback: '',
+  ).toLowerCase();
 
   if (plan == 'regular' || service == 'regular_walk') {
-    return _t('Regular Walk', 'रेगुलर वॉक', 'নিয়মিত ওয়াক');
+    return _t(
+      'Regular Walk',
+      'रेगुलर वॉक',
+      'নিয়মিত ওয়াক',
+    );
   }
 
   if (plan == 'customize' || service == 'custom_walk') {
-    return _t('Customized Walk', 'कस्टम वॉक', 'কাস্টম ওয়াক');
+    return _t(
+      'Customized Walk',
+      'कस्टम वॉक',
+      'কাস্টম ওয়াক',
+    );
   }
 
-  return _t('One-Time Walk', 'एक बार की वॉक', 'একবারের ওয়াক');
+  return _t(
+    'One-Time Walk',
+    'एक बार की वॉक',
+    'একবারের ওয়াক',
+  );
 }
 
 String _address(dynamic value) {
@@ -168,11 +261,125 @@ String _address(dynamic value) {
     address['city'],
     address['pincode'],
   ]
-      .where((v) => v != null && v.toString().trim().isNotEmpty)
+      .where(
+        (v) => v != null && v.toString().trim().isNotEmpty,
+      )
       .map((v) => v.toString().trim())
       .toSet()
       .join(', ');
 }
+
+// ============================================================
+// PRICE HELPERS
+// ============================================================
+
+String _money(dynamic value) {
+  if (value is! num || !value.isFinite || value < 0) {
+    return _t(
+      'Price to be confirmed',
+      'कीमत की पुष्टि बाकी है',
+      'দাম নিশ্চিত করা বাকি',
+    );
+  }
+
+  return '₹${value.toStringAsFixed(
+    value == value.roundToDouble() ? 0 : 2,
+  )}';
+}
+
+double? _savedWalkPrice(Map<String, dynamic> walk) {
+  final value = walk['price'];
+
+  if (value is num && value.isFinite && value >= 0) {
+    return value.toDouble();
+  }
+
+  return null;
+}
+
+double? _savedBookingTotal(Map<String, dynamic> data) {
+  final dateSchedules = data['dateSchedules'];
+
+  // Choose Dates: सभी चुनी हुई तारीखों का कुल।
+  if (dateSchedules is List && dateSchedules.isNotEmpty) {
+    double total = 0;
+
+    for (final dayValue in dateSchedules) {
+      final day = _map(dayValue);
+      final walks = day['walks'];
+
+      if (walks is! List || walks.isEmpty) {
+        return null;
+      }
+
+      for (final walkValue in walks) {
+        final walk = _map(walkValue);
+        final price = _savedWalkPrice(walk);
+
+        if (price == null) return null;
+
+        total += price;
+      }
+    }
+
+    return total;
+  }
+
+  // One-Time और Regular: सेव की गई walkSchedules कीमतें।
+  final schedules = data['walkSchedules'];
+
+  if (schedules is List && schedules.isNotEmpty) {
+    double total = 0;
+
+    for (final walkValue in schedules) {
+      final walk = _map(walkValue);
+      final price = _savedWalkPrice(walk);
+
+      if (price == null) return null;
+
+      total += price;
+    }
+
+    return total;
+  }
+
+  // पुराने records में यदि कुल राशि सेव है, तो उसका उपयोग करें।
+  final savedTotal = data['totalAmount'];
+
+  if (savedTotal is num &&
+      savedTotal.isFinite &&
+      savedTotal >= 0) {
+    return savedTotal.toDouble();
+  }
+
+  return null;
+}
+
+double? _savedAdditionalCharges(
+  Map<String, dynamic> data,
+) {
+  final value = data['additionalCharges'];
+
+  if (value is num && value.isFinite && value >= 0) {
+    return value.toDouble();
+  }
+
+  return null;
+}
+
+double? _grandTotal(Map<String, dynamic> data) {
+  final walkTotal = _savedBookingTotal(data);
+
+  if (walkTotal == null) return null;
+
+  final extraCharges = _savedAdditionalCharges(data) ?? 0;
+
+  return walkTotal + extraCharges;
+}
+
+// ============================================================
+// MY BOOKINGS SCREEN
+// ============================================================
 
 class MyBookingsScreen extends StatefulWidget {
   const MyBookingsScreen({super.key});
@@ -196,7 +403,11 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
             automaticallyImplyLeading: false,
             elevation: 0,
             title: Text(
-              _t('My Bookings', 'मेरी बुकिंग', 'আমার বুকিং'),
+              _t(
+                'My Bookings',
+                'मेरी बुकिंग',
+                'আমার বুকিং',
+              ),
               style: const TextStyle(
                 color: bookingsText,
                 fontSize: 23,
@@ -213,7 +424,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                   child: StreamBuilder<User?>(
                     stream: FirebaseAuth.instance.authStateChanges(),
                     builder: (context, auth) {
-                      if (auth.connectionState == ConnectionState.waiting &&
+                      if (auth.connectionState ==
+                              ConnectionState.waiting &&
                           !auth.hasData) {
                         return const Center(
                           child: CircularProgressIndicator(
@@ -227,7 +439,11 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                       if (user == null) {
                         return _message(
                           Icons.person_outline,
-                          _t('Login Required', 'लॉगिन ज़रूरी है', 'লগইন প্রয়োজন'),
+                          _t(
+                            'Login Required',
+                            'लॉगिन ज़रूरी है',
+                            'লগইন প্রয়োজন',
+                          ),
                           _t(
                             'Please log in to view your bookings.',
                             'अपनी बुकिंग देखने के लिए लॉगिन करें।',
@@ -240,7 +456,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                           QuerySnapshot<Map<String, dynamic>>>(
                         stream: FirebaseFirestore.instance
                             .collection('bookings')
-                            .where('customerId', isEqualTo: user.uid)
+                            .where(
+                              'customerId',
+                              isEqualTo: user.uid,
+                            )
                             .snapshots(),
                         builder: (context, snapshot) {
                           if (snapshot.hasError) {
@@ -259,7 +478,11 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                               action: TextButton(
                                 onPressed: () => setState(() {}),
                                 child: Text(
-                                  _t('Refresh', 'रिफ्रेश', 'রিফ্রেশ'),
+                                  _t(
+                                    'Refresh',
+                                    'रिफ्रेश',
+                                    'রিফ্রেশ',
+                                  ),
                                 ),
                               ),
                             );
@@ -294,7 +517,9 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
                           bookings.sort((a, b) {
                             return _date(b.data()['scheduledAt'])
-                                .compareTo(_date(a.data()['scheduledAt']));
+                                .compareTo(
+                              _date(a.data()['scheduledAt']),
+                            );
                           });
 
                           if (bookings.isEmpty) {
@@ -318,13 +543,19 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                             onRefresh: () async {
                               await FirebaseFirestore.instance
                                   .collection('bookings')
-                                  .where('customerId', isEqualTo: user.uid)
+                                  .where(
+                                    'customerId',
+                                    isEqualTo: user.uid,
+                                  )
                                   .get(
-                                    const GetOptions(source: Source.server),
+                                    const GetOptions(
+                                      source: Source.server,
+                                    ),
                                   );
                             },
                             child: ListView.builder(
-                              physics: const AlwaysScrollableScrollPhysics(),
+                              physics:
+                                  const AlwaysScrollableScrollPhysics(),
                               padding: const EdgeInsets.all(16),
                               itemCount: bookings.length,
                               itemBuilder: (context, index) {
@@ -362,7 +593,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     return SizedBox(
       height: 55,
       child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 5),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: 5,
+        ),
         scrollDirection: Axis.horizontal,
         itemCount: filters.length,
         separatorBuilder: (_, __) => const SizedBox(width: 9),
@@ -372,7 +606,9 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
           return ChoiceChip(
             label: Text(filters[index]),
             selected: selected,
-            onSelected: (_) => setState(() => _selectedFilter = index),
+            onSelected: (_) {
+              setState(() => _selectedFilter = index);
+            },
             selectedColor: bookingsOrange,
             backgroundColor: Colors.white,
             showCheckmark: false,
@@ -404,7 +640,11 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: bookingsOrange, size: 54),
+            Icon(
+              icon,
+              color: bookingsOrange,
+              size: 54,
+            ),
             const SizedBox(height: 18),
             Text(
               title,
@@ -432,6 +672,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   }
 }
 
+// ============================================================
+// BOOKING CARD
+// ============================================================
+
 class _BookingCard extends StatelessWidget {
   const _BookingCard({
     super.key,
@@ -447,6 +691,7 @@ class _BookingCard extends StatelessWidget {
     final pet = _petDetails(data);
     final status = _status(data);
     final address = _address(data['pickupAddress']);
+    final total = _grandTotal(data);
 
     return Card(
       color: Colors.white,
@@ -454,7 +699,7 @@ class _BookingCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 14),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: const BorderSide(color: Color(0xFFF0E9E2)),
+        side: const BorderSide(color: bookingsBorder),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
@@ -503,7 +748,14 @@ class _BookingCard extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           '${_t('Dog', 'कुत्ता', 'কুকুর')}: '
-                          '${_text(pet['name'] ?? data['petName'], fallback: _t('Your dog', 'आपका डॉग', 'আপনার কুকুর'))}',
+                          '${_text(
+                            pet['name'] ?? data['petName'],
+                            fallback: _t(
+                              'Your dog',
+                              'आपका डॉग',
+                              'আপনার কুকুর',
+                            ),
+                          )}',
                           style: const TextStyle(
                             color: bookingsMuted,
                             fontSize: 13,
@@ -520,21 +772,32 @@ class _BookingCard extends StatelessWidget {
                       ],
                     ),
                   ),
+                  const SizedBox(width: 8),
                   _statusBadge(status),
                 ],
               ),
               const Divider(height: 28),
               _row(
                 Icons.calendar_month_outlined,
-                _t('Date & Time', 'तारीख़ और समय', 'তারিখ ও সময়'),
+                _t(
+                  'Date & Time',
+                  'तारीख़ और समय',
+                  'তারিখ ও সময়',
+                ),
                 '${_formatDate(_date(data['scheduledAt']))} · '
-                    '${_text(data['preferredTime'], fallback: _formatTime(_date(data['scheduledAt'])))}',
+                '${_text(
+                  data['preferredTime'],
+                  fallback: _formatTime(_date(data['scheduledAt'])),
+                )}',
               ),
               const SizedBox(height: 12),
               _row(
                 Icons.confirmation_number_outlined,
                 _t('Booking ID', 'बुकिंग ID', 'বুকিং ID'),
-                _text(data['bookingId'], fallback: documentId),
+                _text(
+                  data['bookingId'],
+                  fallback: documentId,
+                ),
               ),
               if (address.isNotEmpty) ...[
                 const SizedBox(height: 12),
@@ -544,7 +807,58 @@ class _BookingCard extends StatelessWidget {
                   address,
                 ),
               ],
-              const SizedBox(height: 18),
+              const SizedBox(height: 15),
+
+              // PRICE SUMMARY CARD
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: bookingsBackground,
+                  borderRadius: BorderRadius.circular(13),
+                  border: Border.all(color: bookingsBorder),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _t(
+                              'TOTAL AMOUNT',
+                              'कुल राशि',
+                              'মোট পরিমাণ',
+                            ),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              letterSpacing: 0.6,
+                              fontWeight: FontWeight.w700,
+                              color: bookingsMuted,
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            _money(total),
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w900,
+                              color: bookingsOrange,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (total == null)
+                      const Icon(
+                        Icons.info_outline,
+                        color: bookingsMuted,
+                        size: 21,
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 17),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -564,7 +878,9 @@ class _BookingCard extends StatelessWidget {
                       'बुकिंग की जानकारी देखें',
                       'বুকিংয়ের বিবরণ দেখুন',
                     ),
-                    style: const TextStyle(fontWeight: FontWeight.w800),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
               ),
@@ -587,11 +903,19 @@ class _BookingCard extends StatelessWidget {
     );
   }
 
-  Widget _row(IconData icon, String label, String value) {
+  Widget _row(
+    IconData icon,
+    String label,
+    String value,
+  ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: bookingsOrange, size: 19),
+        Icon(
+          icon,
+          color: bookingsOrange,
+          size: 19,
+        ),
         const SizedBox(width: 9),
         SizedBox(
           width: 82,
@@ -626,7 +950,10 @@ Widget _statusBadge(String status) {
           : bookingsOrange;
 
   return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+    padding: const EdgeInsets.symmetric(
+      horizontal: 9,
+      vertical: 6,
+    ),
     decoration: BoxDecoration(
       color: color.withValues(alpha: 0.10),
       borderRadius: BorderRadius.circular(9),
@@ -642,6 +969,10 @@ Widget _statusBadge(String status) {
     ),
   );
 }
+
+// ============================================================
+// BOOKING DETAILS SCREEN
+// ============================================================
 
 class BookingDetailsScreen extends StatelessWidget {
   const BookingDetailsScreen({
@@ -674,7 +1005,8 @@ class BookingDetailsScreen extends StatelessWidget {
     return ValueListenableBuilder<Locale>(
       valueListenable: appLocale,
       builder: (context, locale, child) {
-        return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        return StreamBuilder<
+            DocumentSnapshot<Map<String, dynamic>>>(
           stream: FirebaseFirestore.instance
               .collection('bookings')
               .doc(documentId)
@@ -685,7 +1017,11 @@ class BookingDetailsScreen extends StatelessWidget {
                 backgroundColor: bookingsBackground,
                 appBar: AppBar(
                   title: Text(
-                    _t('Booking Details', 'बुकिंग की जानकारी', 'বুকিংয়ের বিবরণ'),
+                    _t(
+                      'Booking Details',
+                      'बुकिंग की जानकारी',
+                      'বুকিংয়ের বিবরণ',
+                    ),
                   ),
                 ),
                 body: Center(
@@ -706,7 +1042,11 @@ class BookingDetailsScreen extends StatelessWidget {
               return Scaffold(
                 appBar: AppBar(
                   title: Text(
-                    _t('Booking Details', 'बुकिंग की जानकारी', 'বুকিংয়ের বিবরণ'),
+                    _t(
+                      'Booking Details',
+                      'बुकिंग की जानकारी',
+                      'বুকিংয়ের বিবরণ',
+                    ),
                   ),
                 ),
                 body: Center(
@@ -724,17 +1064,22 @@ class BookingDetailsScreen extends StatelessWidget {
             final pet = _petDetails(data);
             final address = _address(data['pickupAddress']);
             final plan = _plan(data);
-            final regular = plan == _t(
-              'Regular Walk',
-              'रेगुलर वॉक',
-              'নিয়মিত ওয়াক',
-            );
+
+            final regular = data['bookingPlan'] == 'regular' ||
+                data['serviceType'] == 'regular_walk';
+
+            final total = _savedBookingTotal(data);
+            final extraCharges = _savedAdditionalCharges(data);
+            final grandTotal = _grandTotal(data);
 
             final cancelRequest = _map(data['cancelRequest']);
+
             final cancelStatus = data['cancelRequest'] == null
                 ? 'none'
-                : _text(cancelRequest['status'], fallback: 'pending')
-                    .toLowerCase();
+                : _text(
+                    cancelRequest['status'],
+                    fallback: 'pending',
+                  ).toLowerCase();
 
             return Scaffold(
               backgroundColor: bookingsBackground,
@@ -743,19 +1088,32 @@ class BookingDetailsScreen extends StatelessWidget {
                 foregroundColor: bookingsText,
                 elevation: 0,
                 title: Text(
-                  _t('Booking Details', 'बुकिंग की जानकारी', 'বুকিংয়ের বিবরণ'),
-                  style: const TextStyle(fontWeight: FontWeight.w900),
+                  _t(
+                    'Booking Details',
+                    'बुकिंग की जानकारी',
+                    'বুকিংয়ের বিবরণ',
+                  ),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
               body: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 10, 16, 28),
                 children: [
                   _section(
-                    _t('Booking Summary', 'बुकिंग का सारांश', 'বুকিংয়ের সারাংশ'),
+                    _t(
+                      'Booking Summary',
+                      'बुकिंग का सारांश',
+                      'বুকিংয়ের সারাংশ',
+                    ),
                     [
                       _detail(
                         _t('Booking ID', 'बुकिंग ID', 'বুকিং ID'),
-                        _text(data['bookingId'], fallback: documentId),
+                        _text(
+                          data['bookingId'],
+                          fallback: documentId,
+                        ),
                       ),
                       _detail(
                         _t('Plan', 'प्लान', 'প্ল্যান'),
@@ -770,10 +1128,16 @@ class BookingDetailsScreen extends StatelessWidget {
                         _formatDate(_date(data['scheduledAt'])),
                       ),
                       _detail(
-                        _t('Preferred Time', 'पसंदीदा समय', 'পছন্দের সময়'),
+                        _t(
+                          'Preferred Time',
+                          'पसंदीदा समय',
+                          'পছন্দের সময়',
+                        ),
                         _text(
                           data['preferredTime'],
-                          fallback: _formatTime(_date(data['scheduledAt'])),
+                          fallback: _formatTime(
+                            _date(data['scheduledAt']),
+                          ),
                         ),
                       ),
                       _detail(
@@ -781,14 +1145,76 @@ class BookingDetailsScreen extends StatelessWidget {
                         _statusText(_status(data)),
                       ),
                       _detail(
-                        _t('Number of Walks', 'वॉक की संख्या', 'ওয়াকের সংখ্যা'),
+                        _t(
+                          'Number of Walks',
+                          'वॉक की संख्या',
+                          'ওয়াকের সংখ্যা',
+                        ),
                         _text(data['walkCount']),
                       ),
                     ],
                   ),
+
                   const SizedBox(height: 14),
+
+                  // PRICE DETAILS
                   _section(
-                    _t('Dog Details', 'डॉग की जानकारी', 'কুকুরের বিবরণ'),
+                    _t(
+                      'Price Details',
+                      'कीमत का विवरण',
+                      'দামের বিবরণ',
+                    ),
+                    [
+                      _detail(
+                        _t(
+                          'Walk Charges',
+                          'वॉक चार्ज',
+                          'ওয়াক চার্জ',
+                        ),
+                        _money(total),
+                      ),
+                      if (extraCharges != null && extraCharges > 0)
+                        _detail(
+                          _t(
+                            'Additional Charges',
+                            'अतिरिक्त चार्ज',
+                            'অতিরিক্ত চার্জ',
+                          ),
+                          _money(extraCharges),
+                        ),
+                      const Divider(height: 24),
+                      _priceDetail(
+                        _t(
+                          'Total Amount',
+                          'कुल राशि',
+                          'মোট পরিমাণ',
+                        ),
+                        _money(grandTotal),
+                      ),
+                      const SizedBox(height: 7),
+                      Text(
+                        _t(
+                          'The final amount is based on the prices saved in your booking. Any additional charges must be confirmed by DOJO WALK.',
+                          'अंतिम राशि बुकिंग में सेव की गई कीमतों के अनुसार है। अतिरिक्त चार्ज की पुष्टि DOJO WALK टीम करेगी।',
+                          'চূড়ান্ত পরিমাণ বুকিংয়ে সংরক্ষিত দামের ওপর নির্ভর করে। অতিরিক্ত চার্জ DOJO WALK নিশ্চিত করবে।',
+                        ),
+                        style: const TextStyle(
+                          color: bookingsMuted,
+                          fontSize: 12,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  _section(
+                    _t(
+                      'Dog Details',
+                      'डॉग की जानकारी',
+                      'কুকুরের বিবরণ',
+                    ),
                     [
                       _detail(
                         _t('Dog Name', 'डॉग का नाम', 'কুকুরের নাম'),
@@ -819,7 +1245,11 @@ class BookingDetailsScreen extends StatelessWidget {
                         _text(pet['behaviour']),
                       ),
                       _detail(
-                        _t('Special Care', 'विशेष देखभाल', 'বিশেষ যত্ন'),
+                        _t(
+                          'Special Care',
+                          'विशेष देखभाल',
+                          'বিশেষ যত্ন',
+                        ),
                         _text(pet['specialCare']),
                       ),
                       _detail(
@@ -828,29 +1258,59 @@ class BookingDetailsScreen extends StatelessWidget {
                       ),
                     ],
                   ),
+
                   const SizedBox(height: 14),
+
                   _section(
-                    _t('Pickup Address', 'पिकअप का पता', 'পিকআপের ঠিকানা'),
+                    _t(
+                      'Pickup Address',
+                      'पिकअप का पता',
+                      'পিকআপের ঠিকানা',
+                    ),
                     [
                       _detail(
-                        _t('Address Type', 'पते का प्रकार', 'ঠিকানার ধরন'),
+                        _t(
+                          'Address Type',
+                          'पते का प्रकार',
+                          'ঠিকানার ধরন',
+                        ),
                         _text(_map(data['pickupAddress'])['label']),
                       ),
                       _detail(
-                        _t('Full Address', 'पूरा पता', 'সম্পূর্ণ ঠিকানা'),
+                        _t(
+                          'Full Address',
+                          'पूरा पता',
+                          'সম্পূর্ণ ঠিকানা',
+                        ),
                         address.isEmpty
-                            ? _t('Not provided', 'जानकारी उपलब्ध नहीं', 'তথ্য দেওয়া নেই')
+                            ? _t(
+                                'Not provided',
+                                'जानकारी उपलब्ध नहीं',
+                                'তথ্য দেওয়া নেই',
+                              )
                             : address,
                       ),
                       _detail(
-                        _t('Landmark', 'नज़दीकी पहचान', 'ল্যান্ডমার্ক'),
-                        _text(_map(data['pickupAddress'])['landmark']),
+                        _t(
+                          'Landmark',
+                          'नज़दीकी पहचान',
+                          'ল্যান্ডমার্ক',
+                        ),
+                        _text(
+                          _map(data['pickupAddress'])['landmark'],
+                        ),
                       ),
                     ],
                   ),
+
                   const SizedBox(height: 14),
+
                   _section(
-                    _t('Assigned Walker', 'नियुक्त वॉकर', 'নিযুক্ত ওয়াকার'),
+                    _t(
+                      'Assigned Walker',
+                      'नियुक्त वॉकर',
+                      'নিযুক্ত ওয়াকার',
+                    ),
                     [
                       _detail(
                         _t('Walker ID', 'वॉकर ID', 'ওয়াকার ID'),
@@ -877,39 +1337,79 @@ class BookingDetailsScreen extends StatelessWidget {
                       ),
                     ],
                   ),
+
                   if (regular) ...[
                     const SizedBox(height: 14),
                     _section(
-                      _t('Regular Walk Plan', 'रेगुलर वॉक प्लान', 'নিয়মিত ওয়াক প্ল্যান'),
+                      _t(
+                        'Regular Walk Plan',
+                        'रेगुलर वॉक प्लान',
+                        'নিয়মিত ওয়াক প্ল্যান',
+                      ),
                       [
                         _detail(
                           _t('Frequency', 'आवृत्ति', 'কতবার'),
                           _text(data['frequency']),
                         ),
                         _detail(
-                          _t('Walks Per Week', 'हर सप्ताह वॉक', 'প্রতি সপ্তাহে ওয়াক'),
+                          _t(
+                            'Walks Per Week',
+                            'हर सप्ताह वॉक',
+                            'প্রতি সপ্তাহে ওয়াক',
+                          ),
                           _text(data['walksPerWeek']),
                         ),
                         _detail(
-                          _t('Walks Per Day', 'हर दिन वॉक', 'প্রতিদিন ওয়াক'),
+                          _t(
+                            'Walks Per Day',
+                            'हर दिन वॉक',
+                            'প্রতিদিন ওয়াক',
+                          ),
                           _text(data['walksPerDay']),
                         ),
                       ],
                     ),
                   ],
+
                   if (data['walkSchedules'] is List) ...[
                     const SizedBox(height: 14),
                     _section(
-                      _t('Walk Schedule', 'वॉक का शेड्यूल', 'ওয়াকের সময়সূচি'),
+                      _t(
+                        'Walk Schedule',
+                        'वॉक का शेड्यूल',
+                        'ওয়াকের সময়সূচি',
+                      ),
                       _scheduleDetails(data['walkSchedules']),
                     ),
                   ],
+
+                  if (data['dateSchedules'] is List) ...[
+                    const SizedBox(height: 14),
+                    _section(
+                      _t(
+                        'Selected Dates',
+                        'चुनी हुई तारीखें',
+                        'নির্বাচিত তারিখ',
+                      ),
+                      _dateScheduleDetails(data['dateSchedules']),
+                    ),
+                  ],
+
                   const SizedBox(height: 14),
+
                   _section(
-                    _t('Cancel Request', 'रद्द करने का अनुरोध', 'বাতিলের অনুরোধ'),
+                    _t(
+                      'Cancel Request',
+                      'रद्द करने का अनुरोध',
+                      'বাতিলের অনুরোধ',
+                    ),
                     [
                       _detail(
-                        _t('Request Status', 'अनुरोध की स्थिति', 'অনুরোধের অবস্থা'),
+                        _t(
+                          'Request Status',
+                          'अनुरोध की स्थिति',
+                          'অনুরোধের অবস্থা',
+                        ),
                         _cancelStatusText(cancelStatus),
                       ),
                       if (_isCancelled(_status(data)))
@@ -966,7 +1466,9 @@ class BookingDetailsScreen extends StatelessWidget {
                             ),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: Colors.red,
-                              padding: const EdgeInsets.symmetric(vertical: 13),
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 13,
+                              ),
                             ),
                             onPressed: () => _requestCancellation(
                               context,
@@ -977,9 +1479,15 @@ class BookingDetailsScreen extends StatelessWidget {
                         ),
                     ],
                   ),
+
                   const SizedBox(height: 14),
+
                   _section(
-                    _t('Help & Support', 'मदद और सहायता', 'সাহায্য ও সহায়তা'),
+                    _t(
+                      'Help & Support',
+                      'मदद और सहायता',
+                      'সাহায্য ও সহায়তা',
+                    ),
                     [
                       Text(
                         _t(
@@ -1001,16 +1509,62 @@ class BookingDetailsScreen extends StatelessWidget {
   }
 }
 
+// ============================================================
+// PRICE DETAIL ROW
+// ============================================================
+
+Widget _priceDetail(String label, String value) {
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Expanded(
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: bookingsText,
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ),
+      const SizedBox(width: 12),
+      Flexible(
+        child: Text(
+          value,
+          textAlign: TextAlign.end,
+          style: const TextStyle(
+            color: bookingsOrange,
+            fontSize: 19,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
+// ============================================================
+// CANCELLATION
+// ============================================================
+
 String _cancelStatusText(String status) {
   switch (status) {
     case 'none':
-      return _t('Not Requested', 'अनुरोध नहीं किया', 'অনুরোধ করা হয়নি');
+      return _t(
+        'Not Requested',
+        'अनुरोध नहीं किया',
+        'অনুরোধ করা হয়নি',
+      );
+
     case 'pending':
       return _t('Pending', 'लंबित', 'অপেক্ষমাণ');
+
     case 'approved':
       return _t('Approved', 'स्वीकृत', 'অনুমোদিত');
+
     case 'rejected':
       return _t('Rejected', 'अस्वीकृत', 'প্রত্যাখ্যাত');
+
     default:
       return status;
   }
@@ -1041,11 +1595,15 @@ Future<void> _requestCancellation(
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(dialogContext, false),
-          child: Text(_t('Go Back', 'वापस जाएँ', 'ফিরে যান')),
+          child: Text(
+            _t('Go Back', 'वापस जाएँ', 'ফিরে যান'),
+          ),
         ),
         ElevatedButton(
           onPressed: () => Navigator.pop(dialogContext, true),
-          child: Text(_t('Confirm', 'पुष्टि करें', 'নিশ্চিত করুন')),
+          child: Text(
+            _t('Confirm', 'पुष्टि करें', 'নিশ্চিত করুন'),
+          ),
         ),
       ],
     ),
@@ -1058,38 +1616,44 @@ Future<void> _requestCancellation(
         .collection('bookings')
         .doc(documentId);
 
-    await FirebaseFirestore.instance.runTransaction((transaction) async {
-      final snapshot = await transaction.get(ref);
+    await FirebaseFirestore.instance.runTransaction(
+      (transaction) async {
+        final snapshot = await transaction.get(ref);
 
-      if (!snapshot.exists) {
-        throw Exception('Booking not found.');
-      }
+        if (!snapshot.exists) {
+          throw Exception('Booking not found.');
+        }
 
-      final current = snapshot.data() ?? <String, dynamic>{};
+        final current = snapshot.data() ?? <String, dynamic>{};
 
-      if (current['customerId'] != userId) {
-        throw Exception('You cannot change this booking.');
-      }
+        if (current['customerId'] != userId) {
+          throw Exception('You cannot change this booking.');
+        }
 
-      final status = _status(current);
+        final status = _status(current);
 
-      if (!_isUpcoming(status)) {
-        throw Exception('Cancellation is not available for this status.');
-      }
+        if (!_isUpcoming(status)) {
+          throw Exception(
+            'Cancellation is not available for this status.',
+          );
+        }
 
-      if (current['cancelRequest'] != null) {
-        throw Exception('A cancellation request already exists.');
-      }
+        if (current['cancelRequest'] != null) {
+          throw Exception(
+            'A cancellation request already exists.',
+          );
+        }
 
-      transaction.update(ref, {
-        'cancelRequest': {
-          'status': 'pending',
-          'requestedBy': 'customer',
-          'customerId': userId,
-          'requestedAt': FieldValue.serverTimestamp(),
-        },
-      });
-    });
+        transaction.update(ref, {
+          'cancelRequest': {
+            'status': 'pending',
+            'requestedBy': 'customer',
+            'customerId': userId,
+            'requestedAt': FieldValue.serverTimestamp(),
+          },
+        });
+      },
+    );
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1118,12 +1682,20 @@ Future<void> _requestCancellation(
   }
 }
 
+// ============================================================
+// SCHEDULE DETAILS
+// ============================================================
+
 List<Widget> _scheduleDetails(dynamic value) {
   if (value is! List || value.isEmpty) {
     return [
       _detail(
         _t('Schedule', 'शेड्यूल', 'সময়সূচি'),
-        _t('Not provided', 'जानकारी उपलब्ध नहीं', 'তথ্য দেওয়া নেই'),
+        _t(
+          'Not provided',
+          'जानकारी उपलब्ध नहीं',
+          'তথ্য দেওয়া নেই',
+        ),
       ),
     ];
   }
@@ -1138,6 +1710,57 @@ List<Widget> _scheduleDetails(dynamic value) {
   });
 }
 
+List<Widget> _dateScheduleDetails(dynamic value) {
+  if (value is! List || value.isEmpty) {
+    return [
+      _detail(
+        _t('Dates', 'तारीखें', 'তারিখ'),
+        _t(
+          'Not provided',
+          'जानकारी उपलब्ध नहीं',
+          'তথ্য দেওয়া নেই',
+        ),
+      ),
+    ];
+  }
+
+  final result = <Widget>[];
+
+  for (var i = 0; i < value.length; i++) {
+    final day = _map(value[i]);
+    final date = _date(day['date']);
+    final walks = day['walks'];
+
+    result.add(
+      _detail(
+        _t('Date', 'तारीख़', 'তারিখ'),
+        _formatDate(date),
+      ),
+    );
+
+    if (walks is List) {
+      for (var j = 0; j < walks.length; j++) {
+        final walk = _map(walks[j]);
+
+        result.add(
+          _detail(
+            '${_t('Walk', 'वॉक', 'ওয়াক')} ${j + 1}',
+            '${_text(walk['time'])} · '
+            '${_text(walk['duration'])} · '
+            '${_money(_savedWalkPrice(walk))}',
+          ),
+        );
+      }
+    }
+  }
+
+  return result;
+}
+
+// ============================================================
+// AGE
+// ============================================================
+
 String _age(dynamic value) {
   if (value is Timestamp) {
     final dob = value.toDate();
@@ -1151,11 +1774,19 @@ String _age(dynamic value) {
     }
 
     if (years < 0) {
-      return _t('Not provided', 'जानकारी उपलब्ध नहीं', 'তথ্য দেওয়া নেই');
+      return _t(
+        'Not provided',
+        'जानकारी उपलब्ध नहीं',
+        'তথ্য দেওয়া নেই',
+      );
     }
 
     if (years == 0) {
-      return _t('Less than 1 year', '1 साल से कम', '১ বছরের কম');
+      return _t(
+        'Less than 1 year',
+        '1 साल से कम',
+        '১ বছরের কম',
+      );
     }
 
     return '$years ${_t('years', 'साल', 'বছর')}';
@@ -1172,13 +1803,20 @@ String _age(dynamic value) {
   return age;
 }
 
-Widget _section(String title, List<Widget> children) {
+// ============================================================
+// REUSABLE DETAILS SECTION
+// ============================================================
+
+Widget _section(
+  String title,
+  List<Widget> children,
+) {
   return Container(
     padding: const EdgeInsets.all(17),
     decoration: BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(18),
-      border: Border.all(color: const Color(0xFFF0E9E2)),
+      border: Border.all(color: bookingsBorder),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
