@@ -71,16 +71,23 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
 
   bool _isContinuing = false;
 
+  DateTime _dateOnly(DateTime date) {
+    return DateTime(date.year, date.month, date.day);
+  }
+
   List<_WalkSlot> get _currentSlots {
+    final date = _dateOnly(_selectedDate);
+
     if (_selectedType == WalkBookingType.oneTime) {
       return [
         _dateSchedules.putIfAbsent(
-          _selectedDate,
+          date,
           () => [
             _WalkSlot(
               time: TimeOfDay.fromDateTime(
                 DateTime.now().add(const Duration(hours: 1)),
               ),
+              durationMinutes: 30,
             ),
           ],
         ).first,
@@ -88,7 +95,7 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
     }
 
     return _dateSchedules.putIfAbsent(
-      _selectedDate,
+      date,
       () => _makeDefaultSlots(_walkCount),
     );
   }
@@ -102,7 +109,10 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
 
     return List.generate(
       count.clamp(1, 3),
-      (index) => _WalkSlot(time: defaults[index]),
+      (index) => _WalkSlot(
+        time: defaults[index],
+        durationMinutes: 30,
+      ),
     );
   }
 
@@ -138,10 +148,6 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
     final period = time.period == DayPeriod.am ? 'AM' : 'PM';
 
     return '$hour:$minute $period';
-  }
-
-  DateTime _dateOnly(DateTime date) {
-    return DateTime(date.year, date.month, date.day);
   }
 
   int? _slotPrice(_WalkSlot slot) {
@@ -198,7 +204,8 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
         return;
       }
 
-      final existing = _dateSchedules[_selectedDate] ?? [];
+      final date = _dateOnly(_selectedDate);
+      final existing = _dateSchedules[date] ?? [];
       final defaults = _makeDefaultSlots(count);
       final updated = <_WalkSlot>[];
 
@@ -210,12 +217,12 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
         }
       }
 
-      _dateSchedules[_selectedDate] = updated;
+      _dateSchedules[date] = updated;
     });
   }
 
   Future<void> _chooseDate() async {
-    final now = DateUtils.dateOnly(DateTime.now());
+    final now = _dateOnly(DateTime.now());
 
     final picked = await showDatePicker(
       context: context,
@@ -395,24 +402,27 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
     }
 
     final now = DateTime.now();
+    final normalizedDate = _dateOnly(date);
+    final today = _dateOnly(now);
 
     for (final slot in slots) {
       if (slot.durationMinutes < 1 || slot.durationMinutes > 240) {
         return 'Walk duration 1 se 240 minutes ke beech honi chahiye.';
       }
 
-      final start = _dateTimeForSlot(date, slot);
+      final start = _dateTimeForSlot(normalizedDate, slot);
 
-      if (_isOneTime) {
-        continue;
-      }
+      // Walk Now is an immediate request, not a scheduled time.
+      if (_isOneTime) continue;
 
-      if (_isRegular && _dateOnly(date) == _dateOnly(now)) {
-        continue;
-      }
-
-      if (!start.isAfter(now)) {
-        return '${_formatTime(slot.time)} ka time beet chuka hai. Future time select karein.';
+      // Regular plans may start today if there is a future walk time.
+      if (_isRegular && normalizedDate == today) {
+        if (!start.isAfter(now)) {
+          continue;
+        }
+      } else if (!start.isAfter(now)) {
+        return '${_formatTime(slot.time)} ka time beet chuka hai. '
+            'Future time select karein.';
       }
     }
 
@@ -425,8 +435,8 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
       });
 
     for (var i = 0; i < sorted.length - 1; i++) {
-      final firstStart = _dateTimeForSlot(date, sorted[i]);
-      final secondStart = _dateTimeForSlot(date, sorted[i + 1]);
+      final firstStart = _dateTimeForSlot(normalizedDate, sorted[i]);
+      final secondStart = _dateTimeForSlot(normalizedDate, sorted[i + 1]);
 
       final firstEnd = firstStart.add(
         Duration(minutes: sorted[i].durationMinutes),
@@ -444,13 +454,14 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
     if (!_isRegular) return _selectedDate;
 
     final today = _dateOnly(DateTime.now());
-    final slots = _dateSchedules[_selectedDate] ?? _currentSlots;
+    final slots = _dateSchedules[_dateOnly(_selectedDate)] ?? _currentSlots;
+    final now = DateTime.now();
 
-    final futureSlots = slots.where((slot) {
-      return _dateTimeForSlot(today, slot).isAfter(DateTime.now());
-    }).toList();
+    final hasFutureSlotToday = slots.any((slot) {
+      return _dateTimeForSlot(today, slot).isAfter(now);
+    });
 
-    if (futureSlots.isNotEmpty) {
+    if (hasFutureSlotToday) {
       return today;
     }
 
@@ -499,10 +510,11 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
     final data = userDoc.data() ?? <String, dynamic>{};
     final name = (data['name'] ?? '').toString().trim();
     final dob = _parseDob(data['dateOfBirth']);
-
     final today = DateUtils.dateOnly(DateTime.now());
 
-    if (name.isNotEmpty && dob != null && _ageOnDate(dob, today) >= 18) {
+    if (name.isNotEmpty &&
+        dob != null &&
+        _ageOnDate(dob, today) >= 18) {
       return true;
     }
 
@@ -530,8 +542,7 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
         .doc(refreshed.uid)
         .get();
 
-    final refreshedData =
-        refreshedDoc.data() ?? <String, dynamic>{};
+    final refreshedData = refreshedDoc.data() ?? <String, dynamic>{};
 
     final refreshedName =
         (refreshedData['name'] ?? '').toString().trim();
@@ -568,8 +579,8 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
     } else if (_isRegular) {
       final today = _dateOnly(DateTime.now());
       final startDate = _regularStartDate() ?? today;
-
-      final startSlots = _dateSchedules[_selectedDate] ?? _currentSlots;
+      final startSlots = _dateSchedules[_dateOnly(_selectedDate)] ??
+          _currentSlots;
 
       final applicableSlots = startDate == today
           ? startSlots
@@ -582,7 +593,9 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
           : startSlots;
 
       if (applicableSlots.isEmpty) {
-        _message('Start date ke liye valid walk time select karein.');
+        _message(
+          'Aaj ke liye future time nahi hai. Kal se plan start hoga.',
+        );
         return;
       }
 
@@ -594,7 +607,7 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
       }
     } else {
       for (final date in _selectedDates) {
-        final slots = _dateSchedules[date] ?? [];
+        final slots = _dateSchedules[_dateOnly(date)] ?? [];
 
         final error = _validateSlots(date, slots);
 
@@ -680,7 +693,8 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
 
     if (_isRegular) {
       final startDate = _regularStartDate() ?? today;
-      final originalSlots = _dateSchedules[_selectedDate] ?? _currentSlots;
+      final originalSlots =
+          _dateSchedules[_dateOnly(_selectedDate)] ?? _currentSlots;
 
       final startSlots = startDate == today
           ? originalSlots
@@ -715,7 +729,7 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
     final dateSchedules = <Map<String, dynamic>>[];
 
     for (final date in sortedDates) {
-      final slots = _dateSchedules[date] ?? [];
+      final slots = _dateSchedules[_dateOnly(date)] ?? [];
 
       dateSchedules.add({
         'date': date,
@@ -727,7 +741,8 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
     }
 
     final firstDate = sortedDates.first;
-    final firstDaySlots = _dateSchedules[firstDate] ?? _currentSlots;
+    final firstDaySlots =
+        _dateSchedules[_dateOnly(firstDate)] ?? _currentSlots;
 
     return {
       'date': firstDate,
