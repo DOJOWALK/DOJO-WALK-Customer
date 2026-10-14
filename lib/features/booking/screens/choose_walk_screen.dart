@@ -111,13 +111,22 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
   bool get _isChooseDates =>
       _selectedType == WalkBookingType.chooseDates;
 
-  bool get _isOneTime =>
-      _selectedType == WalkBookingType.oneTime;
+  bool get _isOneTime => _selectedType == WalkBookingType.oneTime;
 
   String _formatDate(DateTime date) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
 
     return '${date.day} ${months[date.month - 1]} ${date.year}';
@@ -136,15 +145,9 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
   }
 
   int? _slotPrice(_WalkSlot slot) {
-    final price = WalkPricingService.priceForDuration(
+    return WalkPricingService.priceForDuration(
       slot.durationMinutes,
     );
-
-    if (price is num) {
-      return price.toInt();
-    }
-
-    return null;
   }
 
   int? _priceForSlots(List<_WalkSlot> slots) {
@@ -173,6 +176,7 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
       _selectedType = type;
       _walkCount = 1;
       _selectedDate = _dateOnly(DateTime.now());
+
       _selectedDates.clear();
       _dateSchedules.clear();
 
@@ -185,6 +189,8 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
   }
 
   void _changeWalkCount(int count) {
+    if (count < 1 || count > 3) return;
+
     setState(() {
       _walkCount = count;
 
@@ -193,16 +199,14 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
       }
 
       final existing = _dateSchedules[_selectedDate] ?? [];
-
+      final defaults = _makeDefaultSlots(count);
       final updated = <_WalkSlot>[];
 
       for (var i = 0; i < count; i++) {
         if (i < existing.length) {
           updated.add(existing[i]);
         } else {
-          updated.add(
-            _makeDefaultSlots(count)[i],
-          );
+          updated.add(defaults[i]);
         }
       }
 
@@ -234,7 +238,7 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
       },
     );
 
-    if (picked == null) return;
+    if (picked == null || !mounted) return;
 
     final date = _dateOnly(picked);
 
@@ -249,20 +253,21 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
       if (_isChooseDates) {
         _selectedDates.add(date);
       }
+
+      _walkCount = _dateSchedules[date]?.length ?? 1;
     });
   }
 
   void _selectScheduleDate(DateTime date) {
     setState(() {
       _selectedDate = _dateOnly(date);
-      final slots = _dateSchedules[_selectedDate];
-
-      _walkCount = slots?.length ?? 1;
 
       _dateSchedules.putIfAbsent(
         _selectedDate,
         () => _makeDefaultSlots(_walkCount),
       );
+
+      _walkCount = _dateSchedules[_selectedDate]?.length ?? 1;
     });
   }
 
@@ -274,11 +279,15 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
 
     setState(() {
       final normalized = _dateOnly(date);
+
       _selectedDates.remove(normalized);
       _dateSchedules.remove(normalized);
 
       if (_selectedDate == normalized) {
-        _selectedDate = _selectedDates.first;
+        final remaining = _selectedDates.toList()
+          ..sort((a, b) => a.compareTo(b));
+
+        _selectedDate = remaining.first;
         _walkCount = _dateSchedules[_selectedDate]?.length ?? 1;
       }
     });
@@ -304,7 +313,7 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
       },
     );
 
-    if (picked == null) return;
+    if (picked == null || !mounted) return;
 
     setState(() {
       slot.time = picked;
@@ -323,6 +332,7 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
           title: const Text('Custom Duration'),
           content: TextField(
             controller: controller,
+            autofocus: true,
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
               labelText: 'Minutes',
@@ -337,11 +347,17 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
             FilledButton(
               style: FilledButton.styleFrom(
                 backgroundColor: bookingOrange,
+                foregroundColor: Colors.white,
               ),
               onPressed: () {
                 final minutes = int.tryParse(controller.text.trim());
 
                 if (minutes == null || minutes < 1 || minutes > 240) {
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
+                    const SnackBar(
+                      content: Text('1 se 240 minutes enter karein.'),
+                    ),
+                  );
                   return;
                 }
 
@@ -354,7 +370,9 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
       },
     );
 
-    if (result == null) return;
+    controller.dispose();
+
+    if (result == null || !mounted) return;
 
     setState(() {
       slot.durationMinutes = result;
@@ -386,14 +404,10 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
       final start = _dateTimeForSlot(date, slot);
 
       if (_isOneTime) {
-        // Walk Now is submitted as an immediate request.
-        // Its selected time is not treated as a scheduled appointment.
         continue;
       }
 
       if (_isRegular && _dateOnly(date) == _dateOnly(now)) {
-        // Past slots in a regular daily plan may be skipped for the
-        // first day. The remaining future slot(s) can still be used.
         continue;
       }
 
@@ -406,6 +420,7 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
       ..sort((a, b) {
         final first = a.time.hour * 60 + a.time.minute;
         final second = b.time.hour * 60 + b.time.minute;
+
         return first.compareTo(second);
       });
 
@@ -429,7 +444,6 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
     if (!_isRegular) return _selectedDate;
 
     final today = _dateOnly(DateTime.now());
-
     final slots = _dateSchedules[_selectedDate] ?? _currentSlots;
 
     final futureSlots = slots.where((slot) {
@@ -455,6 +469,88 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
     );
   }
 
+  DateTime? _parseDob(dynamic value) {
+    if (value is Timestamp) {
+      return value.toDate();
+    }
+
+    if (value is String) {
+      return DateTime.tryParse(value);
+    }
+
+    return null;
+  }
+
+  int _ageOnDate(DateTime dob, DateTime today) {
+    return today.year -
+        dob.year -
+        ((today.month < dob.month ||
+                (today.month == dob.month && today.day < dob.day))
+            ? 1
+            : 0);
+  }
+
+  Future<bool> _ensureCustomerProfile(User user) async {
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+
+    final data = userDoc.data() ?? <String, dynamic>{};
+    final name = (data['name'] ?? '').toString().trim();
+    final dob = _parseDob(data['dateOfBirth']);
+
+    final today = DateUtils.dateOnly(DateTime.now());
+
+    if (name.isNotEmpty && dob != null && _ageOnDate(dob, today) >= 18) {
+      return true;
+    }
+
+    if (!mounted) return false;
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => NameSetupScreen(
+          bookingWalkType: _selectedType!.name,
+        ),
+      ),
+    );
+
+    if (!mounted) return false;
+
+    final refreshed = FirebaseAuth.instance.currentUser;
+
+    if (refreshed == null) {
+      _message('Please login karke profile complete karein.');
+      return false;
+    }
+
+    final refreshedDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(refreshed.uid)
+        .get();
+
+    final refreshedData =
+        refreshedDoc.data() ?? <String, dynamic>{};
+
+    final refreshedName =
+        (refreshedData['name'] ?? '').toString().trim();
+
+    final refreshedDob = _parseDob(refreshedData['dateOfBirth']);
+
+    if (refreshedName.isEmpty || refreshedDob == null) {
+      _message('Pehle apna profile complete karein.');
+      return false;
+    }
+
+    if (_ageOnDate(refreshedDob, today) < 18) {
+      _message('Booking ke liye customer ki age 18+ honi chahiye.');
+      return false;
+    }
+
+    return true;
+  }
+
   Future<void> _continueToDogSelection() async {
     if (_selectedType == null) {
       _message('Please Walk Type select karein.');
@@ -467,8 +563,8 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
     }
 
     if (_isOneTime) {
-      // The actual immediate request is created after review.
-      // Do not display a fake confirmed availability time.
+      // Walk Now is an immediate request.
+      // Actual availability is not confirmed here.
     } else if (_isRegular) {
       final today = _dateOnly(DateTime.now());
       final startDate = _regularStartDate() ?? today;
@@ -509,70 +605,15 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
       }
     }
 
-    final user = FirebaseAuth.instance.currentUser;
-
-    if (user == null) {
-      await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => PhoneLoginScreen(
-            bookingWalkType: _selectedType!.name,
-          ),
-        ),
-      );
-
-      if (!mounted) return;
-
-      if (FirebaseAuth.instance.currentUser == null) {
-        _message('Booking continue karne ke liye login karein.');
-        return;
-      }
-    }
-
-    final currentUser = FirebaseAuth.instance.currentUser;
-
-    if (currentUser == null) return;
-
     setState(() => _isContinuing = true);
 
     try {
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(currentUser.uid)
-          .get();
+      var user = FirebaseAuth.instance.currentUser;
 
-      final data = userDoc.data() ?? <String, dynamic>{};
-      final name = (data['name'] ?? '').toString().trim();
-
-      final dobValue = data['dateOfBirth'];
-      DateTime? dob;
-
-      if (dobValue is Timestamp) {
-        dob = dobValue.toDate();
-      } else if (dobValue is String) {
-        dob = DateTime.tryParse(dobValue);
-      }
-
-      var age = 0;
-
-      if (dob != null) {
-        final today = DateTime.now();
-
-        age = today.year -
-            dob.year -
-            ((today.month < dob.month ||
-                    (today.month == dob.month && today.day < dob.day))
-                ? 1
-                : 0);
-      }
-
-      if (name.isEmpty || dob == null || age < 18) {
-        if (!mounted) return;
-
-        setState(() => _isContinuing = false);
-
+      if (user == null) {
         await Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => NameSetupScreen(
+            builder: (_) => PhoneLoginScreen(
               bookingWalkType: _selectedType!.name,
             ),
           ),
@@ -580,58 +621,19 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
 
         if (!mounted) return;
 
-        final refreshed = FirebaseAuth.instance.currentUser;
+        user = FirebaseAuth.instance.currentUser;
 
-        if (refreshed == null) {
-          _message('Please login karke profile complete karein.');
-          return;
-        }
-
-        final refreshedDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(refreshed.uid)
-            .get();
-
-        final refreshedData =
-            refreshedDoc.data() ?? <String, dynamic>{};
-
-        final refreshedName =
-            (refreshedData['name'] ?? '').toString().trim();
-
-        final refreshedDobValue = refreshedData['dateOfBirth'];
-
-        DateTime? refreshedDob;
-
-        if (refreshedDobValue is Timestamp) {
-          refreshedDob = refreshedDobValue.toDate();
-        } else if (refreshedDobValue is String) {
-          refreshedDob = DateTime.tryParse(refreshedDobValue);
-        }
-
-        if (refreshedName.isEmpty || refreshedDob == null) {
-          _message('Pehle apna profile complete karein.');
-          return;
-        }
-
-        final today = DateTime.now();
-
-        final refreshedAge = today.year -
-            refreshedDob.year -
-            ((today.month < refreshedDob.month ||
-                    (today.month == refreshedDob.month &&
-                        today.day < refreshedDob.day))
-                ? 1
-                : 0);
-
-        if (refreshedAge < 18) {
-          _message('Booking ke liye customer ki age 18+ honi chahiye.');
+        if (user == null) {
+          _message('Booking continue karne ke liye login karein.');
           return;
         }
       }
 
-      final schedule = _buildSchedule();
+      final profileComplete = await _ensureCustomerProfile(user);
 
-      if (!mounted) return;
+      if (!mounted || !profileComplete) return;
+
+      final schedule = _buildSchedule();
 
       await Navigator.of(context).push(
         MaterialPageRoute(
@@ -670,7 +672,7 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
             'time': 'ASAP',
             'duration': slot.durationMinutes,
             'price': _slotPrice(slot),
-          }
+          },
         ],
         'dailyPrice': _slotPrice(slot),
       };
@@ -689,7 +691,6 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
           : originalSlots;
 
       final slots = startSlots.isEmpty ? originalSlots : startSlots;
-
       final firstSlot = slots.first;
 
       return {
@@ -775,7 +776,6 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
               style: TextStyle(color: bookingMuted),
             ),
             const SizedBox(height: 16),
-
             _typeCard(
               type: WalkBookingType.oneTime,
               title: 'Walk Now',
@@ -796,7 +796,6 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
               subtitle: 'Apni pasand ki dates aur walks select karein.',
               icon: Icons.calendar_month,
             ),
-
             if (_selectedType != null) ...[
               const SizedBox(height: 22),
               _sectionCard(
@@ -805,15 +804,12 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
                 child: _buildScheduleSetup(),
               ),
             ],
-
             const SizedBox(height: 20),
-
             SizedBox(
               height: 54,
               child: FilledButton(
-                onPressed: _isContinuing
-                    ? null
-                    : _continueToDogSelection,
+                onPressed:
+                    _isContinuing ? null : _continueToDogSelection,
                 style: FilledButton.styleFrom(
                   backgroundColor: bookingOrange,
                   foregroundColor: Colors.white,
@@ -832,9 +828,7 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
                       )
                     : const Text(
                         'Continue to Dog Selection',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
               ),
             ),
@@ -918,7 +912,6 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
   Widget _buildScheduleSetup() {
     if (_isOneTime) {
       final slot = _currentSlots.first;
-      final price = _slotPrice(slot);
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -942,7 +935,7 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
           const SizedBox(height: 14),
           _durationSelector(slot),
           const SizedBox(height: 10),
-          _priceLine(price),
+          _priceLine(_slotPrice(slot)),
         ],
       );
     }
@@ -969,18 +962,7 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: _selectedDates.toList()
-              ..sort((a, b) => a.compareTo(b))
-              ..toList().map((date) {
-                final selected = _dateOnly(date) == _selectedDate;
-
-                return ChoiceChip(
-                  label: Text(_formatDate(date)),
-                  selected: selected,
-                  selectedColor: const Color(0xFFFFE0C2),
-                  onSelected: (_) => _selectScheduleDate(date),
-                );
-              }).toList(),
+            children: _buildDateChips(),
           ),
           const SizedBox(height: 8),
           if (_selectedDates.length > 1)
@@ -1016,7 +998,6 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
           ),
           const SizedBox(height: 12),
         ],
-
         if (_isRegular) ...[
           const Text(
             'Walks per day',
@@ -1036,33 +1017,24 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
           ),
           const SizedBox(height: 12),
         ],
-
         ..._currentSlots.asMap().entries.map((entry) {
-          final index = entry.key;
-          final slot = entry.value;
-
           return Padding(
             padding: const EdgeInsets.only(bottom: 14),
-            child: _walkSlotCard(index + 1, slot),
+            child: _walkSlotCard(entry.key + 1, entry.value),
           );
         }),
-
         const Divider(height: 24),
-
         _detailLine(
           'Total daily duration',
           '$_totalDurationMinutes minutes',
         ),
-
         const SizedBox(height: 8),
-
         _detailLine(
           _isRegular ? 'Estimated daily total' : 'Estimated date total',
           _priceForSlots(_currentSlots) == null
               ? 'Price to be confirmed'
               : '₹${_priceForSlots(_currentSlots)}',
         ),
-
         if (_isRegular) ...[
           const SizedBox(height: 12),
           _detailLine(
@@ -1070,9 +1042,7 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
             _formatDate(_regularStartDate() ?? _selectedDate),
           ),
         ],
-
         const SizedBox(height: 8),
-
         const Text(
           'Price is an estimate. Final pricing and walker availability '
           'must be confirmed before the booking is accepted.',
@@ -1080,6 +1050,65 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
             fontSize: 12,
             color: bookingMuted,
             height: 1.4,
+          ),
+        ),
+      ],
+    );
+  }
+
+  List<Widget> _buildDateChips() {
+    final sortedDates = _selectedDates.toList()
+      ..sort((a, b) => a.compareTo(b));
+
+    return sortedDates.map((date) {
+      final selected = _dateOnly(date) == _selectedDate;
+
+      return ChoiceChip(
+        label: Text(_formatDate(date)),
+        selected: selected,
+        selectedColor: const Color(0xFFFFE0C2),
+        onSelected: (_) => _selectScheduleDate(date),
+      );
+    }).toList();
+  }
+
+  Widget _durationSelector(_WalkSlot slot) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Duration',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: bookingText,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [20, 30, 45, 60].map((minutes) {
+            return ChoiceChip(
+              label: Text('$minutes min'),
+              selected: slot.durationMinutes == minutes,
+              selectedColor: const Color(0xFFFFE0C2),
+              onSelected: (_) {
+                setState(() {
+                  slot.durationMinutes = minutes;
+                });
+              },
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 6),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton(
+            onPressed: () => _chooseDuration(slot),
+            child: const Text(
+              'Custom duration',
+              style: TextStyle(color: bookingOrange),
+            ),
           ),
         ),
       ],
@@ -1107,17 +1136,12 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
           const SizedBox(height: 10),
           Row(
             children: [
-              const Icon(
-                Icons.access_time,
-                color: bookingOrange,
-              ),
+              const Icon(Icons.access_time, color: bookingOrange),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   _formatTime(slot.time),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
               TextButton(
@@ -1130,41 +1154,7 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Duration',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: bookingText,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [20, 30, 45, 60].map((minutes) {
-              return ChoiceChip(
-                label: Text('$minutes min'),
-                selected: slot.durationMinutes == minutes,
-                selectedColor: const Color(0xFFFFE0C2),
-                onSelected: (_) {
-                  setState(() {
-                    slot.durationMinutes = minutes;
-                  });
-                },
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 6),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton(
-              onPressed: () => _chooseDuration(slot),
-              child: const Text(
-                'Custom duration',
-                style: TextStyle(color: bookingOrange),
-              ),
-            ),
-          ),
+          _durationSelector(slot),
           _priceLine(_slotPrice(slot)),
         ],
       ),
