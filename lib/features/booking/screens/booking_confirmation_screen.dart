@@ -73,13 +73,15 @@ class _BookingConfirmationScreenState
       (widget.dogDetails['dogId'] ??
               widget.dogDetails['id'] ??
               '')
-          .toString();
+          .toString()
+          .trim();
 
   String get _addressId =>
       (widget.pickupAddress['addressId'] ??
               widget.pickupAddress['id'] ??
               '')
-          .toString();
+          .toString()
+          .trim();
 
   List<Map<String, dynamic>> get _walks {
     final raw = widget.schedule['walks'];
@@ -124,7 +126,6 @@ class _BookingConfirmationScreenState
     return match == null ? 30 : int.parse(match.group(0)!);
   }
 
-  // केवल approved pricing service से कीमत निकलेगी।
   double? _price(Map<String, dynamic> walk) {
     return WalkPricingService.priceForDuration(_duration(walk))
         ?.toDouble();
@@ -271,10 +272,6 @@ class _BookingConfirmationScreenState
     return time;
   }
 
-  // ------------------------------------------------------------
-  // BASIC INFO
-  // ------------------------------------------------------------
-
   Map<String, dynamic>? get _summaryWalk {
     if (_isChooseDates && _dateSchedules.isNotEmpty) {
       final firstDayWalks = _walksForDay(_dateSchedules.first);
@@ -326,10 +323,6 @@ class _BookingConfirmationScreenState
 
     return '${_duration(walk)} minutes';
   }
-
-  // ------------------------------------------------------------
-  // SUMMARY CARD
-  // ------------------------------------------------------------
 
   Widget _summaryLine(String label, String value) {
     return Padding(
@@ -411,10 +404,6 @@ class _BookingConfirmationScreenState
     final walk = _summaryWalk;
     final durationPrice = walk == null ? null : _price(walk);
 
-    // अभी अलग से approved extra-charge source नहीं है।
-    // इसलिए अतिरिक्त शुल्क का अनुमान नहीं लगाया जाएगा।
-    const double additionalCharges = 0;
-
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -485,15 +474,12 @@ class _BookingConfirmationScreenState
                 : _isRegular
                     ? 'Walk charges · per day'
                     : 'Walk charges',
-            _isChooseDates || _isRegular
-                ? _money(total)
-                : _money(durationPrice),
-          ),
-          if (additionalCharges > 0)
-            _priceLine(
-              'Additional charges',
-              _money(additionalCharges),
+            _money(
+              _isChooseDates || _isRegular
+                  ? total
+                  : durationPrice,
             ),
+          ),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 7),
             child: Divider(height: 1, color: confirmationBorder),
@@ -522,10 +508,6 @@ class _BookingConfirmationScreenState
       ),
     );
   }
-
-  // ------------------------------------------------------------
-  // DETAIL SECTIONS
-  // ------------------------------------------------------------
 
   Widget _section({
     required String title,
@@ -758,10 +740,6 @@ class _BookingConfirmationScreenState
     );
   }
 
-  // ------------------------------------------------------------
-  // BOOKING VALIDATION & FIRESTORE SUBMISSION
-  // ------------------------------------------------------------
-
   bool _validWalk(Map<String, dynamic> walk) {
     final duration = _duration(walk);
     final time = (walk['time'] ?? '').toString().trim();
@@ -773,6 +751,39 @@ class _BookingConfirmationScreenState
     if (time.isEmpty) return false;
 
     return true;
+  }
+
+  Map<String, dynamic> _cleanWalk(
+    Map<String, dynamic> walk,
+    int index,
+  ) {
+    final result = <String, dynamic>{
+      'walkNumber': index + 1,
+      'time': (walk['time'] ?? '').toString(),
+      'duration': _duration(walk),
+    };
+
+    if (walk['startHour'] is num) {
+      result['startHour'] = (walk['startHour'] as num).toInt();
+    }
+
+    if (walk['startMinute'] is num) {
+      result['startMinute'] = (walk['startMinute'] as num).toInt();
+    }
+
+    final price = _price(walk);
+
+    if (price != null) {
+      result['price'] = price;
+    }
+
+    return result;
+  }
+
+  String _dateKey(DateTime date) {
+    return '${date.year.toString().padLeft(4, '0')}-'
+        '${date.month.toString().padLeft(2, '0')}-'
+        '${date.day.toString().padLeft(2, '0')}';
   }
 
   Future<void> _submitBooking() async {
@@ -842,8 +853,16 @@ class _BookingConfirmationScreenState
 
     setState(() => _isSubmitting = true);
 
+    // Error stage helps identify the operation that fails.
+    String currentStage = 'Starting booking';
+
     try {
       final firestore = FirebaseFirestore.instance;
+
+      // Stage 1: Read the selected dog.
+      currentStage = 'Reading selected dog';
+
+      debugPrint('DOJO WALK: $currentStage');
 
       final petSnapshot = await firestore
           .collection('users')
@@ -885,19 +904,7 @@ class _BookingConfirmationScreenState
 
       final primaryWalkSchedules =
           primaryWalks.asMap().entries.map((entry) {
-        final walk = entry.value;
-        final price = _price(walk);
-
-        return <String, dynamic>{
-          'walkNumber': entry.key + 1,
-          'time': (walk['time'] ?? '').toString(),
-          'duration': _duration(walk),
-          if (walk['startHour'] is num)
-            'startHour': (walk['startHour'] as num).toInt(),
-          if (walk['startMinute'] is num)
-            'startMinute': (walk['startMinute'] as num).toInt(),
-          if (price != null) 'price': price,
-        };
+        return _cleanWalk(entry.value, entry.key);
       }).toList();
 
       final addressData =
@@ -952,11 +959,7 @@ class _BookingConfirmationScreenState
               day['date'] ?? day['dateFormatted'],
             );
 
-            return date == null
-                ? ''
-                : '${date.year.toString().padLeft(4, '0')}-'
-                    '${date.month.toString().padLeft(2, '0')}-'
-                    '${date.day.toString().padLeft(2, '0')}';
+            return date == null ? '' : _dateKey(date);
           }).toList(),
           'dateSchedules': _dateSchedules.map((day) {
             final date = _parseDate(
@@ -966,24 +969,20 @@ class _BookingConfirmationScreenState
             return <String, dynamic>{
               if (date != null) 'date': Timestamp.fromDate(date),
               'walks': _walksForDay(day).asMap().entries.map((entry) {
-                final walk = entry.value;
-                final price = _price(walk);
-
-                return <String, dynamic>{
-                  'walkNumber': entry.key + 1,
-                  'time': (walk['time'] ?? '').toString(),
-                  'duration': _duration(walk),
-                  if (walk['startHour'] is num)
-                    'startHour': (walk['startHour'] as num).toInt(),
-                  if (walk['startMinute'] is num)
-                    'startMinute': (walk['startMinute'] as num).toInt(),
-                  if (price != null) 'price': price,
-                };
+                return _cleanWalk(entry.value, entry.key);
               }).toList(),
             };
           }).toList(),
         });
       }
+
+      // Stage 2: Write the booking document.
+      currentStage = 'Saving booking document';
+
+      debugPrint('DOJO WALK: $currentStage');
+      debugPrint('DOJO WALK: bookingPlan=$_bookingPlan');
+      debugPrint('DOJO WALK: serviceType=$_serviceType');
+      debugPrint('DOJO WALK: walkCount=${primaryWalks.length}');
 
       await bookingRef.set(bookingData);
 
@@ -1029,12 +1028,18 @@ class _BookingConfirmationScreenState
           ],
         ),
       );
-    } catch (error) {
+    } catch (error, stackTrace) {
+      debugPrint('DOJO WALK booking failed at: $currentStage');
+      debugPrint('DOJO WALK booking error: $error');
+      debugPrintStack(stackTrace: stackTrace);
+
       if (!mounted) return;
 
       setState(() => _isSubmitting = false);
 
-      _showMessage('Booking could not be saved.\n${error.toString()}');
+      _showMessage(
+        'Booking failed at: $currentStage\n$error',
+      );
     }
   }
 
@@ -1044,6 +1049,7 @@ class _BookingConfirmationScreenState
         content: Text(message),
         backgroundColor: confirmationText,
         behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 6),
       ),
     );
   }
