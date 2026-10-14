@@ -45,12 +45,12 @@ flutter:
   uses-material-design: true
 
   assets:
-    - "assets/images/DOJO WALK.png"
-    - "assets/images/dojo_splash.png"
+    - "assets/images/DOJO WALK SPLASH.png"
+    - "assets/images/DOJO WALK APP ICON .png"
 
 flutter_launcher_icons:
   android: true
   ios: false
-  image_path: "assets/images/DOJO WALK.png"
+  image_path: "assets/images/DOJO WALK APP ICON .png"
   adaptive_icon_background: "#FFFAF5"
-  adaptive_icon_foreground: "assets/images/DOJO WALK.png"
+  adaptive_icon_foreground: "assets/images/DOJO WALK APP ICON .png"
