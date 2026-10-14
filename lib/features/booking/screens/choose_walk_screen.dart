@@ -24,7 +24,7 @@ class _WalkSlot {
 
   _WalkSlot({
     required this.time,
-    this.durationMinutes = 30,
+    required this.durationMinutes,
   });
 
   Map<String, dynamic> toMap() {
