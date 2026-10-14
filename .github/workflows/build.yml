@@ -1,4 +1,3 @@
-
 name: Build Android Release
 
 on:
@@ -48,11 +47,14 @@ jobs:
       - name: Check Firebase Configuration
         run: test -f android/app/google-services.json
 
+      - name: Check Required Images
+        run: |
+          test -s "assets/images/DOJO WALK SPLASH.png"
+          test -s "assets/images/DOJO WALK APP ICON .png"
+          echo "Splash and app icon images are present."
+
       - name: Install Dependencies
         run: flutter pub get
-
-      - name: Check App Icon Image
-        run: test -s "assets/images/DOJO WALK.png"
 
       - name: Generate Android App Icon
         run: dart run flutter_launcher_icons
