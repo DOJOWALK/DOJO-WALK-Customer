@@ -8,7 +8,6 @@ import '../../addresses/models/saved_address.dart';
 import '../../addresses/services/address_service.dart';
 import '../../addresses/screens/address_form_screen.dart';
 import '../../booking/screens/choose_walk_screen.dart';
-import '../../booking/screens/my_bookings_screen.dart';
 import '../../booking/screens/live_walk_screen.dart';
 import '../../coupons/screens/coupons_offers_screen.dart';
 import '../../notifications/screens/notifications_screen.dart';
@@ -590,9 +589,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            _t('Tap to view booking status',
-                                'बुकिंग का स्टेटस देखने के लिए टैप करें',
-                                'বুকিংয়ের স্ট্যাটাস দেখতে ট্যাপ করুন'),
+                            _t('Tap to view Live Walk',
+                                'लाइव वॉक देखने के लिए टैप करें',
+                                'লাইভ ওয়াক দেখতে ট্যাপ করুন'),
                             style: const TextStyle(color: dojoMuted, fontSize: 11),
                           ),
                         ],
