@@ -8,7 +8,7 @@ const Color bookingsOrange = Color(0xFFFF7900);
 const Color bookingsBackground = Color(0xFFFFFAF5);
 const Color bookingsText = Color(0xFF202020);
 const Color bookingsMuted = Color(0xFF777777);
-const Color bookingsBorder = Color(0xFFF0E9E2);
+const Color bookingsBorder = Color(0xFFFFE1C8);
 
 String _t(String en, String hi, String bn) {
   switch (appLocale.value.languageCode) {
@@ -814,9 +814,20 @@ class _BookingCard extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: bookingsBackground,
-                  borderRadius: BorderRadius.circular(13),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Colors.white, Color(0xFFFFEEDF)],
+                  ),
+                  borderRadius: BorderRadius.circular(17),
                   border: Border.all(color: bookingsBorder),
+                  boxShadow: [
+                    BoxShadow(
+                      color: bookingsOrange.withValues(alpha: 0.08),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
