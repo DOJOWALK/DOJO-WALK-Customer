@@ -47,11 +47,22 @@ class PrivacyTermsScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: _orange.withValues(alpha: 0.2),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Colors.white, Color(0xFFFFF4E8)],
                   ),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: _orange.withValues(alpha: 0.22),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _orange.withValues(alpha: 0.10),
+                      blurRadius: 24,
+                      offset: const Offset(0, 9),
+                    ),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -60,8 +71,19 @@ class PrivacyTermsScreen extends StatelessWidget {
                       width: 54,
                       height: 54,
                       decoration: BoxDecoration(
-                        color: _orange.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(16),
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [Color(0xFFFFD6B2), Color(0xFFFFF0E1)],
+                        ),
+                        borderRadius: BorderRadius.circular(18),
+                        boxShadow: [
+                          BoxShadow(
+                            color: _orange.withValues(alpha: 0.18),
+                            blurRadius: 12,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
                       ),
                       child: const Icon(
                         Icons.shield_outlined,
@@ -389,9 +411,22 @@ class PrivacyTermsScreen extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFF0E8DF)),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, Color(0xFFFFFCF8)],
+        ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: _orange.withValues(alpha: 0.12),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: _orange.withValues(alpha: 0.055),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
