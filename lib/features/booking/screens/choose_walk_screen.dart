@@ -848,11 +848,6 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 6),
-            const Text(
-              'Apne dog ke liye suitable walk plan select karein.',
-              style: TextStyle(color: bookingMuted),
-            ),
             const SizedBox(height: 16),
             _typeCard(
               type: WalkBookingType.oneTime,
