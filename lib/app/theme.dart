@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class DojoWalkTheme {
-  static const Color primary = Color(0xFFFF6A00);
-  static const Color background = Color(0xFFF8F8F8);
+  static const Color primary = Color(0xFFFF7900);
+  static const Color background = Color(0xFFFFFAF5);
   static const Color text = Color(0xFF171717);
   static const Color mutedText = Color(0xFF737373);
 
@@ -53,7 +53,8 @@ class DojoWalkTheme {
           backgroundColor: primary,
           foregroundColor: Colors.white,
           minimumSize: const Size(double.infinity, 54),
-          elevation: 0,
+          elevation: 3,
+          shadowColor: const Color(0x33FF7900),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
