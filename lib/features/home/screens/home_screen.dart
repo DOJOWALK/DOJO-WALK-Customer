@@ -9,6 +9,7 @@ import '../../addresses/services/address_service.dart';
 import '../../addresses/screens/address_form_screen.dart';
 import '../../booking/screens/choose_walk_screen.dart';
 import '../../booking/screens/my_bookings_screen.dart';
+import '../../booking/screens/live_walk_screen.dart';
 import '../../coupons/screens/coupons_offers_screen.dart';
 import '../../notifications/screens/notifications_screen.dart';
 import '../../profile/screens/my_dogs_screen.dart';
@@ -508,7 +509,9 @@ class _HomeScreenState extends State<HomeScreen> {
             color: Colors.transparent,
             child: InkWell(
               borderRadius: BorderRadius.circular(22),
-              onTap: () => _openScreen(const MyBookingsScreen()),
+              onTap: () => _openScreen(
+                LiveWalkScreen(bookingId: activeDocs.first.id),
+              ),
               child: Ink(
                 padding: const EdgeInsets.all(17),
                 decoration: BoxDecoration(
