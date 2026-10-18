@@ -716,6 +716,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: dojoOrange,
                               foregroundColor: Colors.white,
+                              elevation: 6,
+                              shadowColor: dojoOrange.withValues(alpha: 0.32),
                               padding: const EdgeInsets.symmetric(
                                 vertical: 16,
                               ),
