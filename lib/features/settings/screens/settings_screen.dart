@@ -10,6 +10,7 @@ const Color settingsOrange = Color(0xFFFF7900);
 const Color settingsBackground = Color(0xFFFFFAF5);
 const Color settingsText = Color(0xFF202020);
 const Color settingsMuted = Color(0xFF777777);
+const Color settingsWarmBorder = Color(0xFFFFE1C8);
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -330,6 +331,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       appBar: AppBar(
         backgroundColor: settingsBackground,
         elevation: 0,
+        scrolledUnderElevation: 0,
         iconTheme: const IconThemeData(color: settingsText),
         title: Text(
           _t('Settings', 'सेटिंग्स', 'সেটিংস'),
@@ -350,7 +352,14 @@ class _SettingsScreenState extends State<SettingsScreen>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(22),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: settingsOrange.withValues(alpha: 0.22),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -472,9 +481,20 @@ class _SettingsScreenState extends State<SettingsScreen>
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(17),
-        border: Border.all(color: const Color(0xFFF0ECE8)),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, Color(0xFFFFF7EF)],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: settingsWarmBorder),
+        boxShadow: [
+          BoxShadow(
+            color: settingsOrange.withValues(alpha: 0.08),
+            blurRadius: 13,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(
