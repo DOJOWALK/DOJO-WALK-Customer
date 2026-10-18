@@ -695,14 +695,15 @@ class _BookingCard extends StatelessWidget {
 
     return Card(
       color: Colors.white,
-      elevation: 0,
-      margin: const EdgeInsets.only(bottom: 14),
+      elevation: 3,
+      shadowColor: bookingsOrange.withValues(alpha: 0.14),
+      margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: const BorderSide(color: bookingsBorder),
+        borderRadius: BorderRadius.circular(22),
+        side: const BorderSide(color: Color(0xFFFFE1C8)),
       ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(22),
         onTap: () => _openDetails(context),
         child: Padding(
           padding: const EdgeInsets.all(17),
@@ -815,7 +816,7 @@ class _BookingCard extends StatelessWidget {
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: bookingsBackground,
-                  borderRadius: BorderRadius.circular(13),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: bookingsBorder),
                 ),
                 child: Row(
