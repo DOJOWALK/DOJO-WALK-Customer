@@ -282,6 +282,38 @@ class _PickupAddressSelectionScreenState
                                 height: 1.4,
                               ),
                             ),
+                            Container(
+                              padding: const EdgeInsets.all(15),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [Colors.white, Color(0xFFFFEEDF)],
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: const Color(0xFFFFE1C8)),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: pickupOrange.withValues(alpha: 0.10),
+                                    blurRadius: 14,
+                                    offset: const Offset(0, 5),
+                                  ),
+                                ],
+                              ),
+                              child: const Row(
+                                children: [
+                                  Icon(Icons.verified_user_outlined, color: pickupOrange, size: 25),
+                                  SizedBox(width: 11),
+                                  Expanded(
+                                    child: Text(
+                                      'Choose a saved pickup point',
+                                      style: TextStyle(fontWeight: FontWeight.w700, color: pickupText),
+                                    ),
+                                  ),
+                                  Icon(Icons.touch_app_outlined, color: pickupOrange),
+                                ],
+                              ),
+                            ),
                             const SizedBox(height: 18),
                             ...addresses.map((address) {
                               final selected =
@@ -294,21 +326,32 @@ class _PickupAddressSelectionScreenState
                                     const EdgeInsets.only(bottom: 12),
                                 child: InkWell(
                                   onTap: () => _selectAddress(address),
-                                  borderRadius: BorderRadius.circular(18),
-                                  child: Container(
+                                  borderRadius: BorderRadius.circular(22),
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 180),
                                     padding: const EdgeInsets.all(16),
                                     decoration: BoxDecoration(
-                                      color: selected
-                                          ? const Color(0xFFFFE9D6)
-                                          : Colors.white,
-                                      borderRadius:
-                                          BorderRadius.circular(18),
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: selected
+                                            ? const [Color(0xFFFFE3C7), Color(0xFFFFF7EF)]
+                                            : const [Colors.white, Color(0xFFFFFAF6)],
+                                      ),
+                                      borderRadius: BorderRadius.circular(22),
                                       border: Border.all(
                                         color: selected
                                             ? pickupOrange
-                                            : const Color(0xFFF0E2D5),
+                                            : const Color(0xFFFFE1C8),
                                         width: selected ? 2 : 1,
                                       ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: pickupOrange.withValues(alpha: selected ? 0.17 : 0.07),
+                                          blurRadius: selected ? 18 : 12,
+                                          offset: const Offset(0, 6),
+                                        ),
+                                      ],
                                     ),
                                     child: Row(
                                       crossAxisAlignment:
@@ -318,11 +361,21 @@ class _PickupAddressSelectionScreenState
                                           width: 46,
                                           height: 46,
                                           decoration: BoxDecoration(
-                                            color: selected
-                                                ? pickupOrange
-                                                : pickupBackground,
-                                            borderRadius:
-                                                BorderRadius.circular(14),
+                                            gradient: LinearGradient(
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                              colors: selected
+                                                  ? const [Color(0xFFFF9A3D), pickupOrange]
+                                                  : const [Colors.white, Color(0xFFFFE9D6)],
+                                            ),
+                                            borderRadius: BorderRadius.circular(16),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: pickupOrange.withValues(alpha: selected ? 0.22 : 0.08),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 3),
+                                              ),
+                                            ],
                                           ),
                                           child: Icon(
                                             Icons.location_on_outlined,
@@ -440,9 +493,16 @@ class _PickupAddressSelectionScreenState
                     color: Colors.white,
                     border: Border(
                       top: BorderSide(
-                        color: Color(0xFFF0E2D5),
+                        color: Color(0xFFFFE1C8),
                       ),
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0x12FF7900),
+                        blurRadius: 16,
+                        offset: Offset(0, -5),
+                      ),
+                    ],
                   ),
                   child: Column(
                     children: [
@@ -455,8 +515,10 @@ class _PickupAddressSelectionScreenState
                           style: FilledButton.styleFrom(
                             backgroundColor: pickupOrange,
                             foregroundColor: Colors.white,
+                            elevation: 4,
+                            shadowColor: pickupOrange.withValues(alpha: 0.30),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
+                              borderRadius: BorderRadius.circular(17),
                             ),
                           ),
                           child: _isContinuing
