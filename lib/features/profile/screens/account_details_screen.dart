@@ -241,12 +241,23 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                       width: 94,
                       height: 94,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFFEAD8),
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [Color(0xFFFFE7D1), Color(0xFFFFF8F0)],
+                        ),
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: Colors.white,
                           width: 4,
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: accountOrange.withValues(alpha: 0.18),
+                            blurRadius: 22,
+                            offset: const Offset(0, 9),
+                          ),
+                        ],
                       ),
                       child: ClipOval(
                         child: _photoUrl.isNotEmpty
@@ -317,8 +328,22 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(15),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF1EFED),
-                      borderRadius: BorderRadius.circular(14),
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Colors.white, Color(0xFFFFF5EB)],
+                      ),
+                      border: Border.all(
+                        color: accountOrange.withValues(alpha: 0.16),
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: accountOrange.withValues(alpha: 0.07),
+                          blurRadius: 14,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
                     ),
                     child: Row(
                       children: [
@@ -351,9 +376,16 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         border: Border.all(
-                          color: const Color(0xFFE4DDD6),
+                          color: accountOrange.withValues(alpha: 0.18),
                         ),
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: accountOrange.withValues(alpha: 0.06),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
                       child: Row(
                         children: [
@@ -418,8 +450,10 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: accountOrange,
                         foregroundColor: Colors.white,
+                        elevation: 5,
+                        shadowColor: accountOrange.withValues(alpha: 0.32),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
+                          borderRadius: BorderRadius.circular(16),
                         ),
                       ),
                       child: _saving
@@ -463,20 +497,25 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
       hintText: hint,
       filled: true,
       fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 17,
+      ),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(
-          color: Color(0xFFE4DDD6),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(
+          color: accountOrange.withValues(alpha: 0.16),
         ),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         borderSide: const BorderSide(
           color: accountOrange,
-          width: 1.5,
+          width: 1.6,
         ),
       ),
     );
