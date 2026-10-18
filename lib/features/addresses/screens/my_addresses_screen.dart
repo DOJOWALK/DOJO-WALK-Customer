@@ -10,6 +10,7 @@ const Color addressOrange = Color(0xFFFF7900);
 const Color addressBackground = Color(0xFFFFFAF5);
 const Color addressText = Color(0xFF202020);
 const Color addressMuted = Color(0xFF777777);
+const Color addressWarmBorder = Color(0xFFFFE1C8);
 
 class MyAddressesScreen extends StatelessWidget {
   const MyAddressesScreen({super.key});
@@ -44,6 +45,7 @@ class MyAddressesScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: addressBackground,
         elevation: 0,
+        scrolledUnderElevation: 0,
         title: const Text(
           'Saved Addresses',
           style: TextStyle(
@@ -86,8 +88,20 @@ class MyAddressesScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(17),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFEAD8),
-                  borderRadius: BorderRadius.circular(18),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFFFFEAD8), Color(0xFFFFF6ED)],
+                  ),
+                  borderRadius: BorderRadius.circular(21),
+                  border: Border.all(color: addressWarmBorder),
+                  boxShadow: [
+                    BoxShadow(
+                      color: addressOrange.withValues(alpha: 0.09),
+                      blurRadius: 14,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
                 ),
                 child: const Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,8 +130,20 @@ class MyAddressesScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(28),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Colors.white, Color(0xFFFFF7EF)],
+                    ),
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: addressWarmBorder),
+                    boxShadow: [
+                      BoxShadow(
+                        color: addressOrange.withValues(alpha: 0.07),
+                        blurRadius: 14,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
                   ),
                   child: const Column(
                     children: [
@@ -167,6 +193,8 @@ class MyAddressesScreen extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: addressOrange,
               foregroundColor: Colors.white,
+              elevation: 3,
+              shadowColor: addressOrange.withValues(alpha: 0.30),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
@@ -201,13 +229,24 @@ class MyAddressesScreen extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 13),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(19),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, Color(0xFFFFF8F1)],
+        ),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(
           color: address.isDefault
-              ? addressOrange.withValues(alpha: 0.55)
-              : const Color(0xFFEFEFEF),
+              ? addressOrange.withValues(alpha: 0.65)
+              : addressWarmBorder,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: addressOrange.withValues(alpha: 0.08),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -217,8 +256,13 @@ class MyAddressesScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFF0E3),
-                  borderRadius: BorderRadius.circular(12),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFFFFE2C7), Color(0xFFFFF4E8)],
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: addressWarmBorder),
                 ),
                 child: Icon(
                   address.label == 'Home'
