@@ -1,4 +1,5 @@
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -7,6 +8,7 @@ import '../../addresses/models/saved_address.dart';
 import '../../addresses/services/address_service.dart';
 import '../../addresses/screens/address_form_screen.dart';
 import '../../booking/screens/choose_walk_screen.dart';
+import '../../booking/screens/my_bookings_screen.dart';
 import '../../coupons/screens/coupons_offers_screen.dart';
 import '../../notifications/screens/notifications_screen.dart';
 import '../../profile/screens/my_dogs_screen.dart';
@@ -475,6 +477,135 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
 
+
+  Widget _activeWalkSection() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return const SizedBox.shrink();
+
+    return StreamBuilder(
+      stream: FirebaseFirestore.instance
+          .collection('bookings')
+          .where('customerId', isEqualTo: user.uid)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError || !snapshot.hasData) {
+          return const SizedBox.shrink();
+        }
+
+        final activeDocs = snapshot.data!.docs.where((doc) {
+          final status = (doc.data()['status'] ?? '')
+              .toString()
+              .trim()
+              .toLowerCase();
+          return status == 'in_progress' || status == 'in progress';
+        }).toList();
+
+        if (activeDocs.isEmpty) return const SizedBox.shrink();
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 22),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(22),
+              onTap: () => _openScreen(const MyBookingsScreen()),
+              child: Ink(
+                padding: const EdgeInsets.all(17),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFFFFF0DF), Colors.white, Color(0xFFFFE0BD)],
+                  ),
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: const Color(0xFFFFC98F), width: 1.2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: dojoOrange.withValues(alpha: 0.13),
+                      blurRadius: 18,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFFA64D), dojoOrange],
+                        ),
+                        borderRadius: BorderRadius.circular(15),
+                        boxShadow: [
+                          BoxShadow(
+                            color: dojoOrange.withValues(alpha: 0.22),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(Icons.radar_rounded, color: Colors.white, size: 25),
+                    ),
+                    const SizedBox(width: 13),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 7,
+                                height: 7,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF20A464),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                _t('LIVE WALK', 'लाइव वॉक', 'লাইভ ওয়াক'),
+                                style: const TextStyle(
+                                  color: dojoOrange,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            _t('Your dog’s walk is in progress',
+                                'आपके डॉग की वॉक चल रही है',
+                                'আপনার কুকুরের ওয়াক চলছে'),
+                            style: const TextStyle(
+                              color: dojoText,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _t('Tap to view booking status',
+                                'बुकिंग का स्टेटस देखने के लिए टैप करें',
+                                'বুকিংয়ের স্ট্যাটাস দেখতে ট্যাপ করুন'),
+                            style: const TextStyle(color: dojoMuted, fontSize: 11),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right_rounded, color: dojoOrange, size: 25),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _homeActionTile({
     required IconData icon,
     required String title,
@@ -898,7 +1029,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 18),
+                  _activeWalkSection(),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
@@ -1021,8 +1153,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  _comingSoonTile(icon: Icons.map_outlined, title: _t('Live Walk Tracking', 'लाइव वॉक ट्रैकिंग', 'লাইভ ওয়াক ট্র্যাকিং')),
-                  const SizedBox(height: 9),
                   _comingSoonTile(icon: Icons.storefront_outlined, title: _t('Pet Store', 'पेट स्टोर', 'পেট স্টোর')),
                   const SizedBox(height: 9),
                   _comingSoonTile(icon: Icons.stars_rounded, title: _t('Rewards & Membership', 'रिवॉर्ड्स और मेंबरशिप', 'রিওয়ার্ডস ও মেম্বারশিপ')),
