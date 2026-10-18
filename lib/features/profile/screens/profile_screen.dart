@@ -653,11 +653,20 @@ class ProfileScreen extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(17),
-        border: Border.all(
-          color: const Color(0xFFF0ECE8),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, Color(0xFFFFF7EF)],
         ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: profileWarmBorder),
+        boxShadow: [
+          BoxShadow(
+            color: profileOrange.withValues(alpha: 0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(
@@ -668,10 +677,15 @@ class ProfileScreen extends StatelessWidget {
           width: 43,
           height: 43,
           decoration: BoxDecoration(
-            color: iconColor == Colors.red
-                ? const Color(0xFFFFEEEE)
-                : const Color(0xFFFFF0E3),
-            borderRadius: BorderRadius.circular(13),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: iconColor == Colors.red
+                  ? const [Color(0xFFFFEEEE), Color(0xFFFFF8F8)]
+                  : const [Color(0xFFFFE1C2), Color(0xFFFFF7EE)],
+            ),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: profileWarmBorder),
           ),
           child: Icon(
             icon,
