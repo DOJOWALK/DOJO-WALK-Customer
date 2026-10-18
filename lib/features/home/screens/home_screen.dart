@@ -7,6 +7,7 @@ import '../../addresses/models/saved_address.dart';
 import '../../addresses/services/address_service.dart';
 import '../../addresses/screens/address_form_screen.dart';
 import '../../booking/screens/choose_walk_screen.dart';
+import '../../coupons/screens/coupons_offers_screen.dart';
 import '../../notifications/screens/notifications_screen.dart';
 import '../../profile/screens/my_dogs_screen.dart';
 import '../../support/screens/help_support_screen.dart';
@@ -473,6 +474,154 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+
+  Widget _homeActionTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    bool featured = false,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
+        child: Ink(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            gradient: featured
+                ? const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFFFFA64D), dojoOrange, Color(0xFFE96500)],
+                  )
+                : const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Colors.white, Color(0xFFFFF7EF)],
+                  ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: featured ? Colors.white.withValues(alpha: 0.7) : const Color(0xFFFFE1C8),
+              width: 1.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: dojoOrange.withValues(alpha: featured ? 0.2 : 0.08),
+                blurRadius: featured ? 16 : 10,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: featured ? Colors.white.withValues(alpha: 0.2) : const Color(0xFFFFEAD6),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: featured ? Colors.white.withValues(alpha: 0.45) : Colors.white,
+                  ),
+                ),
+                child: Icon(icon, color: featured ? Colors.white : dojoOrange, size: 23),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: featured ? Colors.white : dojoText,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: featured ? Colors.white.withValues(alpha: 0.9) : dojoMuted,
+                  fontSize: 11,
+                  height: 1.3,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _comingSoonTile({
+    required IconData icon,
+    required String title,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(17),
+      onTap: () => _showMessage(_t(
+        '$title is coming soon.',
+        '$title जल्द आ रहा है।',
+        '$title শীঘ্রই আসছে।',
+      )),
+      child: Ink(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(17),
+          border: Border.all(color: const Color(0xFFFFE1C8)),
+          boxShadow: [
+            BoxShadow(
+              color: dojoOrange.withValues(alpha: 0.06),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFFF0E0), Color(0xFFFFDDB8)],
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: dojoOrange, size: 21),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(
+                    color: dojoText, fontWeight: FontWeight.w700, fontSize: 12,
+                  )),
+                  const SizedBox(height: 4),
+                  Text(
+                    _t('COMING SOON', 'जल्द आ रहा है', 'শীঘ্রই আসছে'),
+                    style: const TextStyle(
+                      color: dojoOrange, fontSize: 9, fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: dojoMuted, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<Locale>(
@@ -749,6 +898,134 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 24),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _t('QUICK ACCESS', 'जल्दी खोलें', 'দ্রুত ব্যবহার'),
+                              style: const TextStyle(
+                                color: dojoText, fontSize: 14,
+                                fontWeight: FontWeight.w900, letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _t('Everything for your dog, one tap away.',
+                                  'आपके डॉग के लिए सब कुछ, एक टैप में।',
+                                  'আপনার কুকুরের প্রয়োজন, এক ট্যাপেই।'),
+                              style: const TextStyle(color: dojoMuted, fontSize: 11),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: _homeActionTile(
+                          icon: Icons.directions_walk_rounded,
+                          title: _t('Walk Now', 'अभी वॉक', 'এখনই ওয়াক'),
+                          subtitle: _t('Book a walk', 'वॉक बुक करें', 'ওয়াক বুক করুন'),
+                          onTap: _openBooking,
+                          featured: true,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _homeActionTile(
+                          icon: Icons.pets_rounded,
+                          title: _t('My Dogs', 'मेरे डॉग्स', 'আমার কুকুর'),
+                          subtitle: _t('Pet profiles', 'डॉग प्रोफाइल', 'পোষ্যের প্রোফাইল'),
+                          onTap: () => _openScreen(const MyDogsScreen()),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _homeActionTile(
+                          icon: Icons.local_offer_rounded,
+                          title: _t('Offers', 'ऑफर्स', 'অফার'),
+                          subtitle: _t('View deals', 'डील देखें', 'অফার দেখুন'),
+                          onTap: () => _openScreen(const CouponsOffersScreen()),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  Container(
+                    padding: const EdgeInsets.all(17),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Color(0xFFFFF0DF), Colors.white, Color(0xFFFFE2C3)],
+                      ),
+                      borderRadius: BorderRadius.circular(23),
+                      border: Border.all(color: const Color(0xFFFFD7B5)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: dojoOrange.withValues(alpha: 0.09),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFFFA64D), dojoOrange],
+                            ),
+                            borderRadius: BorderRadius.circular(15),
+                            boxShadow: [
+                              BoxShadow(
+                                color: dojoOrange.withValues(alpha: 0.2),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 25),
+                        ),
+                        const SizedBox(width: 13),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _t('MORE FOR YOUR BEST FRIEND', 'आपके प्यारे दोस्त के लिए और भी', 'আপনার প্রিয় বন্ধুর জন্য আরও'),
+                                style: const TextStyle(color: dojoText, fontWeight: FontWeight.w900, fontSize: 12),
+                              ),
+                              const SizedBox(height: 5),
+                              Text(
+                                _t('New pet services are on the way.',
+                                    'नई पेट सर्विस जल्द आ रही हैं।',
+                                    'নতুন পোষ্য পরিষেবা শীঘ্রই আসছে।'),
+                                style: const TextStyle(color: dojoMuted, fontSize: 11, height: 1.35),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.pets_rounded, color: dojoOrange, size: 25),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _comingSoonTile(icon: Icons.map_outlined, title: _t('Live Walk Tracking', 'लाइव वॉक ट्रैकिंग', 'লাইভ ওয়াক ট্র্যাকিং')),
+                  const SizedBox(height: 9),
+                  _comingSoonTile(icon: Icons.storefront_outlined, title: _t('Pet Store', 'पेट स्टोर', 'পেট স্টোর')),
+                  const SizedBox(height: 9),
+                  _comingSoonTile(icon: Icons.stars_rounded, title: _t('Rewards & Membership', 'रिवॉर्ड्स और मेंबरशिप', 'রিওয়ার্ডস ও মেম্বারশিপ')),
                   const SizedBox(height: 24),
                   Text(
                     _t('YOUR DOGS', 'आपके डॉग्स', 'আপনার কুকুর'),
