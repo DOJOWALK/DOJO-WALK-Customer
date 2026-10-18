@@ -493,8 +493,23 @@ class _HomeScreenState extends State<HomeScreen> {
                         width: 46,
                         height: 46,
                         decoration: BoxDecoration(
-                          color: dojoOrange,
-                          borderRadius: BorderRadius.circular(14),
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [Color(0xFFFF9A3D), dojoOrange, Color(0xFFE96500)],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.85),
+                            width: 1.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: dojoOrange.withValues(alpha: 0.28),
+                              blurRadius: 14,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
                         ),
                         child: const Icon(
                           Icons.pets,
