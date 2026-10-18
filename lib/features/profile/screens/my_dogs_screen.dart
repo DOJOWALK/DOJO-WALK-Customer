@@ -8,6 +8,7 @@ const Color dogsOrange = Color(0xFFFF7900);
 const Color dogsBackground = Color(0xFFFFFAF5);
 const Color dogsText = Color(0xFF202020);
 const Color dogsMuted = Color(0xFF777777);
+const Color dogsWarmBorder = Color(0xFFFFE1C8);
 
 String _dogTr(String en, String hi, String bn) {
   switch (appLocale.value.languageCode) {
@@ -641,10 +642,12 @@ class MyDogsScreen extends StatelessWidget {
       await showModalBottomSheet<void>(
         context: pageContext,
         isScrollControlled: true,
-        backgroundColor: dogsBackground,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        isDismissible: true,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
-            top: Radius.circular(26),
+            top: Radius.circular(28),
           ),
         ),
         builder: (sheetContext) {
@@ -715,7 +718,18 @@ class MyDogsScreen extends StatelessWidget {
                     }
                   }
 
-                  return Padding(
+                  return Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Colors.white, Color(0xFFFFFAF5)],
+                      ),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(28),
+                      ),
+                    ),
+                    child: Padding(
                     padding: EdgeInsets.only(
                       left: 20,
                       right: 20,
