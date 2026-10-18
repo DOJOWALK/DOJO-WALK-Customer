@@ -336,11 +336,22 @@ class MyDogsScreen extends StatelessWidget {
                             margin: const EdgeInsets.only(bottom: 14),
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: const Color(0xFFEEEEEE),
+                              gradient: const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [Colors.white, Color(0xFFFFF8F0)],
                               ),
+                              borderRadius: BorderRadius.circular(22),
+                              border: Border.all(
+                                color: const Color(0xFFFFE1C8),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: dogsOrange.withValues(alpha: 0.09),
+                                  blurRadius: 18,
+                                  offset: const Offset(0, 7),
+                                ),
+                              ],
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1183,7 +1194,7 @@ class MyDogsScreen extends StatelessWidget {
         vertical: 15,
       ),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(13),
+        borderRadius: BorderRadius.circular(16),
         borderSide: const BorderSide(color: Color(0xFFE7E7E7)),
       ),
       enabledBorder: OutlineInputBorder(
