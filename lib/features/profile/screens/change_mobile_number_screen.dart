@@ -247,11 +247,27 @@ class _ChangeMobileNumberScreenState
           padding: const EdgeInsets.all(22),
           children: [
             const SizedBox(height: 12),
-            const Center(
-              child: CircleAvatar(
-                radius: 42,
-                backgroundColor: Color(0xFFFFEAD8),
-                child: Icon(
+            Center(
+              child: Container(
+                width: 92,
+                height: 92,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFFFFD9B8), Color(0xFFFFF7EF)],
+                  ),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 4),
+                  boxShadow: [
+                    BoxShadow(
+                      color: changePhoneOrange.withValues(alpha: 0.2),
+                      blurRadius: 22,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: const Icon(
                   Icons.phonelink_lock_rounded,
                   size: 43,
                   color: changePhoneOrange,
@@ -307,14 +323,25 @@ class _ChangeMobileNumberScreenState
                       counterText: '',
                       filled: true,
                       fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 17,
+                      ),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide(
+                          color: changePhoneOrange.withValues(alpha: 0.16),
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(16),
                         borderSide: const BorderSide(
                           color: changePhoneOrange,
-                          width: 1.5,
+                          width: 1.6,
                         ),
                       ),
                     ),
@@ -338,8 +365,10 @@ class _ChangeMobileNumberScreenState
                       style: ElevatedButton.styleFrom(
                         backgroundColor: changePhoneOrange,
                         foregroundColor: Colors.white,
+                        elevation: 5,
+                        shadowColor: changePhoneOrange.withValues(alpha: 0.32),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(16),
                         ),
                       ),
                       child: _sending
@@ -387,14 +416,25 @@ class _ChangeMobileNumberScreenState
                   counterText: '',
                   filled: true,
                   fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 17,
+                  ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(
+                      color: changePhoneOrange.withValues(alpha: 0.16),
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(16),
                     borderSide: const BorderSide(
                       color: changePhoneOrange,
-                      width: 1.5,
+                      width: 1.6,
                     ),
                   ),
                 ),
@@ -408,8 +448,10 @@ class _ChangeMobileNumberScreenState
                   style: ElevatedButton.styleFrom(
                     backgroundColor: changePhoneOrange,
                     foregroundColor: Colors.white,
+                    elevation: 5,
+                    shadowColor: changePhoneOrange.withValues(alpha: 0.32),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                   ),
                   child: _updating
