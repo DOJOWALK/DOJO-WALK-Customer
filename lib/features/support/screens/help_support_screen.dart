@@ -5,6 +5,7 @@ const Color supportOrange = Color(0xFFFF7900);
 const Color supportBackground = Color(0xFFFFFAF5);
 const Color supportText = Color(0xFF202020);
 const Color supportMuted = Color(0xFF777777);
+const Color supportWarmBorder = Color(0xFFFFE1C8);
 
 class HelpSupportScreen extends StatefulWidget {
   const HelpSupportScreen({super.key});
@@ -82,6 +83,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
       appBar: AppBar(
         backgroundColor: supportBackground,
         elevation: 0,
+        scrolledUnderElevation: 0,
         iconTheme: const IconThemeData(color: supportText),
         title: const Text(
           'Help & Support',
@@ -98,8 +100,19 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: supportOrange,
-              borderRadius: BorderRadius.circular(22),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFFFF7900), Color(0xFFFFA34D)],
+              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: supportOrange.withValues(alpha: 0.22),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
             child: const Row(
               children: [
@@ -147,9 +160,20 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
           const SizedBox(height: 12),
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: const Color(0xFFEEEEEE)),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Colors.white, Color(0xFFFFF7EF)],
+              ),
+              borderRadius: BorderRadius.circular(21),
+              border: Border.all(color: supportWarmBorder),
+              boxShadow: [
+                BoxShadow(
+                  color: supportOrange.withValues(alpha: 0.08),
+                  blurRadius: 14,
+                  offset: const Offset(0, 5),
+                ),
+              ],
             ),
             child: Column(
               children: [
@@ -219,9 +243,20 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
           Container(
             padding: const EdgeInsets.all(17),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFFEEEEEE)),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Colors.white, Color(0xFFFFF7EF)],
+              ),
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: supportWarmBorder),
+              boxShadow: [
+                BoxShadow(
+                  color: supportOrange.withValues(alpha: 0.08),
+                  blurRadius: 14,
+                  offset: const Offset(0, 5),
+                ),
+              ],
             ),
             child: Form(
               key: _formKey,
