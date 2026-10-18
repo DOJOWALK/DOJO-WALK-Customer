@@ -623,7 +623,7 @@ class _NameSetupScreenState extends State<NameSetupScreen> {
                 backgroundColor: profileOrange,
                 foregroundColor: Colors.white,
                 disabledBackgroundColor: Colors.orange.shade200,
-                elevation: 0,
+                elevation: 4,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15),
                 ),
