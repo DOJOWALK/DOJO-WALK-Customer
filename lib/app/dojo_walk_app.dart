@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'app_language.dart';
+import 'theme.dart';
 import '../features/splash/screens/splash_screen.dart';
 
 class DojoWalkApp extends StatelessWidget {
@@ -30,14 +31,7 @@ class DojoWalkApp extends StatelessWidget {
             GlobalCupertinoLocalizations.delegate,
           ],
 
-          theme: ThemeData(
-            useMaterial3: true,
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color(0xFFFF7900),
-              primary: const Color(0xFFFF7900),
-            ),
-            scaffoldBackgroundColor: Colors.white,
-          ),
+          theme: DojoWalkTheme.light(),
 
           home: const SplashScreen(),
         );
