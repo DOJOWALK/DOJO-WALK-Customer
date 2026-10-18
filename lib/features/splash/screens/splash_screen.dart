@@ -235,6 +235,15 @@ class _SplashScreenState extends State<SplashScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: splashOrange,
+                          elevation: 5,
+                          shadowColor: Colors.black26,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 28,
+                            vertical: 13,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                         ),
                         child: const Text('Try Again'),
                       ),
