@@ -61,6 +61,11 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
     return breed.isEmpty ? 'Breed not provided' : breed;
   }
 
+  String? _dogPhotoUrl(Map<String, dynamic> dog) {
+    final value = (dog['photoUrl'] ?? dog['imageUrl'] ?? '').toString().trim();
+    return value.isEmpty ? null : value;
+  }
+
   String _dogGender(Map<String, dynamic> dog) {
     final gender = (dog['gender'] ?? '').toString().trim();
     return gender.isEmpty ? 'Not specified' : gender;
@@ -401,39 +406,81 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                                 };
                               });
                             },
-                            borderRadius: BorderRadius.circular(18),
-                            child: Container(
+                            borderRadius: BorderRadius.circular(22),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 180),
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: selected
-                                    ? const Color(0xFFFFE9D6)
-                                    : Colors.white,
-                                borderRadius: BorderRadius.circular(18),
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: selected
+                                      ? const [Color(0xFFFFE3C7), Color(0xFFFFF7EF)]
+                                      : const [Colors.white, Color(0xFFFFF9F3)],
+                                ),
+                                borderRadius: BorderRadius.circular(22),
                                 border: Border.all(
                                   color: selected
                                       ? dogSelectionOrange
-                                      : const Color(0xFFF0E2D5),
+                                      : const Color(0xFFFFE1C8),
                                   width: selected ? 2 : 1,
                                 ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: dogSelectionOrange.withValues(
+                                      alpha: selected ? 0.18 : 0.07,
+                                    ),
+                                    blurRadius: selected ? 18 : 12,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
                               ),
                               child: Row(
                                 children: [
                                   Container(
-                                    width: 54,
-                                    height: 54,
+                                    width: 66,
+                                    height: 66,
+                                    padding: const EdgeInsets.all(3),
                                     decoration: BoxDecoration(
-                                      color: selected
-                                          ? dogSelectionOrange
-                                          : dogSelectionBackground,
-                                      borderRadius:
-                                          BorderRadius.circular(16),
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(19),
+                                      border: Border.all(
+                                        color: selected
+                                            ? dogSelectionOrange
+                                            : const Color(0xFFFFE1C8),
+                                      ),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: Color(0x12FF7900),
+                                          blurRadius: 8,
+                                          offset: Offset(0, 3),
+                                        ),
+                                      ],
                                     ),
-                                    child: Icon(
-                                      Icons.pets,
-                                      size: 29,
-                                      color: selected
-                                          ? Colors.white
-                                          : dogSelectionOrange,
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(15),
+                                      child: _dogPhotoUrl(dog) == null
+                                          ? Container(
+                                              color: dogSelectionBackground,
+                                              child: const Icon(
+                                                Icons.pets,
+                                                size: 30,
+                                                color: dogSelectionOrange,
+                                              ),
+                                            )
+                                          : Image.network(
+                                              _dogPhotoUrl(dog)!,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (_, __, ___) =>
+                                                  Container(
+                                                color: dogSelectionBackground,
+                                                child: const Icon(
+                                                  Icons.pets,
+                                                  size: 30,
+                                                  color: dogSelectionOrange,
+                                                ),
+                                              ),
+                                            ),
                                     ),
                                   ),
                                   const SizedBox(width: 14),
@@ -517,8 +564,10 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                   style: FilledButton.styleFrom(
                     backgroundColor: dogSelectionOrange,
                     foregroundColor: Colors.white,
+                    elevation: 4,
+                    shadowColor: dogSelectionOrange.withValues(alpha: 0.30),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(17),
                     ),
                   ),
                   child: _isContinuing
