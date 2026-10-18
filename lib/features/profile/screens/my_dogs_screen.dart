@@ -337,11 +337,20 @@ class MyDogsScreen extends StatelessWidget {
                             margin: const EdgeInsets.only(bottom: 14),
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: const Color(0xFFEEEEEE),
+                              gradient: const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [Colors.white, Color(0xFFFFF7EF)],
                               ),
+                              borderRadius: BorderRadius.circular(22),
+                              border: Border.all(color: dogsWarmBorder),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: dogsOrange.withValues(alpha: 0.08),
+                                  blurRadius: 15,
+                                  offset: const Offset(0, 5),
+                                ),
+                              ],
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -352,11 +361,14 @@ class MyDogsScreen extends StatelessWidget {
                                       width: 58,
                                       height: 58,
                                       decoration: BoxDecoration(
-                                        color: dogsOrange.withValues(
-                                          alpha: 0.12,
+                                        gradient: const LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: [Color(0xFFFFE2C7), Color(0xFFFFF4E8)],
                                         ),
                                         borderRadius:
                                             BorderRadius.circular(16),
+                                        border: Border.all(color: dogsWarmBorder),
                                       ),
                                       child: const Icon(
                                         Icons.pets_rounded,
@@ -1038,9 +1050,10 @@ class MyDogsScreen extends StatelessWidget {
                                   foregroundColor: Colors.white,
                                   disabledBackgroundColor:
                                       dogsOrange.withValues(alpha: 0.5),
-                                  elevation: 0,
+                                  elevation: 3,
+                                  shadowColor: dogsOrange.withValues(alpha: 0.30),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(14),
+                                    borderRadius: BorderRadius.circular(16),
                                   ),
                                 ),
                                 child: saving
@@ -1074,6 +1087,7 @@ class MyDogsScreen extends StatelessWidget {
                           ],
                         ),
                       ),
+                    ),
                     ),
                   );
                 },
@@ -1197,15 +1211,15 @@ class MyDogsScreen extends StatelessWidget {
         vertical: 15,
       ),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(13),
-        borderSide: const BorderSide(color: Color(0xFFE7E7E7)),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: dogsWarmBorder),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(13),
-        borderSide: const BorderSide(color: Color(0xFFE7E7E7)),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: dogsWarmBorder),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(13),
+        borderRadius: BorderRadius.circular(16),
         borderSide: const BorderSide(
           color: dogsOrange,
           width: 1.5,
