@@ -611,11 +611,13 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
             },
             selectedColor: bookingsOrange,
             backgroundColor: Colors.white,
+            elevation: selected ? 3 : 0,
+            pressElevation: 4,
             showCheckmark: false,
             side: BorderSide(
               color: selected
                   ? bookingsOrange
-                  : const Color(0xFFEAEAEA),
+                  : const Color(0xFFFFE1C8),
             ),
             labelStyle: TextStyle(
               color: selected ? Colors.white : bookingsText,
@@ -695,10 +697,11 @@ class _BookingCard extends StatelessWidget {
 
     return Card(
       color: Colors.white,
-      elevation: 0,
-      margin: const EdgeInsets.only(bottom: 14),
+      elevation: 4,
+      shadowColor: bookingsOrange.withValues(alpha: 0.14),
+      margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(23),
         side: const BorderSide(color: bookingsBorder),
       ),
       child: InkWell(
@@ -1825,9 +1828,20 @@ Widget _section(
   return Container(
     padding: const EdgeInsets.all(17),
     decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(18),
+      gradient: const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Colors.white, Color(0xFFFFF7EF)],
+      ),
+      borderRadius: BorderRadius.circular(21),
       border: Border.all(color: bookingsBorder),
+      boxShadow: [
+        BoxShadow(
+          color: bookingsOrange.withValues(alpha: 0.07),
+          blurRadius: 14,
+          offset: const Offset(0, 5),
+        ),
+      ],
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
