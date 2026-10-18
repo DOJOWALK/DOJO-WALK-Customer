@@ -9,7 +9,7 @@ const Color confirmationOrange = Color(0xFFFF7900);
 const Color confirmationBackground = Color(0xFFFFFAF5);
 const Color confirmationText = Color(0xFF242424);
 const Color confirmationMuted = Color(0xFF777777);
-const Color confirmationBorder = Color(0xFFEFE5DC);
+const Color confirmationBorder = Color(0xFFFFE1C8);
 
 class BookingConfirmationScreen extends StatefulWidget {
   final WalkBookingType walkType;
@@ -409,14 +409,18 @@ class _BookingConfirmationScreenState
       padding: const EdgeInsets.all(18),
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, Color(0xFFFFF7EF)],
+        ),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(color: confirmationBorder),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.035),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
+            color: confirmationOrange.withValues(alpha: 0.10),
+            blurRadius: 20,
+            offset: const Offset(0, 7),
           ),
         ],
       ),
@@ -519,9 +523,20 @@ class _BookingConfirmationScreenState
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, Color(0xFFFFFAF5)],
+        ),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: confirmationBorder),
+        boxShadow: [
+          BoxShadow(
+            color: confirmationOrange.withValues(alpha: 0.07),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -592,8 +607,20 @@ class _BookingConfirmationScreenState
       margin: const EdgeInsets.only(bottom: 9),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: confirmationBackground,
-        borderRadius: BorderRadius.circular(11),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, Color(0xFFFFEEDF)],
+        ),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: const Color(0xFFFFE1C8)),
+        boxShadow: [
+          BoxShadow(
+            color: confirmationOrange.withValues(alpha: 0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -1117,6 +1144,13 @@ class _BookingConfirmationScreenState
                 border: Border(
                   top: BorderSide(color: confirmationBorder),
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0x12FF7900),
+                    blurRadius: 16,
+                    offset: Offset(0, -5),
+                  ),
+                ],
               ),
               child: SizedBox(
                 width: double.infinity,
@@ -1128,8 +1162,10 @@ class _BookingConfirmationScreenState
                   style: FilledButton.styleFrom(
                     backgroundColor: confirmationOrange,
                     foregroundColor: Colors.white,
+                    elevation: 4,
+                    shadowColor: confirmationOrange.withValues(alpha: 0.30),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(17),
                     ),
                   ),
                   child: _isSubmitting
