@@ -765,9 +765,10 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
     return Scaffold(
       backgroundColor: bookingBackground,
       appBar: AppBar(
-        backgroundColor: bookingOrange,
-        foregroundColor: Colors.white,
+        backgroundColor: bookingBackground,
+        foregroundColor: bookingText,
         elevation: 0,
+        scrolledUnderElevation: 0,
         title: const Text(
           'Book a Walk',
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -777,12 +778,74 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            const Text(
-              'Choose your walk type',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: bookingText,
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Colors.white, Color(0xFFFFEAD8)],
+                ),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: const Color(0xFFFFD2AD)),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x1FFF7900),
+                    blurRadius: 20,
+                    offset: Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 54,
+                    height: 54,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFFA34D), bookingOrange],
+                      ),
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x33FF7900),
+                          blurRadius: 12,
+                          offset: Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.pets_rounded,
+                      color: Colors.white,
+                      size: 29,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Choose your walk type',
+                          style: TextStyle(
+                            fontSize: 21,
+                            fontWeight: FontWeight.w800,
+                            color: bookingText,
+                          ),
+                        ),
+                        SizedBox(height: 6),
+                        Text(
+                          'Aapke dog ke routine ke hisaab se best option chunein.',
+                          style: TextStyle(
+                            color: bookingMuted,
+                            height: 1.35,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 6),
@@ -829,8 +892,10 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
                   backgroundColor: bookingOrange,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(18),
                   ),
+                  elevation: 3,
+                  shadowColor: const Color(0x44FF7900),
                 ),
                 child: _isContinuing
                     ? const SizedBox(
@@ -863,25 +928,55 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
 
     return InkWell(
       onTap: () => _selectType(type),
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(22),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(17),
         decoration: BoxDecoration(
-          color: selected ? const Color(0xFFFFE9D6) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: selected
+                ? const [Colors.white, Color(0xFFFFE2C7)]
+                : const [Colors.white, Color(0xFFFFF8F1)],
+          ),
+          borderRadius: BorderRadius.circular(22),
           border: Border.all(
-            color: selected ? bookingOrange : const Color(0xFFF0E2D5),
+            color: selected ? bookingOrange : const Color(0xFFFFE1CA),
             width: selected ? 2 : 1,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: selected
+                  ? const Color(0x29FF7900)
+                  : const Color(0x0FFF7900),
+              blurRadius: selected ? 18 : 12,
+              offset: Offset(0, selected ? 7 : 4),
+            ),
+          ],
         ),
         child: Row(
           children: [
             Container(
-              width: 46,
-              height: 46,
+              width: 52,
+              height: 52,
               decoration: BoxDecoration(
-                color: selected ? bookingOrange : bookingBackground,
-                borderRadius: BorderRadius.circular(13),
+                gradient: selected
+                    ? const LinearGradient(
+                        colors: [Color(0xFFFFA34D), bookingOrange],
+                      )
+                    : const LinearGradient(
+                        colors: [Color(0xFFFFF0E2), Colors.white],
+                      ),
+                borderRadius: BorderRadius.circular(17),
+                boxShadow: [
+                  BoxShadow(
+                    color: selected
+                        ? const Color(0x2EFF7900)
+                        : const Color(0x0FFF7900),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Icon(
                 icon,
@@ -1134,9 +1229,20 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: bookingBackground,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFF0E2D5)),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, Color(0xFFFFF5EB)],
+        ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFFFE1CA)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0FFF7900),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1228,9 +1334,20 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFF0E2D5)),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, Color(0xFFFFF8F1)],
+        ),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFFFE1CA)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x17FF7900),
+            blurRadius: 18,
+            offset: Offset(0, 7),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
