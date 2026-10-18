@@ -1060,7 +1060,15 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
             label: const Text('Add / Select Date'),
             style: OutlinedButton.styleFrom(
               foregroundColor: bookingOrange,
-              side: const BorderSide(color: bookingOrange),
+              backgroundColor: const Color(0xFFFFF4E9),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 13,
+              ),
+              side: const BorderSide(color: Color(0xFFFFC38F)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -1116,6 +1124,19 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
                 label: Text('$count ${count == 1 ? 'Walk' : 'Walks'}'),
                 selected: _walkCount == count,
                 selectedColor: const Color(0xFFFFE0C2),
+                backgroundColor: Colors.white,
+                labelStyle: TextStyle(
+                  color: _walkCount == count ? bookingText : bookingMuted,
+                  fontWeight: FontWeight.w700,
+                ),
+                side: BorderSide(
+                  color: _walkCount == count
+                      ? bookingOrange
+                      : const Color(0xFFFFE1CA),
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
                 onSelected: (_) => _changeWalkCount(count),
               );
             }).toList(),
@@ -1172,6 +1193,17 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
         label: Text(_formatDate(date)),
         selected: selected,
         selectedColor: const Color(0xFFFFE0C2),
+        backgroundColor: Colors.white,
+        labelStyle: TextStyle(
+          color: selected ? bookingText : bookingMuted,
+          fontWeight: FontWeight.w700,
+        ),
+        side: BorderSide(
+          color: selected ? bookingOrange : const Color(0xFFFFE1CA),
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
         onSelected: (_) => _selectScheduleDate(date),
       );
     }).toList();
@@ -1197,6 +1229,21 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
               label: Text('$minutes min'),
               selected: slot.durationMinutes == minutes,
               selectedColor: const Color(0xFFFFE0C2),
+              backgroundColor: Colors.white,
+              labelStyle: TextStyle(
+                color: slot.durationMinutes == minutes
+                    ? bookingText
+                    : bookingMuted,
+                fontWeight: FontWeight.w700,
+              ),
+              side: BorderSide(
+                color: slot.durationMinutes == minutes
+                    ? bookingOrange
+                    : const Color(0xFFFFE1CA),
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
               onSelected: (_) {
                 setState(() {
                   slot.durationMinutes = minutes;
@@ -1208,11 +1255,23 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
         const SizedBox(height: 6),
         Align(
           alignment: Alignment.centerLeft,
-          child: TextButton(
+          child: TextButton.icon(
             onPressed: () => _chooseDuration(slot),
-            child: const Text(
+            icon: const Icon(Icons.tune_rounded, size: 18),
+            style: TextButton.styleFrom(
+              foregroundColor: bookingOrange,
+              backgroundColor: const Color(0xFFFFF0E2),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 9,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(13),
+              ),
+            ),
+            label: const Text(
               'Custom duration',
-              style: TextStyle(color: bookingOrange),
+              style: TextStyle(fontWeight: FontWeight.w700),
             ),
           ),
         ),
@@ -1260,11 +1319,23 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
-              TextButton(
+              TextButton.icon(
                 onPressed: () => _chooseTime(slot),
-                child: const Text(
+                icon: const Icon(Icons.edit_rounded, size: 16),
+                style: TextButton.styleFrom(
+                  foregroundColor: bookingOrange,
+                  backgroundColor: const Color(0xFFFFF0E2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 7,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                label: const Text(
                   'Change',
-                  style: TextStyle(color: bookingOrange),
+                  style: TextStyle(fontWeight: FontWeight.w700),
                 ),
               ),
             ],
@@ -1278,21 +1349,42 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
   }
 
   Widget _priceLine(int? price) {
-    return Row(
-      children: [
-        const Text(
-          'Estimated price',
-          style: TextStyle(color: bookingMuted),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFFF4E9), Colors.white],
         ),
-        const Spacer(),
-        Text(
-          price == null ? 'To be confirmed' : '₹$price',
-          style: const TextStyle(
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFFFE1CA)),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.payments_outlined,
+            size: 19,
             color: bookingOrange,
-            fontWeight: FontWeight.bold,
           ),
-        ),
-      ],
+          const SizedBox(width: 8),
+          const Expanded(
+            child: Text(
+              'Estimated price',
+              style: TextStyle(
+                color: bookingMuted,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Text(
+            price == null ? 'To be confirmed' : '₹$price',
+            style: const TextStyle(
+              color: bookingOrange,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
