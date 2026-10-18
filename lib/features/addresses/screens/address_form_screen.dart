@@ -9,6 +9,7 @@ import '../services/address_service.dart';
 
 const Color addressOrange = Color(0xFFFF7900);
 const Color addressBackground = Color(0xFFFFFAF5);
+const Color addressWarmBorder = Color(0xFFFFE1C8);
 
 class AddressFormScreen extends StatefulWidget {
   final SavedAddress? address;
@@ -387,13 +388,11 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
             ),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(13),
-            borderSide: const BorderSide(
-              color: Color(0xFFE7E0D9),
-            ),
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: addressWarmBorder),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(13),
+            borderRadius: BorderRadius.circular(16),
             borderSide: const BorderSide(
               color: addressOrange,
               width: 1.5,
