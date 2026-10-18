@@ -301,10 +301,32 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 35),
-              const Icon(
-                Icons.phone_android,
-                size: 54,
-                color: dojoOrange,
+              Center(
+                child: Container(
+                  width: 96,
+                  height: 96,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFFFFD9B8), Color(0xFFFFF7EF)],
+                    ),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 4),
+                    boxShadow: [
+                      BoxShadow(
+                        color: dojoOrange.withValues(alpha: 0.20),
+                        blurRadius: 24,
+                        offset: const Offset(0, 9),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.phone_android,
+                    size: 48,
+                    color: dojoOrange,
+                  ),
+                ),
               ),
               const SizedBox(height: 22),
               const Text(
@@ -339,14 +361,25 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                   counterText: '',
                   filled: true,
                   fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 18,
+                  ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(
+                      color: dojoOrange.withValues(alpha: 0.16),
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(16),
                     borderSide: const BorderSide(
                       color: dojoOrange,
-                      width: 2,
+                      width: 1.7,
                     ),
                   ),
                 ),
@@ -360,8 +393,10 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: dojoOrange,
                     foregroundColor: Colors.white,
+                    elevation: 5,
+                    shadowColor: dojoOrange.withValues(alpha: 0.32),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                   ),
                   child: _loading
