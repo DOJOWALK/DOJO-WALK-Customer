@@ -427,12 +427,13 @@ class _HomeScreenState extends State<HomeScreen> {
     required VoidCallback onTap,
   }) {
     return Card(
-      elevation: 0,
+      elevation: 3,
+      shadowColor: dojoOrange.withValues(alpha: 0.12),
       color: Colors.white,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-        side: const BorderSide(color: Color(0xFFF0E8E0)),
+        borderRadius: BorderRadius.circular(22),
+        side: const BorderSide(color: Color(0xFFFFE1C8)),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.all(16),
@@ -554,11 +555,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(
-                          color: const Color(0xFFF0E8E0),
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [Colors.white, Color(0xFFFFF8F0)],
                         ),
+                        borderRadius: BorderRadius.circular(22),
+                        border: Border.all(
+                          color: const Color(0xFFFFE1C8),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: dojoOrange.withValues(alpha: 0.08),
+                            blurRadius: 16,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
                       ),
                       child: Row(
                         children: [
@@ -618,11 +630,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   Container(
                     padding: const EdgeInsets.all(22),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: const Color(0xFFF0E8E0),
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Colors.white, Color(0xFFFFF5EA)],
                       ),
+                      borderRadius: BorderRadius.circular(26),
+                      border: Border.all(
+                        color: const Color(0xFFFFD7B5),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: dojoOrange.withValues(alpha: 0.11),
+                          blurRadius: 24,
+                          offset: const Offset(0, 9),
+                        ),
+                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
