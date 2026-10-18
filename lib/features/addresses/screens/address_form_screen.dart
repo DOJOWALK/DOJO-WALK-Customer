@@ -382,10 +382,8 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
             vertical: 15,
           ),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(13),
-            borderSide: const BorderSide(
-              color: Color(0xFFE7E0D9),
-            ),
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: addressWarmBorder),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
@@ -436,9 +434,13 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
       builder: (context, scrollController) {
         return Container(
           decoration: const BoxDecoration(
-            color: Colors.white,
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Colors.white, Color(0xFFFFFBF7)],
+            ),
             borderRadius: BorderRadius.vertical(
-              top: Radius.circular(26),
+              top: Radius.circular(28),
             ),
             boxShadow: [
               BoxShadow(
@@ -472,8 +474,13 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFFF0E3),
-                        borderRadius: BorderRadius.circular(13),
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [Color(0xFFFFE2C7), Color(0xFFFFF4E8)],
+                        ),
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(color: addressWarmBorder),
                       ),
                       child: const Icon(
                         Icons.location_on_rounded,
@@ -610,8 +617,13 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFF0E3),
-                    borderRadius: BorderRadius.circular(12),
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFFFFEAD8), Color(0xFFFFF6ED)],
+                    ),
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: addressWarmBorder),
                   ),
                   child: const Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -643,6 +655,8 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: addressOrange,
                       foregroundColor: Colors.white,
+                      elevation: 3,
+                      shadowColor: addressOrange.withValues(alpha: 0.30),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
@@ -779,7 +793,15 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                                 ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide.none,
+                                  borderSide: const BorderSide(color: addressWarmBorder),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: addressWarmBorder),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: addressOrange, width: 1.5),
                                 ),
                                 filled: true,
                                 fillColor: Colors.white,
