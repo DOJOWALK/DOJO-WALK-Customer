@@ -53,4 +53,4 @@ flutter_launcher_icons:
   ios: false
   image_path: "assets/images/DOJO WALK APP ICON .png"
   adaptive_icon_background: "#FFFAF5"
-  adaptive_icon_foreground: "assets/images/DOJO WALK APP ICON .png"
+  adaptive_icon_foreground: "assets/images/DOJO WALK APP ICON.png"
