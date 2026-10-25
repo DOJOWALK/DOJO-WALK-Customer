@@ -50,7 +50,7 @@ jobs:
       - name: Check Required Images
         run: |
           test -s "assets/images/DOJO WALK SPLASH.png"
-          test -s "assets/images/DOJO WALK APP ICON .png"
+          test -s "assets/images/DOJO WALK APP ICON.png"
           echo "Splash and app icon images are present."
 
       - name: Install Dependencies
