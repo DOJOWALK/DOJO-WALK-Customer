@@ -46,11 +46,11 @@ flutter:
 
   assets:
     - "assets/images/DOJO WALK SPLASH.png"
-    - "assets/images/DOJO WALK APP ICON .png"
+    - "assets/images/DOJO WALK APP ICON.png"
 
 flutter_launcher_icons:
   android: true
   ios: false
-  image_path: "assets/images/DOJO WALK APP ICON .png"
+  image_path: "assets/images/DOJO WALK APP ICON.png"
   adaptive_icon_background: "#FFFAF5"
   adaptive_icon_foreground: "assets/images/DOJO WALK APP ICON.png"
