@@ -9,7 +9,7 @@ import 'booking_confirmation_screen.dart';
 
 const Color pickupOrange = Color(0xFFFF7900);
 const Color pickupBackground = Color(0xFFFFFAF5);
-const Color pickupText = Color(0xFF202020);
+const Color pickupText = Color(0xFF252525);
 const Color pickupMuted = Color(0xFF777777);
 
 class PickupAddressSelectionScreen extends StatefulWidget {
