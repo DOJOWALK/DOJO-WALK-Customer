@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../app/locale_controller.dart';
+import '../../../app/theme.dart';
 
-const Color _orange = Color(0xFFFF7900);
-const Color _background = Color(0xFFFFFAF5);
-const Color _textColor = Color(0xFF252525);
-const Color _mutedColor = Color(0xFF777777);
+const Color _orange = DojoWalkTheme.primary;
+const Color _background = DojoWalkTheme.background;
+const Color _textColor = DojoWalkTheme.text;
+const Color _mutedColor = DojoWalkTheme.mutedText;
 
 class PrivacyTermsScreen extends StatelessWidget {
   const PrivacyTermsScreen({super.key});
