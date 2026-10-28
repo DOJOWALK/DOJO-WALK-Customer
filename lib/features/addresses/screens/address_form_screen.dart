@@ -1,5 +1,7 @@
 
 import 'package:flutter/material.dart';
+
+import '../../../app/theme.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -7,8 +9,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../models/saved_address.dart';
 import '../services/address_service.dart';
 
-const Color addressOrange = Color(0xFFFF7900);
-const Color addressBackground = Color(0xFFFFFAF5);
+const Color addressOrange = DojoWalkTheme.primary;
+const Color addressBackground = DojoWalkTheme.background;
 
 class AddressFormScreen extends StatefulWidget {
   final SavedAddress? address;
