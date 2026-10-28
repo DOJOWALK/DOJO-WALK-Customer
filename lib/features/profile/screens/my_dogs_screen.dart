@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../../app/app_language.dart';
+import '../../../app/locale_controller.dart';
 
 const Color dogsOrange = Color(0xFFFF7900);
 const Color dogsBackground = Color(0xFFFFFAF5);
