@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-import 'app_language.dart';
+import 'locale_controller.dart';
 import '../features/splash/screens/splash_screen.dart';
 
 class DojoWalkApp extends StatelessWidget {
