@@ -19,11 +19,7 @@ class DojoWalkApp extends StatelessWidget {
 
           locale: locale,
 
-          supportedLocales: const [
-            Locale('en'),
-            Locale('hi'),
-            Locale('bn'),
-          ],
+          supportedLocales: dojoSupportedLocales,
 
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
