@@ -4,11 +4,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'change_mobile_number_screen.dart';
+import '../../../app/theme.dart';
 
-const Color accountOrange = Color(0xFFFF7900);
-const Color accountBackground = Color(0xFFFFFAF5);
-const Color accountText = Color(0xFF252525);
-const Color accountMuted = Color(0xFF777777);
+const Color accountOrange = DojoWalkTheme.primary;
+const Color accountBackground = DojoWalkTheme.background;
+const Color accountText = DojoWalkTheme.text;
+const Color accountMuted = DojoWalkTheme.mutedText;
 
 class AccountDetailsScreen extends StatefulWidget {
   final User user;
