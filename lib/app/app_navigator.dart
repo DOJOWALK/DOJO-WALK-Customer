@@ -1,7 +1,7 @@
 
 import 'package:flutter/material.dart';
 
-import 'app_language.dart';
+import 'locale_controller.dart';
 import '../features/home/screens/home_screen.dart';
 import '../features/booking/screens/my_bookings_screen.dart';
 import '../features/profile/screens/profile_screen.dart';
