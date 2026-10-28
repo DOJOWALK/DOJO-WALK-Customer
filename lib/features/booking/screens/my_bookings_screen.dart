@@ -3,11 +3,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../app/locale_controller.dart';
+import '../../../app/theme.dart';
 
-const Color bookingsOrange = Color(0xFFFF7900);
-const Color bookingsBackground = Color(0xFFFFFAF5);
-const Color bookingsText = Color(0xFF252525);
-const Color bookingsMuted = Color(0xFF777777);
+const Color bookingsOrange = DojoWalkTheme.primary;
+const Color bookingsBackground = DojoWalkTheme.background;
+const Color bookingsText = DojoWalkTheme.text;
+const Color bookingsMuted = DojoWalkTheme.mutedText;
 const Color bookingsBorder = Color(0xFFF0E9E2);
 
 String _t(String en, String hi, String bn) {
