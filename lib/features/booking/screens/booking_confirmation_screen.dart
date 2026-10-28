@@ -720,8 +720,9 @@ class _BookingConfirmationScreenState
             const Padding(
               padding: EdgeInsets.only(bottom: 10),
               child: Text(
-                'This plan repeats daily, including Sundays. '
-                'Any days off will be coordinated later with support.',
+                'This is a recurring booking request. '
+                'Available days, pauses, cancellation terms and billing '
+                'must be confirmed before the service is finalized.',
                 style: TextStyle(
                   color: confirmationMuted,
                   fontSize: 12,
