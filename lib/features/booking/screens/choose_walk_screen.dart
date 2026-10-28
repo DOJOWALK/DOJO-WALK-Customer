@@ -1,3 +1,4 @@
+import '../../../app/theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -7,10 +8,10 @@ import '../../profile/screens/name_setup_screen.dart';
 import '../services/walk_pricing_service.dart';
 import 'dog_selection_screen.dart';
 
-const Color bookingOrange = Color(0xFFFF7900);
-const Color bookingBackground = Color(0xFFFFFAF5);
-const Color bookingText = Color(0xFF252525);
-const Color bookingMuted = Color(0xFF777777);
+const Color bookingOrange = DojoWalkTheme.primary;
+const Color bookingBackground = DojoWalkTheme.background;
+const Color bookingText = DojoWalkTheme.text;
+const Color bookingMuted = DojoWalkTheme.mutedText;
 
 enum WalkBookingType {
   oneTime,
