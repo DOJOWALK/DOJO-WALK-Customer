@@ -6,11 +6,12 @@ import '../../addresses/screens/address_form_screen.dart';
 
 import 'choose_walk_screen.dart';
 import 'booking_confirmation_screen.dart';
+import '../../../app/theme.dart';
 
-const Color pickupOrange = Color(0xFFFF7900);
-const Color pickupBackground = Color(0xFFFFFAF5);
-const Color pickupText = Color(0xFF252525);
-const Color pickupMuted = Color(0xFF777777);
+const Color pickupOrange = DojoWalkTheme.primary;
+const Color pickupBackground = DojoWalkTheme.background;
+const Color pickupText = DojoWalkTheme.text;
+const Color pickupMuted = DojoWalkTheme.mutedText;
 
 class PickupAddressSelectionScreen extends StatefulWidget {
   final WalkBookingType walkType;
