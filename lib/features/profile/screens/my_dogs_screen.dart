@@ -6,7 +6,7 @@ import '../../../app/locale_controller.dart';
 
 const Color dogsOrange = Color(0xFFFF7900);
 const Color dogsBackground = Color(0xFFFFFAF5);
-const Color dogsText = Color(0xFF202020);
+const Color dogsText = Color(0xFF252525);
 const Color dogsMuted = Color(0xFF777777);
 
 String _dogTr(String en, String hi, String bn) {
