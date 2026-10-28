@@ -47,7 +47,18 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    appLocale.addListener(_handleLocaleChanged);
     _loadDefaultAddress();
+  }
+
+  @override
+  void dispose() {
+    appLocale.removeListener(_handleLocaleChanged);
+    super.dispose();
+  }
+
+  void _handleLocaleChanged() {
+    if (mounted) setState(() {});
   }
 
   String _clean(String? value) => (value ?? '').trim();
