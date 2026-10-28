@@ -4,11 +4,12 @@ import 'package:flutter/material.dart';
 
 import '../services/walk_pricing_service.dart';
 import 'choose_walk_screen.dart';
+import '../../../app/theme.dart';
 
-const Color confirmationOrange = Color(0xFFFF7900);
-const Color confirmationBackground = Color(0xFFFFFAF5);
-const Color confirmationText = Color(0xFF252525);
-const Color confirmationMuted = Color(0xFF777777);
+const Color confirmationOrange = DojoWalkTheme.primary;
+const Color confirmationBackground = DojoWalkTheme.background;
+const Color confirmationText = DojoWalkTheme.text;
+const Color confirmationMuted = DojoWalkTheme.mutedText;
 const Color confirmationBorder = Color(0xFFEFE5DC);
 
 class BookingConfirmationScreen extends StatefulWidget {
