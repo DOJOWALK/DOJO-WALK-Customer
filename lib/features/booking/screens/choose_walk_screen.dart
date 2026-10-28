@@ -1,4 +1,3 @@
-import '../../../app/theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +6,7 @@ import '../../auth/screens/phone_login_screen.dart';
 import '../../profile/screens/name_setup_screen.dart';
 import '../services/walk_pricing_service.dart';
 import 'dog_selection_screen.dart';
+import '../../../app/theme.dart';
 
 const Color bookingOrange = DojoWalkTheme.primary;
 const Color bookingBackground = DojoWalkTheme.background;
