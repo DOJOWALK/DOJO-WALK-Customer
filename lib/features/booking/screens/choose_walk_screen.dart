@@ -9,7 +9,7 @@ import 'dog_selection_screen.dart';
 
 const Color bookingOrange = Color(0xFFFF7900);
 const Color bookingBackground = Color(0xFFFFFAF5);
-const Color bookingText = Color(0xFF202020);
+const Color bookingText = Color(0xFF252525);
 const Color bookingMuted = Color(0xFF777777);
 
 enum WalkBookingType {
