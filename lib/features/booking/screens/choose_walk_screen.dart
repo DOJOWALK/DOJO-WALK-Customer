@@ -344,7 +344,7 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
               labelText: 'Minutes',
-              hintText: 'Enter 1–240 minutes',
+              hintText: 'Enter 20–60 minutes',
             ),
           ),
           actions: [
@@ -360,10 +360,10 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
               onPressed: () {
                 final minutes = int.tryParse(controller.text.trim());
 
-                if (minutes == null || minutes < 1 || minutes > 240) {
+                if (minutes == null || minutes < 20 || minutes > 60) {
                   ScaffoldMessenger.of(dialogContext).showSnackBar(
                     const SnackBar(
-                      content: Text('1 se 240 minutes enter karein.'),
+                      content: Text('20 se 60 minutes enter karein.'),
                     ),
                   );
                   return;
@@ -407,8 +407,8 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
     final today = _dateOnly(now);
 
     for (final slot in slots) {
-      if (slot.durationMinutes < 1 || slot.durationMinutes > 240) {
-        return 'Walk duration 1 se 240 minutes ke beech honi chahiye.';
+      if (slot.durationMinutes < 20 || slot.durationMinutes > 60) {
+        return 'Walk duration 20 se 60 minutes ke beech honi chahiye.';
       }
 
       final start = _dateTimeForSlot(normalizedDate, slot);
