@@ -13,7 +13,7 @@ import '../../support/screens/help_support_screen.dart';
 
 const Color dojoOrange = Color(0xFFFF7900);
 const Color dojoBackground = Color(0xFFFFFAF5);
-const Color dojoText = Color(0xFF202020);
+const Color dojoText = Color(0xFF252525);
 const Color dojoMuted = Color(0xFF777777);
 
 class HomeScreen extends StatefulWidget {
