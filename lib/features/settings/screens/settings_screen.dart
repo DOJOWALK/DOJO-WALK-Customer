@@ -8,7 +8,7 @@ import '../../../app/locale_controller.dart';
 
 const Color settingsOrange = Color(0xFFFF7900);
 const Color settingsBackground = Color(0xFFFFFAF5);
-const Color settingsText = Color(0xFF202020);
+const Color settingsText = Color(0xFF252525);
 const Color settingsMuted = Color(0xFF777777);
 
 class SettingsScreen extends StatefulWidget {
