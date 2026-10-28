@@ -745,7 +745,7 @@ class _BookingConfirmationScreenState
     final duration = _duration(walk);
     final time = (walk['time'] ?? '').toString().trim();
 
-    if (![20, 30, 45, 60].contains(duration)) {
+    if (duration < 20 || duration > 60) {
       return false;
     }
 
