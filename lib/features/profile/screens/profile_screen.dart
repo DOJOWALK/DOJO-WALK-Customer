@@ -14,7 +14,7 @@ import 'privacy_terms_screen.dart';
 
 const Color profileOrange = Color(0xFFFF7900);
 const Color profileBackground = Color(0xFFFFFAF5);
-const Color profileText = Color(0xFF202020);
+const Color profileText = Color(0xFF252525);
 const Color profileMuted = Color(0xFF777777);
 
 String _tr(String en, String hi, String bn) {
