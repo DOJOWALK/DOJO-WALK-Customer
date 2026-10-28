@@ -1,17 +1,20 @@
 class WalkPricingService {
   WalkPricingService._();
 
-  // Current draft rate: 30-minute walk = ₹149.
-  // Add other approved rates here when finalized.
+  // No customer-facing rates are approved in POL-011 yet.
+  // Keep all durations unpriced until an approved price book is configured.
   static int? priceForDuration(int durationMinutes) {
-    if (durationMinutes == 30) return 149;
+    if (durationMinutes < 20 || durationMinutes > 60) {
+      return null;
+    }
+
     return null;
   }
 
   static int? dailyEstimate(List<int> durations) {
-    final prices = durations
-        .map(priceForDuration)
-        .toList();
+    if (durations.isEmpty) return 0;
+
+    final prices = durations.map(priceForDuration).toList();
 
     if (prices.any((price) => price == null)) {
       return null;
