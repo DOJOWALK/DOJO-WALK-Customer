@@ -496,9 +496,9 @@ class _BookingConfirmationScreenState
           ),
           const SizedBox(height: 8),
           const Text(
-            '₹149 applies to a 30-minute walk only. '
-            'Other durations and final charges require confirmation. '
-            'No unapproved additional charge is included.',
+            'Pricing is not yet approved. The amount will be confirmed '
+            'after service availability and the approved price are checked. '
+            'This is a booking request, not a payment.',
             style: TextStyle(
               fontSize: 11,
               height: 1.45,
