@@ -237,7 +237,7 @@ class _ChangeMobileNumberScreenState
         title: const Text(
           'Update Mobile Number',
           style: TextStyle(
-            color: Color(0xFF202020),
+            color: Color(0xFF252525),
             fontWeight: FontWeight.w900,
           ),
         ),
@@ -265,7 +265,7 @@ class _ChangeMobileNumberScreenState
               style: TextStyle(
                 fontSize: 23,
                 fontWeight: FontWeight.w900,
-                color: Color(0xFF202020),
+                color: Color(0xFF252525),
               ),
             ),
             const SizedBox(height: 8),
@@ -288,7 +288,7 @@ class _ChangeMobileNumberScreenState
                     'New Mobile Number',
                     style: TextStyle(
                       fontWeight: FontWeight.w800,
-                      color: Color(0xFF202020),
+                      color: Color(0xFF252525),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -370,7 +370,7 @@ class _ChangeMobileNumberScreenState
                 'Enter 6-Digit OTP',
                 style: TextStyle(
                   fontWeight: FontWeight.w800,
-                  color: Color(0xFF202020),
+                  color: Color(0xFF252525),
                 ),
               ),
               const SizedBox(height: 8),
