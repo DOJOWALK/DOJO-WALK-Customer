@@ -5,11 +5,12 @@ import 'package:flutter/material.dart';
 import '../../profile/screens/my_dogs_screen.dart';
 import 'choose_walk_screen.dart';
 import 'pickup_address_selection_screen.dart';
+import '../../../app/theme.dart';
 
-const Color dogSelectionOrange = Color(0xFFFF7900);
-const Color dogSelectionBackground = Color(0xFFFFFAF5);
-const Color dogSelectionText = Color(0xFF252525);
-const Color dogSelectionMuted = Color(0xFF777777);
+const Color dogSelectionOrange = DojoWalkTheme.primary;
+const Color dogSelectionBackground = DojoWalkTheme.background;
+const Color dogSelectionText = DojoWalkTheme.text;
+const Color dogSelectionMuted = DojoWalkTheme.mutedText;
 
 class DogSelectionScreen extends StatefulWidget {
   final WalkBookingType walkType;
