@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 const Color supportOrange = Color(0xFFFF7900);
 const Color supportBackground = Color(0xFFFFFAF5);
-const Color supportText = Color(0xFF202020);
+const Color supportText = Color(0xFF252525);
 const Color supportMuted = Color(0xFF777777);
 
 class HelpSupportScreen extends StatefulWidget {
