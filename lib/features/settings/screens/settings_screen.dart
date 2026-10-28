@@ -4,7 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../app/app_language.dart';
+import '../../../app/locale_controller.dart';
 
 const Color settingsOrange = Color(0xFFFF7900);
 const Color settingsBackground = Color(0xFFFFFAF5);
