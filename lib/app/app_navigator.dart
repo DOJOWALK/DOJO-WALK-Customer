@@ -2,13 +2,14 @@
 import 'package:flutter/material.dart';
 
 import 'locale_controller.dart';
+import 'theme.dart';
 import '../features/home/screens/home_screen.dart';
 import '../features/booking/screens/my_bookings_screen.dart';
 import '../features/profile/screens/profile_screen.dart';
 
-const Color navOrange = Color(0xFFFF7900);
-const Color navBackground = Color(0xFFFFFAF5);
-const Color navMuted = Color(0xFF777777);
+const Color navOrange = DojoWalkTheme.primary;
+const Color navBackground = DojoWalkTheme.background;
+const Color navMuted = DojoWalkTheme.mutedText;
 
 class AppNavigator extends StatefulWidget {
   const AppNavigator({super.key});
