@@ -8,7 +8,7 @@ import 'pickup_address_selection_screen.dart';
 
 const Color dogSelectionOrange = Color(0xFFFF7900);
 const Color dogSelectionBackground = Color(0xFFFFFAF5);
-const Color dogSelectionText = Color(0xFF202020);
+const Color dogSelectionText = Color(0xFF252525);
 const Color dogSelectionMuted = Color(0xFF777777);
 
 class DogSelectionScreen extends StatefulWidget {
