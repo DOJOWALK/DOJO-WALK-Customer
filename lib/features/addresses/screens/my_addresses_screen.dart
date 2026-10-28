@@ -1,3 +1,4 @@
+import '../../../app/theme.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -6,10 +7,10 @@ import '../models/saved_address.dart';
 import '../services/address_service.dart';
 import 'address_form_screen.dart';
 
-const Color addressOrange = Color(0xFFFF7900);
-const Color addressBackground = Color(0xFFFFFAF5);
-const Color addressText = Color(0xFF252525);
-const Color addressMuted = Color(0xFF777777);
+const Color addressOrange = DojoWalkTheme.primary;
+const Color addressBackground = DojoWalkTheme.background;
+const Color addressText = DojoWalkTheme.text;
+const Color addressMuted = DojoWalkTheme.mutedText;
 
 class MyAddressesScreen extends StatelessWidget {
   const MyAddressesScreen({super.key});
