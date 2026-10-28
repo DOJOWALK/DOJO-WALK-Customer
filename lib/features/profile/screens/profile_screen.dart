@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../app/locale_controller.dart';
+import '../../../app/theme.dart';
 import '../../addresses/screens/my_addresses_screen.dart';
 import '../../auth/screens/phone_login_screen.dart';
 import '../../booking/screens/my_bookings_screen.dart';
@@ -12,10 +13,10 @@ import 'account_details_screen.dart';
 import 'my_dogs_screen.dart';
 import 'privacy_terms_screen.dart';
 
-const Color profileOrange = Color(0xFFFF7900);
-const Color profileBackground = Color(0xFFFFFAF5);
-const Color profileText = Color(0xFF252525);
-const Color profileMuted = Color(0xFF777777);
+const Color profileOrange = DojoWalkTheme.primary;
+const Color profileBackground = DojoWalkTheme.background;
+const Color profileText = DojoWalkTheme.text;
+const Color profileMuted = DojoWalkTheme.mutedText;
 
 String _tr(String en, String hi, String bn) {
   switch (appLocale.value.languageCode) {
