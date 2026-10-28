@@ -3,11 +3,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../app/locale_controller.dart';
+import '../../../app/theme.dart';
 
-const Color dogsOrange = Color(0xFFFF7900);
-const Color dogsBackground = Color(0xFFFFFAF5);
-const Color dogsText = Color(0xFF252525);
-const Color dogsMuted = Color(0xFF777777);
+const Color dogsOrange = DojoWalkTheme.primary;
+const Color dogsBackground = DojoWalkTheme.background;
+const Color dogsText = DojoWalkTheme.text;
+const Color dogsMuted = DojoWalkTheme.mutedText;
 
 String _dogTr(String en, String hi, String bn) {
   switch (appLocale.value.languageCode) {
