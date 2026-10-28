@@ -7,7 +7,7 @@ import 'change_mobile_number_screen.dart';
 
 const Color accountOrange = Color(0xFFFF7900);
 const Color accountBackground = Color(0xFFFFFAF5);
-const Color accountText = Color(0xFF202020);
+const Color accountText = Color(0xFF252525);
 const Color accountMuted = Color(0xFF777777);
 
 class AccountDetailsScreen extends StatefulWidget {
