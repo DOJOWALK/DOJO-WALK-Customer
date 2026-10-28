@@ -6,7 +6,7 @@ import '../../../app/locale_controller.dart';
 
 const Color bookingsOrange = Color(0xFFFF7900);
 const Color bookingsBackground = Color(0xFFFFFAF5);
-const Color bookingsText = Color(0xFF202020);
+const Color bookingsText = Color(0xFF252525);
 const Color bookingsMuted = Color(0xFF777777);
 const Color bookingsBorder = Color(0xFFF0E9E2);
 
