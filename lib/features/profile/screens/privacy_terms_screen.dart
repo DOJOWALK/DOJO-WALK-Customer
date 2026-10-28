@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../app/app_language.dart';
+import '../../../app/locale_controller.dart';
 
 const Color _orange = Color(0xFFFF7900);
 const Color _background = Color(0xFFFFFAF5);
