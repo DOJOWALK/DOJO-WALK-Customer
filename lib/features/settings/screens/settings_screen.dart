@@ -5,11 +5,12 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../app/locale_controller.dart';
+import '../../../app/theme.dart';
 
-const Color settingsOrange = Color(0xFFFF7900);
-const Color settingsBackground = Color(0xFFFFFAF5);
-const Color settingsText = Color(0xFF252525);
-const Color settingsMuted = Color(0xFF777777);
+const Color settingsOrange = DojoWalkTheme.primary;
+const Color settingsBackground = DojoWalkTheme.background;
+const Color settingsText = DojoWalkTheme.text;
+const Color settingsMuted = DojoWalkTheme.mutedText;
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
