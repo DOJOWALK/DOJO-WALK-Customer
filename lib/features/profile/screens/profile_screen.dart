@@ -6,7 +6,6 @@ import '../../../app/locale_controller.dart';
 import '../../addresses/screens/my_addresses_screen.dart';
 import '../../auth/screens/phone_login_screen.dart';
 import '../../booking/screens/my_bookings_screen.dart';
-import '../../coupons/screens/coupons_offers_screen.dart';
 import '../../settings/screens/settings_screen.dart';
 import '../../support/screens/help_support_screen.dart';
 import 'account_details_screen.dart';
@@ -152,25 +151,6 @@ class ProfileScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 28),
-
-        _menuCard(
-          context,
-          icon: Icons.local_offer_outlined,
-          title: _tr(
-            'Coupons & Offers',
-            'कूपन और ऑफ़र',
-            'কুপন ও অফার',
-          ),
-          subtitle: _tr(
-            'View available offers',
-            'उपलब्ध ऑफ़र देखें',
-            'উপলব্ধ অফার দেখুন',
-          ),
-          onTap: () => _open(
-            context,
-            const CouponsOffersScreen(),
-          ),
-        ),
 
         _menuCard(
           context,
@@ -333,26 +313,6 @@ class ProfileScreen extends StatelessWidget {
               onTap: () => _open(
                 context,
                 const MyAddressesScreen(),
-              ),
-            ),
-
-            // COUPONS
-            _menuCard(
-              context,
-              icon: Icons.local_offer_outlined,
-              title: _tr(
-                'Coupons & Offers',
-                'कूपन और ऑफ़र',
-                'কুপন ও অফার',
-              ),
-              subtitle: _tr(
-                'See offers available to your account',
-                'अपने अकाउंट के लिए उपलब्ध ऑफ़र देखें',
-                'আপনার অ্যাকাউন্টের জন্য উপলব্ধ অফার দেখুন',
-              ),
-              onTap: () => _open(
-                context,
-                const CouponsOffersScreen(),
               ),
             ),
 
