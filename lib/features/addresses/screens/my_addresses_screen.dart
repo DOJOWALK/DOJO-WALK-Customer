@@ -8,7 +8,7 @@ import 'address_form_screen.dart';
 
 const Color addressOrange = Color(0xFFFF7900);
 const Color addressBackground = Color(0xFFFFFAF5);
-const Color addressText = Color(0xFF202020);
+const Color addressText = Color(0xFF252525);
 const Color addressMuted = Color(0xFF777777);
 
 class MyAddressesScreen extends StatelessWidget {
