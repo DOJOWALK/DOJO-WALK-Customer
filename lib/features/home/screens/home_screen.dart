@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../app/locale_controller.dart';
+import '../../../app/theme.dart';
 import '../../addresses/models/saved_address.dart';
 import '../../addresses/services/address_service.dart';
 import '../../addresses/screens/address_form_screen.dart';
@@ -11,10 +12,10 @@ import '../../notifications/screens/notifications_screen.dart';
 import '../../profile/screens/my_dogs_screen.dart';
 import '../../support/screens/help_support_screen.dart';
 
-const Color dojoOrange = Color(0xFFFF7900);
-const Color dojoBackground = Color(0xFFFFFAF5);
-const Color dojoText = Color(0xFF252525);
-const Color dojoMuted = Color(0xFF777777);
+const Color dojoOrange = DojoWalkTheme.primary;
+const Color dojoBackground = DojoWalkTheme.background;
+const Color dojoText = DojoWalkTheme.text;
+const Color dojoMuted = DojoWalkTheme.mutedText;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
