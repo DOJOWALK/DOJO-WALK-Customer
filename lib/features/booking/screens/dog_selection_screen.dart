@@ -6,6 +6,7 @@ import '../../profile/screens/my_dogs_screen.dart';
 import 'choose_walk_screen.dart';
 import 'pickup_address_selection_screen.dart';
 import '../../../app/theme.dart';
+import '../../../app/locale_controller.dart';
 
 const Color dogSelectionOrange = DojoWalkTheme.primary;
 const Color dogSelectionBackground = DojoWalkTheme.background;
@@ -36,6 +37,25 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
 
   User? get _user => FirebaseAuth.instance.currentUser;
 
+  @override
+  void initState() {
+    super.initState();
+    appLocale.addListener(_onLocaleChanged);
+  }
+
+  @override
+  void dispose() {
+    appLocale.removeListener(_onLocaleChanged);
+    super.dispose();
+  }
+
+  void _onLocaleChanged() {
+    if (mounted) setState(() {});
+  }
+
+  String _text(String en, String hi, String bn) =>
+      appText(en: en, hi: hi, bn: bn);
+
   Stream<QuerySnapshot<Map<String, dynamic>>> _watchDogs() {
     final user = _user;
 
@@ -59,12 +79,12 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
 
   String _dogBreed(Map<String, dynamic> dog) {
     final breed = (dog['breed'] ?? '').toString().trim();
-    return breed.isEmpty ? 'Breed not provided' : breed;
+    return breed.isEmpty ? _text('Breed not provided', 'नस्ल की जानकारी नहीं दी गई', 'জাতের তথ্য দেওয়া হয়নি') : breed;
   }
 
   String _dogGender(Map<String, dynamic> dog) {
     final gender = (dog['gender'] ?? '').toString().trim();
-    return gender.isEmpty ? 'Not specified' : gender;
+    return gender.isEmpty ? _text('Not specified', 'नहीं बताया गया', 'উল্লেখ করা হয়নি') : gender;
   }
 
   String _dogAge(Map<String, dynamic> dog) {
@@ -89,11 +109,11 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
       }
 
       if (years >= 0) {
-        return '$years years';
+        return _text('$years years', '$years साल', '$years বছর');
       }
     }
 
-    return 'Age not provided';
+    return _text('Age not provided', 'उम्र की जानकारी नहीं दी गई', 'বয়সের তথ্য দেওয়া হয়নি');
   }
 
   void _showMessage(String message) {
@@ -121,7 +141,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
       // Refresh the screen after returning from My Dogs.
       setState(() {});
     } catch (e) {
-      _showMessage('Dog screen open nahi ho payi: $e');
+      _showMessage(_text('Could not open dog details. Please try again.', 'डॉग की जानकारी नहीं खुल सकी। दोबारा कोशिश करें।', 'কুকুরের তথ্য খোলা যায়নি। আবার চেষ্টা করুন।'));
     } finally {
       if (mounted) {
         setState(() => _isOpeningDogs = false);
@@ -135,7 +155,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
     final user = _user;
 
     if (user == null) {
-      _showMessage('Please pehle login karein.');
+      _showMessage(_text('Please log in first.', 'पहले लॉग इन करें।', 'আগে লগ ইন করুন।'));
       return;
     }
 
@@ -143,7 +163,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
     final selectedDog = _selectedDog;
 
     if (dogId == null || selectedDog == null) {
-      _showMessage('Please apna dog select karein.');
+      _showMessage(_text('Please select a dog.', 'कृपया अपना डॉग चुनें।', 'একটি কুকুর বেছে নিন।'));
       return;
     }
 
@@ -167,7 +187,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
         }
 
         throw StateError(
-          'Selected dog ab saved list mein nahi hai. Dobara select karein.',
+          _text('This dog is no longer in your saved list. Please select again.', 'यह डॉग अब आपकी सेव की गई सूची में नहीं है। दोबारा चुनें।', 'এই কুকুরটি আর সংরক্ষিত তালিকায় নেই। আবার বেছে নিন.'),
         );
       }
 
@@ -177,7 +197,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
 
       if (name.isEmpty || name == 'Unnamed Dog') {
         throw StateError(
-          'Is dog ka naam available nahi hai. Pehle dog details update karein.',
+          _text('This dog has no name. Update its details first.', 'इस डॉग का नाम उपलब्ध नहीं है। पहले उसकी जानकारी अपडेट करें।', 'এই কুকুরের নাম নেই। আগে তথ্য আপডেট করুন.'),
         );
       }
 
@@ -201,11 +221,11 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
     } on FirebaseException catch (e) {
       _showMessage(
         e.code == 'permission-denied'
-            ? 'Dog details access nahi ho payi. Firebase Rules check karein.'
-            : 'Dog details load nahi hui (${e.code}). Dobara try karein.',
+            ? _text('Could not access dog details. Please try again.', 'डॉग की जानकारी नहीं खुल सकी। दोबारा कोशिश करें।', 'কুকুরের তথ্য খোলা যায়নি। আবার চেষ্টা করুন।')
+            : _text('Could not load dog details. Please try again.', 'डॉग की जानकारी लोड नहीं हुई। दोबारा कोशिश करें।', 'কুকুরের তথ্য লোড হয়নি। আবার চেষ্টা করুন.'),
       );
     } catch (e) {
-      _showMessage('Aage continue nahi ho paya: $e');
+      _showMessage(_text('Could not continue. Please try again.', 'आगे नहीं बढ़ सके। दोबारा कोशिश करें।', 'এগোনো যায়নি। আবার চেষ্টা করুন।'));
     } finally {
       if (mounted) {
         setState(() => _isContinuing = false);
@@ -221,13 +241,13 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
         appBar: AppBar(
           backgroundColor: dogSelectionOrange,
           foregroundColor: Colors.white,
-          title: const Text('Select Your Dog'),
+          title: Text(_text('Select Your Dog', 'अपना डॉग चुनें', 'আপনার কুকুর বেছে নিন')),
         ),
         body: const Center(
           child: Padding(
             padding: EdgeInsets.all(24),
             child: Text(
-              'Dog select karne ke liye pehle login karein.',
+              _text('Please log in to select a dog.', 'डॉग चुनने के लिए पहले लॉग इन करें।', 'কুকুর বেছে নিতে আগে লগ ইন করুন.'),
               textAlign: TextAlign.center,
             ),
           ),
@@ -241,8 +261,8 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
         backgroundColor: dogSelectionOrange,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
-          'Select Your Dog',
+        title: Text(
+          _text('Select Your Dog', 'अपना डॉग चुनें', 'আপনার কুকুর বেছে নিন'),
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
@@ -268,7 +288,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                             ),
                             const SizedBox(height: 12),
                             const Text(
-                              'Dog details load nahi ho paayi.',
+                              _text('Could not load dog details.', 'डॉग की जानकारी लोड नहीं हो सकी।', 'কুকুরের তথ্য লোড করা যায়নি.'),
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -285,7 +305,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                             const SizedBox(height: 12),
                             OutlinedButton(
                               onPressed: () => setState(() {}),
-                              child: const Text('Retry'),
+                              child: Text(_text('Retry', 'फिर कोशिश करें', 'আবার চেষ্টা করুন')),
                             ),
                           ],
                         ),
@@ -328,7 +348,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                               ),
                               SizedBox(height: 16),
                               Text(
-                                'No Dogs Added Yet',
+                                _text('No Dogs Added Yet', 'अभी कोई डॉग नहीं जोड़ा गया', 'এখনও কোনো কুকুর যোগ করা হয়নি'),
                                 style: TextStyle(
                                   fontSize: 19,
                                   fontWeight: FontWeight.bold,
@@ -337,8 +357,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                               ),
                               SizedBox(height: 8),
                               Text(
-                                'Booking continue karne se pehle '
-                                'apne dog ki details add karein.',
+                                _text('Add your dog’s details before continuing with booking.', 'बुकिंग जारी रखने से पहले अपने डॉग की जानकारी जोड़ें।', 'বুকিং চালিয়ে যাওয়ার আগে আপনার কুকুরের তথ্য যোগ করুন.'),
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: dogSelectionMuted,
@@ -357,7 +376,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                           ),
                           icon: const Icon(Icons.add),
                           label: Text(
-                            _isOpeningDogs ? 'Opening...' : 'Add Your Dog',
+                            _isOpeningDogs ? _text('Opening...', 'खोल रहे हैं...', 'খোলা হচ্ছে...') : _text('Add Your Dog', 'अपना डॉग जोड़ें', 'আপনার কুকুর যোগ করুন'),
                           ),
                         ),
                       ],
@@ -368,7 +387,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                     padding: const EdgeInsets.all(16),
                     children: [
                       const Text(
-                        'Which dog is going for a walk?',
+                        _text('Which dog is going for a walk?', 'किस डॉग को वॉक पर जाना है?', 'কোন কুকুরটি হাঁটতে যাবে?'),
                         style: TextStyle(
                           fontSize: 21,
                           fontWeight: FontWeight.bold,
@@ -377,8 +396,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                       ),
                       const SizedBox(height: 6),
                       const Text(
-                        'Ek dog select karein. Aap baad mein '
-                        'additional bookings ke liye doosra dog choose kar sakte hain.',
+                        _text('Select one dog for this booking. You can choose another dog for a separate booking later.', 'इस बुकिंग के लिए एक डॉग चुनें। अलग बुकिंग में बाद में दूसरा डॉग चुन सकते हैं।', 'এই বুকিংয়ের জন্য একটি কুকুর বেছে নিন। পরে আলাদা বুকিংয়ে অন্য কুকুর বেছে নিতে পারবেন.'),
                         style: TextStyle(
                           color: dogSelectionMuted,
                           height: 1.4,
@@ -495,7 +513,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                           minimumSize: const Size.fromHeight(48),
                         ),
                         icon: const Icon(Icons.add),
-                        label: const Text('Add Another Dog'),
+                        label: Text(_text('Add Another Dog', 'एक और डॉग जोड़ें', 'আরেকটি কুকুর যোগ করুন')),
                       ),
                     ],
                   );
@@ -532,7 +550,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                           ),
                         )
                       : const Text(
-                          'Continue to Pickup Address',
+                          _text('Continue to Pickup Address', 'पिकअप पते पर आगे बढ़ें', 'পিকআপ ঠিকানায় এগিয়ে যান'),
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                           ),
