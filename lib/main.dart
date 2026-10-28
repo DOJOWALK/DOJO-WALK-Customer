@@ -3,7 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'app/app_language.dart';
+import 'app/locale_controller.dart';
 import 'app/dojo_walk_app.dart';
 
 Future<void> main() async {
