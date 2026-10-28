@@ -7,7 +7,7 @@ import 'choose_walk_screen.dart';
 
 const Color confirmationOrange = Color(0xFFFF7900);
 const Color confirmationBackground = Color(0xFFFFFAF5);
-const Color confirmationText = Color(0xFF242424);
+const Color confirmationText = Color(0xFF252525);
 const Color confirmationMuted = Color(0xFF777777);
 const Color confirmationBorder = Color(0xFFEFE5DC);
 
