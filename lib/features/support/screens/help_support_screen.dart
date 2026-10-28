@@ -1,10 +1,11 @@
+import '../../../app/theme.dart';
 
 import 'package:flutter/material.dart';
 
-const Color supportOrange = Color(0xFFFF7900);
-const Color supportBackground = Color(0xFFFFFAF5);
-const Color supportText = Color(0xFF252525);
-const Color supportMuted = Color(0xFF777777);
+const Color supportOrange = DojoWalkTheme.primary;
+const Color supportBackground = DojoWalkTheme.background;
+const Color supportText = DojoWalkTheme.text;
+const Color supportMuted = DojoWalkTheme.mutedText;
 
 class HelpSupportScreen extends StatefulWidget {
   const HelpSupportScreen({super.key});
