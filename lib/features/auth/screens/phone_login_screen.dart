@@ -6,9 +6,10 @@ import 'package:flutter/material.dart';
 import 'otp_verification_screen.dart';
 import '../../profile/screens/name_setup_screen.dart';
 import '../../../app/app_navigator.dart';
+import '../../../app/theme.dart';
 
-const Color dojoOrange = Color(0xFFFF7900);
-const Color dojoBackground = Color(0xFFFFFAF5);
+const Color dojoOrange = DojoWalkTheme.primary;
+const Color dojoBackground = DojoWalkTheme.background;
 
 class PhoneLoginScreen extends StatefulWidget {
   /// Null means normal login.
