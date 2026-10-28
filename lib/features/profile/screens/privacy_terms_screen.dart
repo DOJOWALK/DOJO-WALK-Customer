@@ -3,7 +3,7 @@ import '../../../app/locale_controller.dart';
 
 const Color _orange = Color(0xFFFF7900);
 const Color _background = Color(0xFFFFFAF5);
-const Color _textColor = Color(0xFF292929);
+const Color _textColor = Color(0xFF252525);
 const Color _mutedColor = Color(0xFF777777);
 
 class PrivacyTermsScreen extends StatelessWidget {
