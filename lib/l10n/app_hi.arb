@@ -153,5 +153,9 @@
   "locationPermission": "लोकेशन अनुमति",
   "appInformationSection": "ऐप की जानकारी",
   "appVersion": "ऐप संस्करण",
-  "customerAppFooter": "DOJO WALK • ग्राहक ऐप"
+  "customerAppFooter": "DOJO WALK • ग्राहक ऐप",
+  "bookingNotFound": "बुकिंग नहीं मिली।",
+  "cannotChangeBooking": "आप इस बुकिंग में बदलाव नहीं कर सकते।",
+  "cancellationNotAvailable": "इस स्थिति में बुकिंग रद्द नहीं की जा सकती।",
+  "cancellationAlreadyRequested": "रद्द करने का अनुरोध पहले से मौजूद है।"
 }
