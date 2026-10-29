@@ -153,5 +153,9 @@
   "locationPermission": "লোকেশনের অনুমতি",
   "appInformationSection": "অ্যাপের তথ্য",
   "appVersion": "অ্যাপের সংস্করণ",
-  "customerAppFooter": "DOJO WALK • গ্রাহক অ্যাপ"
+  "customerAppFooter": "DOJO WALK • গ্রাহক অ্যাপ",
+  "bookingNotFound": "বুকিং পাওয়া যায়নি।",
+  "cannotChangeBooking": "আপনি এই বুকিং পরিবর্তন করতে পারবেন না।",
+  "cancellationNotAvailable": "এই অবস্থায় বুকিং বাতিল করা যাবে না।",
+  "cancellationAlreadyRequested": "বাতিলের অনুরোধ আগেই করা হয়েছে।"
 }
