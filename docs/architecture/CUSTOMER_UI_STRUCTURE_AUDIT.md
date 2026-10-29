@@ -149,3 +149,14 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 - CI run [40928627423](https://github.com/DOJOWALK/DOJO-WALK-Customer/actions/runs/40928627423) caught a missing closing parenthesis in the locale-builder wrapper; corrected it in commit `eaeb5c9e40837022c03267615a649d30f4db2f60`.
 - **Latest source validation:** run [40928873771](https://github.com/DOJOWALK/DOJO-WALK-Customer/actions/runs/40928873771) for that corrected source commit completed successfully: dependency install, `flutter analyze`, and `flutter test` all passed.
 - The OTP screen still needs a focused widget-level locale test, and remaining less-common error strings should be reviewed. This pass does not verify actual SMS delivery, Firebase phone-auth configuration, Android/web builds, or visual QA.
+
+
+## Centralized localization foundation (2026-10-29)
+
+- Added Flutter generated-localization configuration in `l10n.yaml`, enabled localization generation in `pubspec.yaml`, and created English/Hindi/Bengali ARB catalogs under `lib/l10n/`.
+- Wired `DojoWalkApp` to generated `AppLocalizations` delegates and supported locales.
+- Added `lib/app/language/language_config.dart` as the single registry for English plus India's 22 scheduled languages. Only English, Hindi and Bengali are marked available because only these have initial catalog resources; other languages are explicitly rollout targets, not live translations.
+- Settings and cold-start language restoration now read the same central language registry rather than maintaining separate hard-coded lists.
+- Added registry tests to ensure 23 language entries exist and untranslated languages are not selectable.
+- Detailed rollout plan: `docs/architecture/CENTRALIZED_LOCALIZATION_PLAN.md`.
+- **Important:** this is the foundation, not a completed all-screen migration. Existing feature screens still contain inline translations and must be migrated to generated keys incrementally. Do not advertise all Indian languages as available until each has reviewed translations and coverage across the released screens.
