@@ -3,8 +3,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-const Color changePhoneOrange = Color(0xFFFF7900);
-const Color changePhoneBackground = Color(0xFFFFFAF5);
+import '../../../app/locale_controller.dart';
+import '../../../app/theme.dart';
+
+const Color changePhoneOrange = DojoWalkTheme.primary;
+const Color changePhoneBackground = DojoWalkTheme.background;
 
 class ChangeMobileNumberScreen extends StatefulWidget {
   const ChangeMobileNumberScreen({super.key});
@@ -28,6 +31,7 @@ class _ChangeMobileNumberScreenState
 
   @override
   void dispose() {
+    appLocale.removeListener(_onLocaleChanged);
     _phoneController.dispose();
     _otpController.dispose();
     super.dispose();
@@ -49,28 +53,28 @@ class _ChangeMobileNumberScreenState
   String _friendlyError(FirebaseAuthException error) {
     switch (error.code) {
       case 'invalid-phone-number':
-        return 'Please enter a valid mobile number.';
+        return _tr('Please enter a valid mobile number.', 'कृपया सही मोबाइल नंबर लिखें।', 'সঠিক মোবাইল নম্বর লিখুন।');
       case 'invalid-verification-code':
-        return 'Incorrect OTP. Please try again.';
+        return _tr('Incorrect OTP. Please try again.', 'OTP गलत है। दोबारा कोशिश करें।', 'OTP ভুল। আবার চেষ্টা করুন।');
       case 'session-expired':
       case 'invalid-verification-id':
-        return 'OTP expired. Please request a new OTP.';
+        return _tr('OTP expired. Please request a new OTP.', 'OTP की अवधि समाप्त हो गई। नया OTP माँगें।', 'OTP-এর মেয়াদ শেষ। নতুন OTP চান।');
       case 'too-many-requests':
-        return 'Too many attempts. Please try again later.';
+        return _tr('Too many attempts. Please try again later.', 'बहुत ज़्यादा कोशिशें हुईं। बाद में कोशिश करें।', 'অনেকবার চেষ্টা হয়েছে। পরে আবার চেষ্টা করুন।');
       case 'quota-exceeded':
-        return 'SMS quota exceeded. Please try later.';
+        return _tr('SMS quota exceeded. Please try later.', 'SMS सीमा पूरी हो गई। बाद में कोशिश करें।', 'SMS সীমা শেষ। পরে চেষ্টা করুন।');
       case 'credential-already-in-use':
       case 'phone-number-already-exists':
-        return 'This number is already linked to another account.';
+        return _tr('This number is already linked to another account.', 'यह नंबर पहले से दूसरे अकाउंट से जुड़ा है।', 'এই নম্বরটি ইতিমধ্যে অন্য অ্যাকাউন্টে যুক্ত।');
       case 'requires-recent-login':
-        return 'For security, log in again before changing your number.';
+        return _tr('For security, log in again before changing your number.', 'सुरक्षा के लिए नंबर बदलने से पहले दोबारा लॉग इन करें।', 'নিরাপত্তার জন্য নম্বর পরিবর্তনের আগে আবার লগ ইন করুন।');
       case 'network-request-failed':
-        return 'Check your internet connection and try again.';
+        return _tr('Check your internet connection and try again.', 'इंटरनेट कनेक्शन जाँचकर फिर कोशिश करें।', 'ইন্টারনেট সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।');
       case 'operation-not-allowed':
-        return 'Phone Authentication is not enabled in Firebase.';
+        return _tr('Phone Authentication is not enabled in Firebase.', 'Firebase में Phone Authentication चालू नहीं है।', 'Firebase-এ Phone Authentication চালু নেই।');
       default:
         return error.message ??
-            'Something went wrong. Please try again.';
+            _tr('Something went wrong. Please try again.', 'कुछ गलत हुआ। दोबारा कोशिश करें।', 'কিছু ভুল হয়েছে। আবার চেষ্টা করুন।');
     }
   }
 
@@ -85,14 +89,14 @@ class _ChangeMobileNumberScreenState
     final currentUser = FirebaseAuth.instance.currentUser;
 
     if (currentUser == null) {
-      _message('Please log in before changing your number.');
+      _message(_tr('Please log in before changing your number.', 'नंबर बदलने से पहले लॉग इन करें।', 'নম্বর পরিবর্তনের আগে লগ ইন করুন।'));
       return;
     }
 
     final currentPhone = currentUser.phoneNumber;
 
     if (currentPhone == newPhone) {
-      _message('This is already your current mobile number.');
+      _message(_tr('This is already your current mobile number.', 'यह आपका मौजूदा मोबाइल नंबर है।', 'এটি আপনার বর্তমান মোবাইল নম্বর।'));
       return;
     }
 
@@ -126,7 +130,7 @@ class _ChangeMobileNumberScreenState
             _sending = false;
           });
 
-          _message('OTP sent to $newPhone');
+          _message(_tr('OTP sent to $newPhone', '$newPhone पर OTP भेज दिया गया', '$newPhone নম্বরে OTP পাঠানো হয়েছে'));
         },
 
         codeAutoRetrievalTimeout: (String verificationId) {
@@ -145,7 +149,7 @@ class _ChangeMobileNumberScreenState
     } catch (_) {
       if (!mounted) return;
       setState(() => _sending = false);
-      _message('Could not send OTP. Please try again.');
+      _message(_tr('Could not send OTP. Please try again.', 'OTP नहीं भेजा जा सका। दोबारा कोशिश करें।', 'OTP পাঠানো যায়নি। আবার চেষ্টা করুন।'));
     }
   }
 
@@ -157,12 +161,12 @@ class _ChangeMobileNumberScreenState
     final otp = _otpController.text.trim();
 
     if (verificationId == null || phone == null) {
-      _message('First request an OTP for your new number.');
+      _message(_tr('First request an OTP for your new number.', 'पहले नए नंबर के लिए OTP माँगें।', 'আগে নতুন নম্বরের জন্য OTP চান।'));
       return;
     }
 
     if (!RegExp(r'^\d{6}$').hasMatch(otp)) {
-      _message('Enter the 6-digit OTP.');
+      _message(_tr('Enter the 6-digit OTP.', '6 अंकों का OTP लिखें।', '৬ সংখ্যার OTP লিখুন।'));
       return;
     }
 
@@ -183,7 +187,7 @@ class _ChangeMobileNumberScreenState
     final currentUser = FirebaseAuth.instance.currentUser;
 
     if (currentUser == null) {
-      _message('Your login session has expired. Please log in again.');
+      _message(_tr('Your login session has expired. Please log in again.', 'लॉगिन सत्र समाप्त हो गया। दोबारा लॉग इन करें।', 'লগইন সেশন শেষ। আবার লগ ইন করুন।'));
       return;
     }
 
@@ -208,7 +212,7 @@ class _ChangeMobileNumberScreenState
 
       if (!mounted) return;
 
-      _message('Mobile number updated successfully.');
+      _message(_tr('Mobile number updated successfully.', 'मोबाइल नंबर अपडेट हो गया।', 'মোবাইল নম্বর আপডেট হয়েছে।'));
 
       Navigator.of(context).pop(true);
     } on FirebaseAuthException catch (error) {
@@ -221,8 +225,7 @@ class _ChangeMobileNumberScreenState
 
       setState(() => _updating = false);
       _message(
-        'The update could not be completed. Please check your connection '
-        'and account details before trying again.',
+        _tr('The update could not be completed. Please check your connection and account details before trying again.', 'अपडेट पूरा नहीं हुआ। दोबारा कोशिश करने से पहले कनेक्शन और अकाउंट विवरण जाँचें।', 'আপডেট সম্পন্ন হয়নি। আবার চেষ্টা করার আগে সংযোগ ও অ্যাকাউন্টের তথ্য পরীক্ষা করুন।'),
       );
     }
   }
@@ -234,8 +237,8 @@ class _ChangeMobileNumberScreenState
       appBar: AppBar(
         backgroundColor: changePhoneBackground,
         elevation: 0,
-        title: const Text(
-          'Update Mobile Number',
+        title: Text(
+          _tr('Update Mobile Number', 'मोबाइल नंबर अपडेट करें', 'মোবাইল নম্বর আপডেট করুন'),
           style: TextStyle(
             color: Color(0xFF252525),
             fontWeight: FontWeight.w900,
@@ -259,8 +262,8 @@ class _ChangeMobileNumberScreenState
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
-              'Verify Your New Number',
+            Text(
+              _tr('Verify Your New Number', 'अपने नए नंबर की पुष्टि करें', 'আপনার নতুন নম্বর যাচাই করুন'),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 23,
@@ -269,9 +272,8 @@ class _ChangeMobileNumberScreenState
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Enter your new Indian mobile number. We will send an OTP '
-              'to verify it before updating your existing account.',
+            Text(
+              _tr('Enter your new Indian mobile number. We will send an OTP to verify it before updating your existing account.', 'अपना नया भारतीय मोबाइल नंबर लिखें। मौजूदा अकाउंट अपडेट करने से पहले OTP से पुष्टि होगी।', 'আপনার নতুন ভারতীয় মোবাইল নম্বর লিখুন। বর্তমান অ্যাকাউন্ট আপডেটের আগে OTP দিয়ে যাচাই করা হবে।'),
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Color(0xFF777777),
@@ -284,8 +286,8 @@ class _ChangeMobileNumberScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'New Mobile Number',
+                  Text(
+                    _tr('New Mobile Number', 'नया मोबाइल नंबर', 'নতুন মোবাইল নম্বর'),
                     style: TextStyle(
                       fontWeight: FontWeight.w800,
                       color: Color(0xFF252525),
@@ -303,7 +305,7 @@ class _ChangeMobileNumberScreenState
                     ],
                     decoration: InputDecoration(
                       prefixText: '+91  ',
-                      hintText: 'Enter 10-digit number',
+                      hintText: _tr('Enter 10-digit number', '10 अंकों का नंबर लिखें', '১০ সংখ্যার নম্বর লিখুন'),
                       counterText: '',
                       filled: true,
                       fillColor: Colors.white,
@@ -322,7 +324,7 @@ class _ChangeMobileNumberScreenState
                       if (value == null ||
                           !RegExp(r'^[6-9]\d{9}$')
                               .hasMatch(value.trim())) {
-                        return 'Enter a valid 10-digit Indian number.';
+                        return _tr('Enter a valid 10-digit Indian number.', 'सही 10 अंकों का भारतीय नंबर लिखें।', 'সঠিক ১০ সংখ্যার ভারতীয় নম্বর লিখুন।');
                       }
                       return null;
                     },
@@ -353,8 +355,8 @@ class _ChangeMobileNumberScreenState
                             )
                           : Text(
                               _verificationId == null
-                                  ? 'Send OTP'
-                                  : 'OTP Sent',
+                                  ? _tr('Send OTP', 'OTP भेजें', 'OTP পাঠান')
+                                  : _tr('OTP Sent', 'OTP भेज दिया गया', 'OTP পাঠানো হয়েছে'),
                               style: const TextStyle(
                                 fontWeight: FontWeight.w900,
                               ),
@@ -366,8 +368,8 @@ class _ChangeMobileNumberScreenState
             ),
             if (_verificationId != null) ...[
               const SizedBox(height: 28),
-              const Text(
-                'Enter 6-Digit OTP',
+              Text(
+                _tr('Enter 6-Digit OTP', '6 अंकों का OTP लिखें', '৬ সংখ্যার OTP লিখুন'),
                 style: TextStyle(
                   fontWeight: FontWeight.w800,
                   color: Color(0xFF252525),
@@ -383,7 +385,7 @@ class _ChangeMobileNumberScreenState
                   FilteringTextInputFormatter.digitsOnly,
                 ],
                 decoration: InputDecoration(
-                  hintText: 'Enter OTP',
+                  hintText: _tr('Enter OTP', 'OTP लिखें', 'OTP লিখুন'),
                   counterText: '',
                   filled: true,
                   fillColor: Colors.white,
@@ -421,8 +423,8 @@ class _ChangeMobileNumberScreenState
                             strokeWidth: 2,
                           ),
                         )
-                      : const Text(
-                          'Verify & Update Number',
+                      : Text(
+                          _tr('Verify & Update Number', 'पुष्टि करें और नंबर अपडेट करें', 'যাচাই করে নম্বর আপডেট করুন'),
                           style: TextStyle(
                             fontWeight: FontWeight.w900,
                           ),
@@ -440,8 +442,8 @@ class _ChangeMobileNumberScreenState
                           _otpController.clear();
                         });
                       },
-                child: const Text(
-                  'Use a different number',
+                child: Text(
+                  _tr('Use a different number', 'दूसरा नंबर इस्तेमाल करें', 'অন্য নম্বর ব্যবহার করুন'),
                   style: TextStyle(color: changePhoneOrange),
                 ),
               ),
