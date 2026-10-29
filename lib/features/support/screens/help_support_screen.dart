@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../app/locale_controller.dart';
 import '../../../app/theme.dart';
 import '../../../l10n/app_localizations.dart';
 
@@ -21,78 +20,28 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
   final _messageController = TextEditingController();
   String _category = 'Booking';
 
-  String _tr(String en, String hi, String bn) {
-    switch (appLocale.value.languageCode) {
-      case 'hi':
-        return hi;
-      case 'bn':
-        return bn;
-      default:
-        return en;
-    }
-  }
-
   final List<Map<String, String>> _faqs = const [
-    {
-      'question': 'How do I book a dog walk?',
-      'answer': 'Open Home, tap Book a Walk, choose your walk type, select your dog, add the pickup address and choose your schedule.',
-    },
-    {
-      'question': 'What is a Regular Walk plan?',
-      'answer': 'A Regular Walk plan is for continuing walks at your preferred time. Your final schedule and walker assignment should be confirmed by DOJO WALK.',
-    },
-    {
-      'question': 'How can I manage my dog details?',
-      'answer': 'Open My Dogs to add a dog, update saved details or delete a dog you no longer need in your list.',
-    },
-    {
-      'question': 'Can I cancel a booking?',
-      'answer': 'Open My Bookings and check the booking details for the available cancellation or cancellation-request option.',
-    },
-    {
-      'question': 'What if my assigned walker is unavailable?',
-      'answer': 'Contact support with your booking details so the team can review the situation and advise you about next steps.',
-    },
-    {
-      'question': 'When is payment required?',
-      'answer': 'Check the payment details shown during your booking. Do not assume a booking is paid until the app confirms the payment status.',
-    },
+    {'question': 'supportFaqBookQuestion', 'answer': 'supportFaqBookAnswer'},
+    {'question': 'supportFaqRegularQuestion', 'answer': 'supportFaqRegularAnswer'},
+    {'question': 'supportFaqDogQuestion', 'answer': 'supportFaqDogAnswer'},
+    {'question': 'supportFaqCancelQuestion', 'answer': 'supportFaqCancelAnswer'},
+    {'question': 'supportFaqWalkerQuestion', 'answer': 'supportFaqWalkerAnswer'},
+    {'question': 'supportFaqPaymentQuestion', 'answer': 'supportFaqPaymentAnswer'},
   ];
 
-  String _faqQuestion(String value) => switch (value) {
-        'How do I book a dog walk?' => _tr('How do I book a dog walk?', 'डॉग वॉक कैसे बुक करें?', 'কুকুরের ওয়াক কীভাবে বুক করব?'),
-        'What is a Regular Walk plan?' => _tr('What is a Regular Walk plan?', 'रेगुलर वॉक प्लान क्या है?', 'রেগুলার ওয়াক প্ল্যান কী?'),
-        'How can I manage my dog details?' => _tr('How can I manage my dog details?', 'अपने कुत्ते की जानकारी कैसे संभालें?', 'কুকুরের তথ্য কীভাবে পরিচালনা করব?'),
-        'Can I cancel a booking?' => _tr('Can I cancel a booking?', 'क्या बुकिंग रद्द कर सकता हूँ?', 'আমি কি বুকিং বাতিল করতে পারি?'),
-        'What if my assigned walker is unavailable?' => _tr('What if my assigned walker is unavailable?', 'अगर असाइन किया गया वॉकर उपलब्ध न हो तो?', 'নির্ধারিত ওয়াকার না থাকলে কী হবে?'),
-        _ => _tr('When is payment required?', 'भुगतान कब करना होगा?', 'কখন পেমেন্ট করতে হবে?'),
-      };
-
-  String _faqAnswer(String value) => switch (value) {
-        'How do I book a dog walk?' => _tr(
-            'Open Home, tap Book a Walk, choose your walk type, select your dog, add the pickup address and choose your schedule.',
-            'होम खोलें, “वॉक बुक करें” चुनें, वॉक का प्रकार और अपना कुत्ता चुनें, पिकअप पता जोड़ें और समय तय करें।',
-            'হোম খুলুন, “ওয়াক বুক করুন” চাপুন, ওয়াকের ধরন ও কুকুর বেছে নিন, পিকআপ ঠিকানা যোগ করুন এবং সময় নির্বাচন করুন।'),
-        'What is a Regular Walk plan?' => _tr(
-            'A Regular Walk plan is for continuing walks at your preferred time. Your final schedule and walker assignment should be confirmed by DOJO WALK.',
-            'रेगुलर वॉक प्लान पसंदीदा समय पर नियमित वॉक के लिए है। अंतिम शेड्यूल और वॉकर की पुष्टि DOJO WALK करेगा।',
-            'রেগুলার ওয়াক প্ল্যান পছন্দের সময়ে নিয়মিত ওয়াকের জন্য। চূড়ান্ত সময়সূচি ও ওয়াকার DOJO WALK নিশ্চিত করবে।'),
-        'How can I manage my dog details?' => _tr(
-            'Open My Dogs to add a dog, update saved details or delete a dog you no longer need in your list.',
-            'कुत्ता जोड़ने, जानकारी बदलने या सूची से हटाने के लिए “मेरे कुत्ते” खोलें।',
-            'কুকুর যোগ, তথ্য পরিবর্তন বা তালিকা থেকে মুছতে “আমার কুকুর” খুলুন।'),
-        'Can I cancel a booking?' => _tr(
-            'Open My Bookings and check the booking details for the available cancellation or cancellation-request option.',
-            '“मेरी बुकिंग” खोलें और बुकिंग विवरण में उपलब्ध रद्द करने या अनुरोध करने का विकल्प देखें।',
-            '“আমার বুকিং” খুলে বুকিংয়ের বিবরণে বাতিল বা বাতিলের অনুরোধের বিকল্প দেখুন।'),
-        'What if my assigned walker is unavailable?' => _tr(
-            'Contact support with your booking details so the team can review the situation and advise you about next steps.',
-            'बुकिंग विवरण के साथ सपोर्ट से संपर्क करें, ताकि टीम स्थिति देखकर अगले कदम बता सके।',
-            'বুকিংয়ের বিবরণসহ সাপোর্টে যোগাযোগ করুন, যাতে দলটি পরিস্থিতি দেখে পরবর্তী পদক্ষেপ জানাতে পারে।'),
-        _ => _tr(
-            'Check the payment details shown during your booking. Do not assume a booking is paid until the app confirms the payment status.',
-            'बुकिंग के दौरान दिखाए गए भुगतान विवरण देखें। ऐप द्वारा भुगतान की पुष्टि होने से पहले बुकिंग को भुगतान किया हुआ न मानें।',
-            'বুকিংয়ের সময় দেখানো পেমেন্টের বিবরণ দেখুন। অ্যাপে নিশ্চিত না হওয়া পর্যন্ত বুকিংকে পেমেন্ট করা হয়েছে বলে ধরে নেবেন না।'),
+  String _faqText(AppLocalizations l10n, String key) => switch (key) {
+        'supportFaqBookQuestion' => l10n.supportFaqBookQuestion,
+        'supportFaqBookAnswer' => l10n.supportFaqBookAnswer,
+        'supportFaqRegularQuestion' => l10n.supportFaqRegularQuestion,
+        'supportFaqRegularAnswer' => l10n.supportFaqRegularAnswer,
+        'supportFaqDogQuestion' => l10n.supportFaqDogQuestion,
+        'supportFaqDogAnswer' => l10n.supportFaqDogAnswer,
+        'supportFaqCancelQuestion' => l10n.supportFaqCancelQuestion,
+        'supportFaqCancelAnswer' => l10n.supportFaqCancelAnswer,
+        'supportFaqWalkerQuestion' => l10n.supportFaqWalkerQuestion,
+        'supportFaqWalkerAnswer' => l10n.supportFaqWalkerAnswer,
+        'supportFaqPaymentQuestion' => l10n.supportFaqPaymentQuestion,
+        _ => l10n.supportFaqPaymentAnswer,
       };
 
   @override
@@ -107,7 +56,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text(AppLocalizations.of(context).supportMessageNotSent),
+          content: Text(l10n.supportMessageNotSent),
           backgroundColor: supportOrange,
           duration: const Duration(seconds: 4),
         ),
@@ -116,10 +65,8 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<Locale>(
-      valueListenable: appLocale,
-      builder: (context, locale, child) {
-        return Scaffold(
+    final l10n = AppLocalizations.of(context);
+    return Scaffold(
           backgroundColor: supportBackground,
           appBar: AppBar(
             backgroundColor: supportBackground,
@@ -176,12 +123,12 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                         childrenPadding: const EdgeInsets.fromLTRB(15, 0, 15, 16),
                         iconColor: supportOrange,
                         collapsedIconColor: supportMuted,
-                        title: Text(_faqQuestion(_faqs[i]['question']!),
+                        title: Text(_faqText(l10n, _faqs[i]['question']!),
                             style: const TextStyle(color: supportText, fontWeight: FontWeight.w700, fontSize: 14)),
                         children: [
                           Align(
                             alignment: Alignment.centerLeft,
-                            child: Text(_faqAnswer(_faqs[i]['question']!),
+                            child: Text(_faqText(l10n, _faqs[i]['answer']!),
                                 style: const TextStyle(color: supportMuted, height: 1.5, fontSize: 13)),
                           ),
                         ],
@@ -273,7 +220,6 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
             ],
           ),
         );
-      },
     );
   }
 
