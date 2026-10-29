@@ -75,3 +75,13 @@ The following edits are committed on the current draft branch. These are source-
 ## Verification caveat
 
 Automated tests, Flutter analyze/build and visual QA are not confirmed by this document. Do not mark the UI complete until real evidence is recorded.
+
+## Additional UI audit pass (2026-10-29)
+
+- Reviewed the latest source for Booking Confirmation, Pickup Address Selection, Address Form, My Addresses, My Bookings, Profile, Settings, My Dogs, Account Details, Notifications, Help & Support, and Privacy & Terms.
+- Confirmed source-level locale update patterns are present in My Bookings, Profile, My Dogs, and Privacy & Terms; Settings maintains its selected language in local state and writes the shared locale.
+- Updated Notifications empty state to follow the shared DOJO WALK theme and switch English/Hindi/Bangla copy through `appLocale`.
+- Notifications and Help & Support are still UI-only placeholders: notification delivery and support-request submission are not connected. The support screen itself still needs a localization pass.
+- Account Details, Help & Support, and other remaining customer screens still need a broader copy/localization and interaction audit.
+- Static source scan found no obvious `const Text` / `const` parent widget containing dynamic locale helper calls in the four recently localized address/booking screens. This is a heuristic scan only, not Dart analysis.
+- **Verification status remains NOT VERIFIED:** no successful Flutter format/analyze/test/build or device/browser visual QA has been recorded for this branch. Do not treat the UI audit as complete and do not begin backend/Firebase alignment yet.
