@@ -209,3 +209,11 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 - Re-checked all three ARB catalogs: English 158 keys, Hindi 158 keys, Bengali 158 keys; no missing or extra non-metadata keys across the three catalogs.
 - Updated My Bookings cancellation transaction errors to use generated localization keys (`bookingNotFound`, `cannotChangeBooking`, `cancellationNotAvailable`, `cancellationAlreadyRequested`). The transaction still verifies document existence, customer ownership, and eligible booking status before writing a cancellation request.
 - Remaining work: My Bookings still contains legacy inline translations across its status labels, empty/loading/error states, booking details, and cancellation dialog. Continue migrating display copy to generated localization keys without changing canonical backend status values or booking payload fields. The UI audit is not complete; PR #29 remains Draft.
+
+
+## My Bookings status-label migration (2026-10-30)
+
+- Added generated localization keys for booking statuses and cancellation-request states to English, Hindi, and Bengali ARB catalogs.
+- Migrated the booking status badge, booking detail status row, and cancellation status row to use `AppLocalizations` getters. Canonical backend status values and cancellation state values remain unchanged.
+- Verified all three ARB files parse as JSON and contain 169 matching non-metadata keys each, with no missing Hindi or Bengali keys.
+- GitHub Actions for code commit `828b816d8089f33b6c6a6404bd1e68217886feac` was pending at the time of this note; wait for its result before claiming validation passed. My Bookings still has other inline translations to migrate and the full Customer UI audit remains open.
