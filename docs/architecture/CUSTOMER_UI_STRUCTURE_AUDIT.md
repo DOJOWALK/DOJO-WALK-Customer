@@ -116,3 +116,6 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 - Fixed the dynamic translated strings inside const widget contexts in those three screens by removing const from the relevant parent/widgets while keeping static child values const where possible.
 - Source delimiter sanity checks passed for the three edited files. **This does not mean the analyzer is fixed yet**; the latest commit must run through GitHub Actions to confirm, and any new analyzer findings must be addressed.
 - Latest recorded run for the earlier commit failed at Analyze, so Tests were skipped. No merge and no backend/Firebase work until validation is clean.
+
+- **CI result confirmed (2026-10-29):** GitHub Actions run [40927069975](https://github.com/DOJOWALK/DOJO-WALK-Customer/actions/runs/40927069975) for commit `3e166766d3d5ab6ddca84212f836c649d924e343` completed successfully. Steps confirmed: `flutter pub get`, `flutter analyze`, and `flutter test` all succeeded after the const-context fixes.
+- This confirms automated analysis and tests for that exact commit. It does **not** confirm Android/web build, responsive visual QA, screen-reader/accessibility review, or live Firebase/backend integration. Those remain pending.
