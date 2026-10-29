@@ -243,9 +243,9 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
           foregroundColor: Colors.white,
           title: Text(_text('Select Your Dog', 'अपना डॉग चुनें', 'আপনার কুকুর বেছে নিন')),
         ),
-        body: const Center(
+        body: Center(
           child: Padding(
-            padding: EdgeInsets.all(24),
+            padding: const EdgeInsets.all(24),
             child: Text(
               _text('Please log in to select a dog.', 'डॉग चुनने के लिए पहले लॉग इन करें।', 'কুকুর বেছে নিতে আগে লগ ইন করুন.'),
               textAlign: TextAlign.center,
@@ -287,7 +287,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                               color: dogSelectionOrange,
                             ),
                             const SizedBox(height: 12),
-                            const Text(
+                            Text(
                               _text('Could not load dog details.', 'डॉग की जानकारी लोड नहीं हो सकी।', 'কুকুরের তথ্য লোড করা যায়নি.'),
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
@@ -339,7 +339,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                               color: const Color(0xFFF0E2D5),
                             ),
                           ),
-                          child: const Column(
+                          child: Column(
                             children: [
                               Icon(
                                 Icons.pets,
@@ -386,7 +386,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                   return ListView(
                     padding: const EdgeInsets.all(16),
                     children: [
-                      const Text(
+                      Text(
                         _text('Which dog is going for a walk?', 'किस डॉग को वॉक पर जाना है?', 'কোন কুকুরটি হাঁটতে যাবে?'),
                         style: TextStyle(
                           fontSize: 21,
@@ -395,7 +395,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                         ),
                       ),
                       const SizedBox(height: 6),
-                      const Text(
+                      Text(
                         _text('Select one dog for this booking. You can choose another dog for a separate booking later.', 'इस बुकिंग के लिए एक डॉग चुनें। अलग बुकिंग में बाद में दूसरा डॉग चुन सकते हैं।', 'এই বুকিংয়ের জন্য একটি কুকুর বেছে নিন। পরে আলাদা বুকিংয়ে অন্য কুকুর বেছে নিতে পারবেন.'),
                         style: TextStyle(
                           color: dogSelectionMuted,
@@ -549,7 +549,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                             strokeWidth: 2,
                           ),
                         )
-                      : const Text(
+                      : Text(
                           _text('Continue to Pickup Address', 'पिकअप पते पर आगे बढ़ें', 'পিকআপ ঠিকানায় এগিয়ে যান'),
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
