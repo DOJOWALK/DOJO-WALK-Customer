@@ -203,5 +203,8 @@
   "bookingBehaviour": "আচরণ",
   "bookingNotes": "নোট",
   "bookingPickup": "পিকআপ",
-  "bookingHelpSupport": "সাহায্য ও সহায়তা"
+  "bookingHelpSupport": "সাহায্য ও সহায়তা",
+  "bookingStatusLabel": "অবস্থা",
+  "bookingWalkerId": "ওয়াকার ID",
+  "bookingFrequency": "কতবার"
 }
