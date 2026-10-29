@@ -344,7 +344,7 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
             controller: controller,
             autofocus: true,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: AppLocalizations.of(context).minutesLabel,
               hintText: AppLocalizations.of(context).durationHint,
             ),
@@ -364,7 +364,7 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
 
                 if (minutes == null || minutes < 20 || minutes > 60) {
                   ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    const SnackBar(
+                    SnackBar(
                       content: Text(AppLocalizations.of(dialogContext).invalidDuration),
                     ),
                   );
@@ -844,7 +844,7 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text(
+                    : Text(
                         l10n.continueDogSelection,
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
