@@ -318,10 +318,10 @@ class _BookingConfirmationScreenState
   }
 
   String get _summaryDateText {
-    if (_isImmediate) return 'As soon as possible';
+    if (_isImmediate) return _text('As soon as possible', 'जितनी जल्दी संभव हो', 'যত তাড়াতাড়ি সম্ভব');
 
     if (_isChooseDates && _dateSchedules.length > 1) {
-      return '${_dateSchedules.length} selected dates';
+      return _text('${_dateSchedules.length} selected dates', '${_dateSchedules.length} चुनी गई तारीखें', '${_dateSchedules.length}টি নির্বাচিত তারিখ');
     }
 
     return _formatDate(_summaryDate);
@@ -332,7 +332,7 @@ class _BookingConfirmationScreenState
 
     final walk = _summaryWalk;
 
-    if (walk == null) return 'Time to be confirmed';
+    if (walk == null) return _text('Time to be confirmed', 'समय की पुष्टि बाकी है', 'সময় নিশ্চিত করা বাকি');
 
     return _formatTime(walk['time']);
   }
@@ -1029,8 +1029,8 @@ class _BookingConfirmationScreenState
           ),
           title: Text(_text('Request Received!', 'अनुरोध प्राप्त हुआ!', 'অনুরোধ গ্রহণ করা হয়েছে!')),
           content: Text(
-            '${_text('Your booking request has been saved.', 'आपका बुकिंग अनुरोध सेव हो गया है।', 'আপনার বুকিংয়ের অনুরোধ সংরক্ষণ করা হয়েছে।')}\\n\\n'
-            '${_text('Booking ID', 'बुकिंग आईडी', 'বুকিং আইডি')}:\\n${bookingRef.id}\\n\\n'
+            '${_text('Your booking request has been saved.', 'आपका बुकिंग अनुरोध सेव हो गया है।', 'আপনার বুকিংয়ের অনুরোধ সংরক্ষণ করা হয়েছে।')}\n\n'
+            '${_text('Booking ID', 'बुकिंग आईडी', 'বুকিং আইডি')}:\n${bookingRef.id}\n\n'
             '${_text('The DOJO WALK team will confirm walker availability and any unfinalized pricing.', 'DOJO WALK टीम वॉकर की उपलब्धता और लंबित कीमत की पुष्टि करेगी।', 'DOJO WALK টিম ওয়াকারের উপলভ্যতা ও অনিশ্চিত মূল্য নিশ্চিত করবে।')}',
           ),
           actions: [
