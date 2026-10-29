@@ -56,7 +56,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text(l10n.supportMessageNotSent),
+          content: Text(AppLocalizations.of(context).supportMessageNotSent),
           backgroundColor: supportOrange,
           duration: const Duration(seconds: 4),
         ),
@@ -73,7 +73,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
             foregroundColor: supportText,
             elevation: 0,
             title: Text(
-              AppLocalizations.of(context).helpAndSupport,
+              l10n.helpAndSupport,
               style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 21),
             ),
           ),
@@ -94,10 +94,10 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(AppLocalizations.of(context).supportHowCanWeHelp,
+                          Text(l10n.supportHowCanWeHelp,
                               style: const TextStyle(color: Colors.white, fontSize: 21, fontWeight: FontWeight.w900)),
                           const SizedBox(height: 6),
-                          Text(AppLocalizations.of(context).supportIntro, style: const TextStyle(color: Colors.white, height: 1.4)),
+                          Text(l10n.supportIntro, style: const TextStyle(color: Colors.white, height: 1.4)),
                         ],
                       ),
                     ),
@@ -105,7 +105,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                 ),
               ),
               const SizedBox(height: 26),
-              Text(AppLocalizations.of(context).supportFaqTitle,
+              Text(l10n.supportFaqTitle,
                   style: const TextStyle(color: supportText, fontSize: 19, fontWeight: FontWeight.w900)),
               const SizedBox(height: 12),
               Container(
@@ -139,10 +139,10 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                 ),
               ),
               const SizedBox(height: 28),
-              Text(AppLocalizations.of(context).supportStillNeedHelp,
+              Text(l10n.supportStillNeedHelp,
                   style: const TextStyle(color: supportText, fontSize: 19, fontWeight: FontWeight.w900)),
               const SizedBox(height: 6),
-              Text(AppLocalizations.of(context).supportDescribeIssueBelow,
+              Text(l10n.supportDescribeIssueBelow,
                   style: const TextStyle(color: supportMuted, height: 1.4)),
               const SizedBox(height: 14),
               Container(
@@ -157,28 +157,28 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(AppLocalizations.of(context).supportTopicPrompt,
+                      Text(l10n.supportTopicPrompt,
                           style: const TextStyle(color: supportText, fontWeight: FontWeight.w800)),
                       const SizedBox(height: 9),
                       DropdownButtonFormField<String>(
                         initialValue: _category,
                         isExpanded: true,
-                        decoration: _inputDecoration(AppLocalizations.of(context).supportSelectTopic),
+                        decoration: _inputDecoration(l10n.supportSelectTopic),
                         items: [
-                          DropdownMenuItem(value: 'Booking', child: Text(AppLocalizations.of(context).supportBookingCategory)),
-                          DropdownMenuItem(value: 'Regular Walk Plan', child: Text(AppLocalizations.of(context).supportRegularPlanCategory)),
-                          DropdownMenuItem(value: 'Walker', child: Text(AppLocalizations.of(context).supportWalkerCategory)),
-                          DropdownMenuItem(value: 'Payment', child: Text(AppLocalizations.of(context).supportPaymentCategory)),
-                          DropdownMenuItem(value: 'My Dogs', child: Text(AppLocalizations.of(context).supportDogsCategory)),
-                          DropdownMenuItem(value: 'Safety', child: Text(AppLocalizations.of(context).supportSafetyCategory)),
-                          DropdownMenuItem(value: 'Other', child: Text(AppLocalizations.of(context).supportOtherCategory)),
+                          DropdownMenuItem(value: 'Booking', child: Text(l10n.supportBookingCategory)),
+                          DropdownMenuItem(value: 'Regular Walk Plan', child: Text(l10n.supportRegularPlanCategory)),
+                          DropdownMenuItem(value: 'Walker', child: Text(l10n.supportWalkerCategory)),
+                          DropdownMenuItem(value: 'Payment', child: Text(l10n.supportPaymentCategory)),
+                          DropdownMenuItem(value: 'My Dogs', child: Text(l10n.supportDogsCategory)),
+                          DropdownMenuItem(value: 'Safety', child: Text(l10n.supportSafetyCategory)),
+                          DropdownMenuItem(value: 'Other', child: Text(l10n.supportOtherCategory)),
                         ],
                         onChanged: (value) {
                           if (value != null) setState(() => _category = value);
                         },
                       ),
                       const SizedBox(height: 18),
-                      Text(AppLocalizations.of(context).supportDescribeIssue,
+                      Text(l10n.supportDescribeIssue,
                           style: const TextStyle(color: supportText, fontWeight: FontWeight.w800)),
                       const SizedBox(height: 9),
                       TextFormField(
@@ -186,10 +186,10 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                         maxLines: 5,
                         maxLength: 1000,
                         textCapitalization: TextCapitalization.sentences,
-                        decoration: _inputDecoration(AppLocalizations.of(context).supportMessageHint),
+                        decoration: _inputDecoration(l10n.supportMessageHint),
                         validator: (value) {
                           if (value == null || value.trim().length < 10) {
-                            return AppLocalizations.of(context).supportMinCharacters;
+                            return l10n.supportMinCharacters;
                           }
                           return null;
                         },
@@ -201,7 +201,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                         child: ElevatedButton.icon(
                           onPressed: _submitRequest,
                           icon: const Icon(Icons.send_rounded),
-                          label: Text(AppLocalizations.of(context).supportSubmitRequest,
+                          label: Text(l10n.supportSubmitRequest,
                               style: const TextStyle(fontWeight: FontWeight.w800)),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: supportOrange,
@@ -212,7 +212,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      Text(AppLocalizations.of(context).supportFormNotConnected, style: const TextStyle(color: supportMuted, fontSize: 12, height: 1.45)),
+                      Text(l10n.supportFormNotConnected, style: const TextStyle(color: supportMuted, fontSize: 12, height: 1.45)),
                     ],
                   ),
                 ),
