@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'change_mobile_number_screen.dart';
+import '../../../app/locale_controller.dart';
 import '../../../app/theme.dart';
 
 const Color accountOrange = DojoWalkTheme.primary;
@@ -39,11 +40,20 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
   @override
   void initState() {
     super.initState();
+    appLocale.addListener(_onLocaleChanged);
     _loadProfile();
   }
 
+  void _onLocaleChanged() {
+    if (mounted) setState(() {});
+  }
+
+  String _tr(String en, String hi, String bn) =>
+      appText(en: en, hi: hi, bn: bn);
+
   @override
   void dispose() {
+    appLocale.removeListener(_onLocaleChanged);
     _nameController.dispose();
     super.dispose();
   }
@@ -105,7 +115,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
   }
 
   String _formatDate(DateTime? date) {
-    if (date == null) return 'Select date of birth';
+    if (date == null) return _tr('Select date of birth', 'जन्म तिथि चुनें', 'জন্মতারিখ বেছে নিন');
 
     final day = date.day.toString().padLeft(2, '0');
     final month = date.month.toString().padLeft(2, '0');
@@ -127,7 +137,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
       initialDate: initial,
       firstDate: DateTime(1920),
       lastDate: latest,
-      helpText: 'Select your date of birth',
+      helpText: _tr('Select your date of birth', 'अपनी जन्म तिथि चुनें', 'আপনার জন্মতারিখ বেছে নিন'),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -149,17 +159,17 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_dateOfBirth == null) {
-      _message('Please select your date of birth.');
+      _message(_tr('Please select your date of birth.', 'कृपया अपनी जन्म तिथि चुनें।', 'আপনার জন্মতারিখ বেছে নিন।'));
       return;
     }
 
     if (_dateOfBirth!.isAfter(_latestAllowedDob())) {
-      _message('You must be at least 18 years old.');
+      _message(_tr('You must be at least 18 years old.', 'आपकी उम्र कम से कम 18 वर्ष होनी चाहिए।', 'আপনার বয়স কমপক্ষে ১৮ বছর হতে হবে।'));
       return;
     }
 
     if (!['male', 'female', 'other'].contains(_gender)) {
-      _message('Please select your gender.');
+      _message(_tr('Please select your gender.', 'कृपया लिंग चुनें।', 'লিঙ্গ বেছে নিন।'));
       return;
     }
 
@@ -178,10 +188,10 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
       }, SetOptions(merge: true));
 
       if (!mounted) return;
-      _message('Account details saved successfully.');
+      _message(_tr('Account details saved successfully.', 'अकाउंट की जानकारी सेव हो गई।', 'অ্যাকাউন্টের তথ্য সফলভাবে সংরক্ষিত হয়েছে।'));
     } catch (_) {
       if (!mounted) return;
-      _message('Could not save details. Please try again.');
+      _message(_tr('Could not save details. Please try again.', 'जानकारी सेव नहीं हुई। दोबारा कोशिश करें।', 'তথ্য সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।'));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -218,8 +228,8 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
       appBar: AppBar(
         backgroundColor: accountBackground,
         elevation: 0,
-        title: const Text(
-          'Account Details',
+        title: Text(
+          _tr('Account Details', 'अकाउंट की जानकारी', 'অ্যাকাউন্টের তথ্য'),
           style: TextStyle(
             color: accountText,
             fontWeight: FontWeight.w900,
@@ -277,15 +287,15 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  _label('Full Name'),
+                  _label(_tr('Full Name', 'पूरा नाम', 'পুরো নাম')),
                   TextFormField(
                     controller: _nameController,
                     textCapitalization: TextCapitalization.words,
-                    decoration: _decoration('Enter your full name'),
+                    decoration: _decoration(_tr('Enter your full name', 'अपना पूरा नाम लिखें', 'আপনার পুরো নাম লিখুন')),
                     validator: (value) {
                       if (value == null ||
                           value.trim().length < 2) {
-                        return 'Enter at least 2 characters.';
+                        return _tr('Enter at least 2 characters.', 'कम से कम 2 अक्षर लिखें।', 'কমপক্ষে ২টি অক্ষর লিখুন।');
                       }
                       return null;
                     },
@@ -295,7 +305,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                     children: [
                       const Expanded(
                         child: Text(
-                          'Mobile Number',
+                          _tr('Mobile Number', 'मोबाइल नंबर', 'মোবাইল নম্বর'),
                           style: TextStyle(
                             color: accountText,
                             fontWeight: FontWeight.w800,
@@ -304,8 +314,8 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                       ),
                       TextButton(
                         onPressed: _openMobileUpdate,
-                        child: const Text(
-                          'Update',
+                        child: Text(
+                          _tr('Update', 'अपडेट करें', 'আপডেট করুন'),
                           style: TextStyle(
                             color: accountOrange,
                             fontWeight: FontWeight.w900,
@@ -331,7 +341,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                         Expanded(
                           child: Text(
                             _phone.isEmpty
-                                ? 'Number not available'
+                                ? _tr('Number not available', 'नंबर उपलब्ध नहीं है', 'নম্বর পাওয়া যায়নি')
                                 : _phone,
                             style: const TextStyle(
                               color: accountText,
@@ -343,7 +353,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  _label('Date of Birth'),
+                  _label(_tr('Date of Birth', 'जन्म तिथि', 'জন্মতারিখ')),
                   InkWell(
                     onTap: _selectDob,
                     borderRadius: BorderRadius.circular(14),
@@ -382,23 +392,23 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  _label('Gender'),
+                  _label(_tr('Gender', 'लिंग', 'লিঙ্গ')),
                   DropdownButtonFormField<String>(
                     initialValue:
                         _gender.isEmpty ? null : _gender,
-                    decoration: _decoration('Select gender'),
+                    decoration: _decoration(_tr('Select gender', 'लिंग चुनें', 'লিঙ্গ বেছে নিন')),
                     items: const [
                       DropdownMenuItem(
                         value: 'male',
-                        child: Text('Male'),
+                        child: Text(_tr('Male', 'पुरुष', 'পুরুষ')),
                       ),
                       DropdownMenuItem(
                         value: 'female',
-                        child: Text('Female'),
+                        child: Text(_tr('Female', 'महिला', 'মহিলা')),
                       ),
                       DropdownMenuItem(
                         value: 'other',
-                        child: Text('Other'),
+                        child: Text(_tr('Other', 'अन्य', 'অন্যান্য')),
                       ),
                     ],
                     onChanged: (value) {
@@ -406,7 +416,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                     },
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please select your gender.';
+                        return _tr('Please select your gender.', 'कृपया लिंग चुनें।', 'লিঙ্গ বেছে নিন।');
                       }
                       return null;
                     },
@@ -432,8 +442,8 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                                 strokeWidth: 2,
                               ),
                             )
-                          : const Text(
-                              'Save Changes',
+                          : Text(
+                              _tr('Save Changes', 'बदलाव सेव करें', 'পরিবর্তন সংরক্ষণ করুন'),
                               style: TextStyle(
                                 fontWeight: FontWeight.w900,
                               ),
