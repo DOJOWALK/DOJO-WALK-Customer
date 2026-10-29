@@ -333,11 +333,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           ),
           const SizedBox(height: 18),
           _sectionTitle(
-            _t(
-              'APP INFORMATION',
-              'ऐप की जानकारी',
-              'অ্যাপের তথ্য',
-            ),
+            AppLocalizations.of(context).appInformationSection,
           ),
           _settingsTile(
             icon: Icons.info_outline_rounded,
