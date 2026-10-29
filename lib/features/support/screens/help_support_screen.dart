@@ -126,7 +126,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
             foregroundColor: supportText,
             elevation: 0,
             title: Text(
-              _tr('Help & Support', 'मदद और सहायता', 'সহায়তা ও সাপোর্ট'),
+              AppLocalizations.of(context).helpAndSupport,
               style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 21),
             ),
           ),
