@@ -51,9 +51,9 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
           backgroundColor: addressBackground,
           title: Text(_text('Saved Addresses', 'सेव किए गए पते', 'সংরক্ষিত ঠিকানা')),
         ),
-        body: const Center(
+        body: Center(
           child: Padding(
-            padding: EdgeInsets.all(24),
+            padding: const EdgeInsets.all(24),
             child: Text(
               _text('Please sign in to manage your saved addresses.', 'सेव किए गए पते देखने के लिए लॉग इन करें।', 'সংরক্ষিত ঠিকানা পরিচালনা করতে সাইন ইন করুন.'),
               textAlign: TextAlign.center,
