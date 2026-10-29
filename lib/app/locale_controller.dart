@@ -15,7 +15,6 @@ List<Locale> get dojoSupportedLocales => AppLocalizations.supportedLocales;
 
 /// Compatibility helper for screens that have not yet migrated to ARB keys.
 /// New or migrated screens should use AppLocalizations.of(context).
-@Deprecated('Use AppLocalizations.of(context) and generated ARB keys.')
 String appText({
   required String en,
   required String hi,
