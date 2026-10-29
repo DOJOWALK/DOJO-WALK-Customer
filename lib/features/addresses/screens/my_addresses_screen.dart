@@ -114,7 +114,7 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
                   color: const Color(0xFFFFEAD8),
                   borderRadius: BorderRadius.circular(18),
                 ),
-                child: const Row(
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(
@@ -143,9 +143,9 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Column(
+                  child: Column(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.location_searching_rounded,
                         size: 48,
                         color: addressOrange,
@@ -197,7 +197,7 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
             ),
             onPressed: () => _openForm(context),
             icon: const Icon(Icons.add_location_alt_rounded),
-            label: const Text(
+            label: Text(
               _text('Add New Address', 'नया पता जोड़ें', 'নতুন ঠিকানা যোগ করুন'),
               style: TextStyle(fontWeight: FontWeight.w900),
             ),
@@ -274,7 +274,7 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
                     color: const Color(0xFFFFEAD8),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Text(
+                  child: Text(
                     _text('DEFAULT', 'डिफ़ॉल्ट', 'ডিফল্ট'),
                     style: TextStyle(
                       color: addressOrange,
