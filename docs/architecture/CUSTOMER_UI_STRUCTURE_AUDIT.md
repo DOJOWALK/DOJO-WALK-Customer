@@ -192,3 +192,11 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 - The stored FAQ identifiers and support form category values remain canonical keys; no booking, authentication, pricing, or backend behavior was changed.
 - Support submission remains a clearly disclosed UI placeholder and does not send a message.
 - Validation must be confirmed from GitHub Actions for the current branch head; no claim of local formatting, device visual QA, Android/web build, or backend integration is made here.
+
+## Generated-key migration: Choose Walk booking screen (2026-10-30)
+
+- Migrated the main Choose Walk screen labels, walk-type cards, schedule setup headings, walk-now disclosure, date/time picker help text, duration dialog labels, estimated-price disclosure, and common validation/profile/login feedback to generated AppLocalizations keys.
+- Added matching English, Hindi and Bengali ARB values. A catalog consistency check found 117 non-metadata English keys and no missing keys in Hindi or Bengali at the time of this update.
+- Preserved canonical schedule payload fields and values (for example One-Time, Daily, Custom, ASAP, frequency flags, date schedule shape), pricing service behavior, 20–60 minute duration validation, 1–3 walks/day constraint, profile age gate and navigation flow. No price was newly approved or hard-coded.
+- Remaining localization follow-up: review any residual user-visible literals and date-format presentation; test language switching on this screen, then continue remaining Customer UI screens.
+- GitHub Actions validation for the current branch head is pending/not yet confirmed. No device visual QA or local build is claimed.
