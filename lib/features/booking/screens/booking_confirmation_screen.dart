@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../services/walk_pricing_service.dart';
 import 'choose_walk_screen.dart';
 import '../../../app/theme.dart';
+import '../../../app/locale_controller.dart';
 
 const Color confirmationOrange = DojoWalkTheme.primary;
 const Color confirmationBackground = DojoWalkTheme.background;
@@ -35,6 +36,25 @@ class _BookingConfirmationScreenState
     extends State<BookingConfirmationScreen> {
   bool _isSubmitting = false;
   bool _submitted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    appLocale.addListener(_onLocaleChanged);
+  }
+
+  @override
+  void dispose() {
+    appLocale.removeListener(_onLocaleChanged);
+    super.dispose();
+  }
+
+  void _onLocaleChanged() {
+    if (mounted) setState(() {});
+  }
+
+  String _text(String en, String hi, String bn) =>
+      appText(en: en, hi: hi, bn: bn);
 
   bool get _isRegular =>
       widget.walkType == WalkBookingType.regular ||
@@ -174,7 +194,7 @@ class _BookingConfirmationScreenState
   }
 
   String _money(double? amount) {
-    if (amount == null) return 'Price to be confirmed';
+    if (amount == null) return _text('Price to be confirmed', 'कीमत की पुष्टि बाकी है', 'মূল্য নিশ্চিত করা বাকি');
 
     return '₹${amount.toStringAsFixed(
       amount == amount.roundToDouble() ? 0 : 2,
@@ -210,7 +230,7 @@ class _BookingConfirmationScreenState
   String _formatDate(dynamic value) {
     final date = _parseDate(value);
 
-    if (date == null) return 'Date to be confirmed';
+    if (date == null) return _text('Date to be confirmed', 'तारीख की पुष्टि बाकी है', 'তারিখ নিশ্চিত করা বাকি');
 
     const months = [
       'Jan',
@@ -257,17 +277,17 @@ class _BookingConfirmationScreenState
         .toList();
 
     return parts.isEmpty
-        ? 'Pickup address not available'
+        ? _text('Pickup address not available', 'पिकअप का पता उपलब्ध नहीं है', 'পিকআপের ঠিকানা পাওয়া যায়নি')
         : parts.join(', ');
   }
 
   String _formatTime(dynamic value) {
     final time = (value ?? '').toString().trim();
 
-    if (time.isEmpty) return 'Time to be confirmed';
+    if (time.isEmpty) return _text('Time to be confirmed', 'समय की पुष्टि बाकी है', 'সময় নিশ্চিত করা বাকি');
 
     if (time.toUpperCase() == 'ASAP') {
-      return 'As soon as possible';
+      return _text('As soon as possible', 'जितनी जल्दी संभव हो', 'যত তাড়াতাড়ি সম্ভব');
     }
 
     return time;
@@ -320,9 +340,9 @@ class _BookingConfirmationScreenState
   String get _summaryDuration {
     final walk = _summaryWalk;
 
-    if (walk == null) return 'To be confirmed';
+    if (walk == null) return _text('To be confirmed', 'पुष्टि बाकी है', 'নিশ্চিত করা বাকি');
 
-    return '${_duration(walk)} minutes';
+    return '${_duration(walk)} ${_text('minutes', 'मिनट', 'মিনিট')}';
   }
 
   Widget _summaryLine(String label, String value) {
@@ -424,8 +444,8 @@ class _BookingConfirmationScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'BOOKING SUMMARY',
+          Text(
+            _text('BOOKING SUMMARY', 'बुकिंग सारांश', 'বুকিংয়ের সারাংশ'),
             style: TextStyle(
               color: confirmationMuted,
               fontSize: 11,
@@ -452,15 +472,15 @@ class _BookingConfirmationScreenState
             ),
           ),
           const SizedBox(height: 18),
-          _summaryLine('Date', _summaryDateText),
-          _summaryLine('Time', _summaryTime),
-          _summaryLine('Duration', _summaryDuration),
+          _summaryLine(_text('Date', 'तारीख', 'তারিখ'), _summaryDateText),
+          _summaryLine(_text('Time', 'समय', 'সময়'), _summaryTime),
+          _summaryLine(_text('Duration', 'अवधि', 'সময়কাল'), _summaryDuration),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 7),
             child: Divider(height: 1, color: confirmationBorder),
           ),
-          const Text(
-            'PRICE DETAILS',
+          Text(
+            _text('PRICE DETAILS', 'कीमत का विवरण', 'মূল্যের বিবরণ'),
             style: TextStyle(
               color: confirmationText,
               fontSize: 13,
@@ -471,10 +491,10 @@ class _BookingConfirmationScreenState
           const SizedBox(height: 7),
           _priceLine(
             _isChooseDates
-                ? 'Walk charges · all dates'
+                ? _text('Walk charges · all dates', 'सभी तारीखों की वॉक फीस', 'সব তারিখের ওয়াক চার্জ')
                 : _isRegular
-                    ? 'Walk charges · per day'
-                    : 'Walk charges',
+                    ? _text('Walk charges · per day', 'प्रतिदिन वॉक फीस', 'প্রতিদিনের ওয়াক চার্জ')
+                    : _text('Walk charges', 'वॉक फीस', 'ওয়াক চার্জ'),
             _money(
               _isChooseDates || _isRegular
                   ? total
@@ -487,18 +507,16 @@ class _BookingConfirmationScreenState
           ),
           _priceLine(
             _isChooseDates
-                ? 'TOTAL FOR SELECTED DATES'
+                ? _text('TOTAL FOR SELECTED DATES', 'चुनी गई तारीखों का कुल', 'নির্বাচিত তারিখের মোট')
                 : _isRegular
-                    ? 'TOTAL PER DAY'
-                    : 'TOTAL AMOUNT',
+                    ? _text('TOTAL PER DAY', 'प्रतिदिन कुल', 'প্রতিদিনের মোট')
+                    : _text('TOTAL AMOUNT', 'कुल राशि', 'মোট পরিমাণ'),
             _money(total),
             emphasize: true,
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Pricing is not yet approved. The amount will be confirmed '
-            'after service availability and the approved price are checked. '
-            'This is a booking request, not a payment.',
+          Text(
+            _text('Pricing is not yet approved. The amount will be confirmed after service availability and the approved price are checked. This is a booking request, not a payment.', 'कीमत अभी स्वीकृत नहीं है। सेवा की उपलब्धता और स्वीकृत कीमत जाँचने के बाद राशि की पुष्टि होगी। यह बुकिंग अनुरोध है, भुगतान नहीं।', 'মূল্য এখনও অনুমোদিত নয়। পরিষেবার উপলভ্যতা ও অনুমোদিত মূল্য যাচাইয়ের পর পরিমাণ নিশ্চিত করা হবে। এটি বুকিংয়ের অনুরোধ, পেমেন্ট নয়.'),
             style: TextStyle(
               fontSize: 11,
               height: 1.45,
@@ -648,7 +666,7 @@ class _BookingConfirmationScreenState
   Widget _buildScheduleSection() {
     if (_isChooseDates && _dateSchedules.isNotEmpty) {
       return _section(
-        title: 'Selected Dates & Walks',
+        title: _text('Selected Dates & Walks', 'चुनी गई तारीखें और वॉक', 'নির্বাচিত তারিখ ও ওয়াক'),
         icon: Icons.calendar_month_outlined,
         child: Column(
           children: [
@@ -688,7 +706,7 @@ class _BookingConfirmationScreenState
                         ),
                       ),
                     Text(
-                      'Daily total: '
+                      '${_text(_text('Daily total', 'प्रतिदिन कुल', 'প্রতিদিনের মোট'), 'प्रतिदिन कुल', 'প্রতিদিনের মোট')}: '
                       '${_money(_totalForWalks(_walksForDay(day)))}',
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
@@ -704,14 +722,14 @@ class _BookingConfirmationScreenState
     }
 
     return _section(
-      title: 'Walk Schedule',
+      title: _text('Walk Schedule', 'वॉक का समय', 'ওয়াকের সময়সূচি'),
       icon: Icons.schedule,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _infoLine('Plan', _planName),
+          _infoLine(_text('Plan', 'प्लान', 'প্ল্যান'), _planName),
           _infoLine(
-            'Start date',
+            _text('Start date', 'शुरू होने की तारीख', 'শুরুর তারিখ'),
             _isImmediate
                 ? 'As soon as possible'
                 : _formatDate(_dateForSchedule()),
@@ -794,34 +812,34 @@ class _BookingConfirmationScreenState
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
-      _showMessage('Please log in before submitting your booking.');
+      _showMessage(_text('Please log in before submitting your booking.', 'बुकिंग भेजने से पहले लॉग इन करें।', 'বুকিং জমা দেওয়ার আগে সাইন ইন করুন।'));
       return;
     }
 
     if (_dogId.isEmpty || _addressId.isEmpty) {
-      _showMessage('Dog details or pickup address are missing.');
+      _showMessage(_text('Dog details or pickup address are missing.', 'डॉग की जानकारी या पिकअप का पता उपलब्ध नहीं है।', 'কুকুরের তথ্য বা পিকআপের ঠিকানা নেই।'));
       return;
     }
 
     if (_isChooseDates && _dateSchedules.isEmpty) {
-      _showMessage('Please select at least one booking date.');
+      _showMessage(_text('Please select at least one booking date.', 'कम से कम एक बुकिंग तारीख चुनें।', 'অন্তত একটি বুকিংয়ের তারিখ বেছে নিন।'));
       return;
     }
 
     final walks = _walks;
 
     if (walks.isEmpty) {
-      _showMessage('Please add at least one walk.');
+      _showMessage(_text('Please add at least one walk.', 'कम से कम एक वॉक जोड़ें।', 'অন্তত একটি ওয়াক যোগ করুন।'));
       return;
     }
 
     if (!_isChooseDates && walks.length > 3) {
-      _showMessage('A maximum of three walks per day is supported.');
+      _showMessage(_text('A maximum of three walks per day is supported.', 'एक दिन में अधिकतम तीन वॉक की अनुमति है।', 'প্রতিদিন সর্বোচ্চ তিনটি ওয়াক করা যাবে।'));
       return;
     }
 
     if (!_isChooseDates && walks.any((walk) => !_validWalk(walk))) {
-      _showMessage('Please check every walk time and duration.');
+      _showMessage(_text('Please check every walk time and duration.', 'हर वॉक का समय और अवधि जाँचें।', 'প্রতিটি ওয়াকের সময় ও সময়কাল পরীক্ষা করুন।'));
       return;
     }
 
@@ -837,7 +855,7 @@ class _BookingConfirmationScreenState
             dayWalks.length > 3 ||
             dayWalks.any((walk) => !_validWalk(walk))) {
           _showMessage(
-            'Please check each selected date and its walk schedule.',
+            _text('Please check each selected date and its walk schedule.', 'हर चुनी गई तारीख और वॉक का समय जाँचें।', 'প্রতিটি নির্বাচিত তারিখ ও ওয়াকের সময়সূচি পরীক্ষা করুন.'),
           );
           return;
         }
@@ -849,7 +867,7 @@ class _BookingConfirmationScreenState
     if (!_isImmediate &&
         !_isChooseDates &&
         selectedDate == null) {
-      _showMessage('Please select a valid walk date.');
+      _showMessage(_text('Please select a valid walk date.', 'वॉक की सही तारीख चुनें।', 'ওয়াকের সঠিক তারিখ বেছে নিন।'));
       return;
     }
 
@@ -1007,12 +1025,11 @@ class _BookingConfirmationScreenState
             color: Colors.green,
             size: 48,
           ),
-          title: const Text('Request Received!'),
+          title: Text(_text('Request Received!', 'अनुरोध प्राप्त हुआ!', 'অনুরোধ গ্রহণ করা হয়েছে!')),
           content: Text(
             'Your $_planName request has been saved.\n\n'
             'Booking ID:\n${bookingRef.id}\n\n'
-            'The DOJO WALK team will confirm walker availability '
-            'and any unfinalized pricing.',
+            _text('The DOJO WALK team will confirm walker availability and any unfinalized pricing.', 'DOJO WALK टीम वॉकर की उपलब्धता और लंबित कीमत की पुष्टि करेगी।', 'DOJO WALK টিম ওয়াকারের উপলভ্যতা ও অনিশ্চিত মূল্য নিশ্চিত করবে.'),
           ),
           actions: [
             FilledButton(
@@ -1025,7 +1042,7 @@ class _BookingConfirmationScreenState
                   (route) => route.isFirst,
                 );
               },
-              child: const Text('Done'),
+              child: Text(_text('Done', 'हो गया', 'সম্পন্ন')),
             ),
           ],
         ),
@@ -1061,7 +1078,7 @@ class _BookingConfirmationScreenState
     return Scaffold(
       backgroundColor: confirmationBackground,
       appBar: AppBar(
-        title: const Text('Review Your Booking'),
+        title: Text(_text('Review Your Booking', 'अपनी बुकिंग जाँचें', 'আপনার বুকিং পর্যালোচনা করুন')),
         backgroundColor: confirmationBackground,
         foregroundColor: confirmationText,
         elevation: 0,
@@ -1075,20 +1092,20 @@ class _BookingConfirmationScreenState
                 children: [
                   _buildSummaryCard(),
                   _section(
-                    title: 'Dog Details',
+                    title: _text('Dog Details', 'डॉग की जानकारी', 'কুকুরের বিবরণ'),
                     icon: Icons.pets,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _infoLine('Name', _dogName),
+                        _infoLine(_text('Name', 'नाम', 'নাম'), _dogName),
                         _infoLine(
-                          'Breed',
+                          _text('Breed', 'नस्ल', 'জাত'),
                           (widget.dogDetails['breed'] ??
-                                  'Not specified')
+                                  _text('Not specified', 'उल्लेख नहीं किया गया', 'উল্লেখ করা হয়নি'))
                               .toString(),
                         ),
                         _infoLine(
-                          'Gender',
+                          _text('Gender', 'लिंग', 'লিঙ্গ'),
                           (widget.dogDetails['gender'] ??
                                   'Not specified')
                               .toString(),
@@ -1098,7 +1115,7 @@ class _BookingConfirmationScreenState
                   ),
                   _buildScheduleSection(),
                   _section(
-                    title: 'Pickup Location',
+                    title: _text('Pickup Location', 'पिकअप की जगह', 'পিকআপের স্থান'),
                     icon: Icons.location_on_outlined,
                     child: Text(
                       _addressText(),
@@ -1143,8 +1160,8 @@ class _BookingConfirmationScreenState
                             strokeWidth: 2.5,
                           ),
                         )
-                      : const Text(
-                          'Submit Booking Request',
+                      : Text(
+                          _text('Submit Booking Request', 'बुकिंग अनुरोध भेजें', 'বুকিংয়ের অনুরোধ জমা দিন'),
                           style: TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 15,
