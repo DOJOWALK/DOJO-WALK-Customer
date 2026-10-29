@@ -157,5 +157,16 @@
   "bookingNotFound": "बुकिंग नहीं मिली।",
   "cannotChangeBooking": "आप इस बुकिंग में बदलाव नहीं कर सकते।",
   "cancellationNotAvailable": "इस स्थिति में बुकिंग रद्द नहीं की जा सकती।",
-  "cancellationAlreadyRequested": "रद्द करने का अनुरोध पहले से मौजूद है।"
+  "cancellationAlreadyRequested": "रद्द करने का अनुरोध पहले से मौजूद है।",
+  "bookingStatusPending": "लंबित",
+  "bookingStatusFindingWalker": "वॉकर खोज रहे हैं",
+  "bookingStatusWalkerAssigned": "वॉकर नियुक्त",
+  "bookingStatusWalkerArriving": "वॉकर आ रहे हैं",
+  "bookingStatusConfirmed": "पुष्टि हो गई",
+  "bookingStatusInProgress": "जारी है",
+  "bookingStatusCompleted": "पूरा हुआ",
+  "bookingStatusCancelled": "रद्द",
+  "bookingStatusNotRequested": "अनुरोध नहीं किया",
+  "bookingStatusApproved": "स्वीकृत",
+  "bookingStatusRejected": "अस्वीकृत"
 }
