@@ -18,5 +18,8 @@
   "save": "Save",
   "retry": "Retry",
   "loading": "Loading…",
-  "errorGeneric": "Something went wrong. Please try again."
+  "errorGeneric": "Something went wrong. Please try again.",
+  "notificationsTitle": "Notifications",
+  "noNotificationsYet": "No notifications yet",
+  "notificationsNotConnected": "Booking updates, walk reminders and important messages will appear here when notifications are connected."
 }
