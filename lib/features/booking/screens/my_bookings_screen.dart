@@ -125,20 +125,20 @@ String _formatDate(DateTime date) {
     return _t('Not provided', 'जानकारी उपलब्ध नहीं', 'তথ্য দেওয়া নেই');
   }
 
-  const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
+  final months = switch (appLocale.value.languageCode) {
+    'hi' => const [
+        'जन॰', 'फ़र॰', 'मार्च', 'अप्रैल', 'मई', 'जून',
+        'जुल॰', 'अग॰', 'सित॰', 'अक्टू॰', 'नव॰', 'दिस॰',
+      ],
+    'bn' => const [
+        'জানু', 'ফেব্রু', 'মার্চ', 'এপ্রিল', 'মে', 'জুন',
+        'জুল', 'আগ', 'সেপ্টে', 'অক্টো', 'নভে', 'ডিসে',
+      ],
+    _ => const [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      ],
+  };
 
   return '${date.day} ${months[date.month - 1]} ${date.year}';
 }
