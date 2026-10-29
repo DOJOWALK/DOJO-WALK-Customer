@@ -51,5 +51,17 @@
   "supportPaymentCategory": "পেমেন্ট",
   "supportDogsCategory": "আমার কুকুর",
   "supportSafetyCategory": "নিরাপত্তা",
-  "supportOtherCategory": "অন্যান্য"
+  "supportOtherCategory": "অন্যান্য",
+  "supportFaqBookQuestion": "কুকুরের ওয়াক কীভাবে বুক করব?",
+  "supportFaqBookAnswer": "হোম খুলুন, “ওয়াক বুক করুন” চাপুন, ওয়াকের ধরন ও কুকুর বেছে নিন, পিকআপ ঠিকানা যোগ করুন এবং সময় নির্বাচন করুন।",
+  "supportFaqRegularQuestion": "রেগুলার ওয়াক প্ল্যান কী?",
+  "supportFaqRegularAnswer": "রেগুলার ওয়াক প্ল্যান পছন্দের সময়ে নিয়মিত ওয়াকের জন্য। চূড়ান্ত সময়সূচি ও ওয়াকার DOJO WALK নিশ্চিত করবে।",
+  "supportFaqDogQuestion": "কুকুরের তথ্য কীভাবে পরিচালনা করব?",
+  "supportFaqDogAnswer": "কুকুর যোগ, তথ্য পরিবর্তন বা তালিকা থেকে মুছতে “আমার কুকুর” খুলুন।",
+  "supportFaqCancelQuestion": "আমি কি বুকিং বাতিল করতে পারি?",
+  "supportFaqCancelAnswer": "“আমার বুকিং” খুলে বুকিংয়ের বিবরণে বাতিল বা বাতিলের অনুরোধের বিকল্প দেখুন।",
+  "supportFaqWalkerQuestion": "নির্ধারিত ওয়াকার না থাকলে কী হবে?",
+  "supportFaqWalkerAnswer": "বুকিংয়ের বিবরণসহ সাপোর্টে যোগাযোগ করুন, যাতে দলটি পরিস্থিতি দেখে পরবর্তী পদক্ষেপ জানাতে পারে।",
+  "supportFaqPaymentQuestion": "কখন পেমেন্ট করতে হবে?",
+  "supportFaqPaymentAnswer": "বুকিংয়ের সময় দেখানো পেমেন্টের বিবরণ দেখুন। অ্যাপে নিশ্চিত না হওয়া পর্যন্ত বুকিংকে পেমেন্ট করা হয়েছে বলে ধরে নেবেন না।"
 }
