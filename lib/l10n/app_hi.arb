@@ -129,5 +129,6 @@
   "monthSep": "सितंबर",
   "monthOct": "अक्टूबर",
   "monthNov": "नवंबर",
-  "monthDec": "दिसंबर"
+  "monthDec": "दिसंबर",
+  "loginSessionMissing": "लॉगिन सेशन नहीं मिला। कृपया OTP फिर से सत्यापित करें।"
 }
