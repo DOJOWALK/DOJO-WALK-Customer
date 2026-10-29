@@ -216,13 +216,13 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
             setState(() => _loading = false);
             _message(
               error.message ??
-                  'Automatic verification नहीं हुआ।',
+                  AppLocalizations.of(context).automaticVerificationFailed,
             );
           } catch (_) {
             if (!mounted) return;
 
             setState(() => _loading = false);
-            _message('Login में समस्या हुई। OTP से कोशिश करें।');
+            _message(AppLocalizations.of(context).automaticLoginFailed);
           }
         },
 
@@ -272,7 +272,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
       if (!mounted) return;
 
       setState(() => _loading = false);
-      _message(error.message ?? 'OTP भेजने में समस्या हुई।');
+      _message(error.message ?? AppLocalizations.of(context).otpSendFallback);
     } catch (_) {
       if (!mounted) return;
 
