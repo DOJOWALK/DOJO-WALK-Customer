@@ -94,3 +94,5 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 - Source-level delimiter checks show matching brace/parenthesis counts in both edited screens. This is only a lightweight sanity check, not Dart parsing or compilation.
 - The support form remains deliberately UI-only: pressing submit validates input and explains that the request is not sent. No Firebase support collection or server workflow was added.
 - **Still NOT VERIFIED:** Flutter formatting, static analysis, automated tests, Android/web builds and visual QA have not been run successfully or recorded. The new pull-request validation workflow has not returned a run in the connected workflow lookup. Keep PR #29 in draft; backend/Firebase alignment remains deferred.
+
+- `lib/features/profile/screens/change_mobile_number_screen.dart`: aligned colors with the shared Notion theme and localized phone/OTP labels, validation, Firebase Auth error messages, status feedback and security note in English/Hindi/Bangla. The existing OTP verification and account-update flow was preserved; no authentication behavior or Firebase rules were changed.
