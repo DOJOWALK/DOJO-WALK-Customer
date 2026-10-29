@@ -289,5 +289,22 @@
   "dogSelectionEmptyBody": "বুকিং চালিয়ে যাওয়ার আগে আপনার কুকুরের তথ্য যোগ করুন।",
   "dogSelectionAddDog": "আপনার কুকুর যোগ করুন",
   "dogSelectionOpening": "খোলা হচ্ছে...",
-  "dogSelectionContinue": "এগিয়ে যান"
+  "dogSelectionContinue": "এগিয়ে যান",
+  "dogBreedNotProvided": "জাতের তথ্য দেওয়া হয়নি",
+  "dogNotSpecified": "উল্লেখ করা হয়নি",
+  "dogAgeYears": "বছর",
+  "dogAgeNotProvided": "বয়সের তথ্য দেওয়া হয়নি",
+  "dogOpenDetailsFailed": "কুকুরের তথ্য খোলা যায়নি। আবার চেষ্টা করুন।",
+  "dogLoginFirst": "আগে লগ ইন করুন।",
+  "dogSelectOne": "একটি কুকুর বেছে নিন।",
+  "dogNoLongerSaved": "এই কুকুরটি আর সংরক্ষিত তালিকায় নেই। আবার বেছে নিন।",
+  "dogNameMissing": "এই কুকুরের নাম নেই। আগে তথ্য আপডেট করুন।",
+  "dogAccessFailed": "কুকুরের তথ্য খোলা যায়নি। আবার চেষ্টা করুন।",
+  "dogLoadFailed": "কুকুরের তথ্য লোড হয়নি। আবার চেষ্টা করুন।",
+  "dogContinueFailed": "এগোনো যায়নি। আবার চেষ্টা করুন।",
+  "dogLoginToSelect": "কুকুর বেছে নিতে আগে লগ ইন করুন।",
+  "dogWhichForWalk": "কোন কুকুরটি হাঁটতে যাবে?",
+  "dogOnePerBooking": "এই বুকিংয়ের জন্য একটি কুকুর বেছে নিন। পরে আলাদা বুকিংয়ে অন্য কুকুর বেছে নিতে পারবেন।",
+  "dogAddAnother": "আরেকটি কুকুর যোগ করুন",
+  "dogContinuePickup": "পিকআপ ঠিকানায় এগিয়ে যান"
 }
