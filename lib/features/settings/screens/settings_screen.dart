@@ -5,6 +5,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../app/locale_controller.dart';
+import '../../../app/language/language_config.dart';
 import '../../../app/theme.dart';
 
 const Color settingsOrange = DojoWalkTheme.primary;
@@ -64,7 +65,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       final prefs = await SharedPreferences.getInstance();
       final info = await PackageInfo.fromPlatform();
       final saved = prefs.getString('dojo_app_language') ?? 'en';
-      final language = ['en', 'hi', 'bn'].contains(saved)
+      final language = availableDojoLanguages.any((item) => item.code == saved)
           ? saved
           : 'en';
 
@@ -149,9 +150,12 @@ class _SettingsScreenState extends State<SettingsScreen>
                 ),
               ),
               const SizedBox(height: 12),
-              _languageOption(sheetContext, 'en', 'English'),
-              _languageOption(sheetContext, 'hi', 'हिन्दी'),
-              _languageOption(sheetContext, 'bn', 'বাংলা'),
+              for (final language in availableDojoLanguages)
+                _languageOption(
+                  sheetContext,
+                  language.code,
+                  language.nativeName,
+                ),
             ],
           ),
         ),
@@ -396,11 +400,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           _settingsTile(
             icon: Icons.language_rounded,
             title: _t('App Language', 'ऐप की भाषा', 'অ্যাপের ভাষা'),
-            subtitle: switch (_language) {
-              'hi' => 'हिन्दी',
-              'bn' => 'বাংলা',
-              _ => 'English',
-            },
+            subtitle: dojoLanguageByCode(_language).nativeName,
             onTap: _chooseLanguage,
           ),
           _settingsTile(
