@@ -278,3 +278,11 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 - Added matching generated localization keys to English, Hindi, and Bengali ARB catalogs for the Home screen's saved-address fallback, location prompt, login-required address actions, pickup-address selector title, and address-loading error.
 - Migrated those six Home screen strings from inline three-language literals to generated AppLocalizations getters. Updated the saved-address formatting helper to accept BuildContext where needed.
 - The Home screen still contains other inline _t strings; this is a partial migration, not a full Home localization pass. The current validation run must pass before this change is considered verified.
+
+
+### Home screen full inline-string migration checkpoint (2026-10-30)
+
+- Added 17 matching generated localization keys to the EN/HI/BN catalogs and migrated the Home screen's remaining visible copy for empty address state, adding an address, default-address marker, notifications tooltip, pickup-location label/loading state, hero/service copy, Book a Walk CTA, My Dogs, and Help & Support.
+- Removed the obsolete three-language `_t` helper from `home_screen.dart`; a source scan now finds no `_t(` call or helper in that file.
+- The Home screen still requires visual/locale-switch QA and an audit for other localization gaps. Only EN/HI/BN catalogs are currently available; this does not mean all 23 language options are translated.
+- The latest successful Customer UI Validation run (#40953133306) was for the preceding Home address localization commit. Newer Home catalog/UI changes require a fresh run before being considered verified.
