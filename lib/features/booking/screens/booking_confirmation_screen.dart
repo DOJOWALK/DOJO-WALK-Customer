@@ -1029,9 +1029,9 @@ class _BookingConfirmationScreenState
           ),
           title: Text(_text('Request Received!', 'अनुरोध प्राप्त हुआ!', 'অনুরোধ গ্রহণ করা হয়েছে!')),
           content: Text(
-            'Your $_planName request has been saved.\n\n'
-            'Booking ID:\n${bookingRef.id}\n\n'
-            _text('The DOJO WALK team will confirm walker availability and any unfinalized pricing.', 'DOJO WALK टीम वॉकर की उपलब्धता और लंबित कीमत की पुष्टि करेगी।', 'DOJO WALK টিম ওয়াকারের উপলভ্যতা ও অনিশ্চিত মূল্য নিশ্চিত করবে.'),
+            '${_text('Your booking request has been saved.', 'आपका बुकिंग अनुरोध सेव हो गया है।', 'আপনার বুকিংয়ের অনুরোধ সংরক্ষণ করা হয়েছে।')}\\n\\n'
+            '${_text('Booking ID', 'बुकिंग आईडी', 'বুকিং আইডি')}:\\n${bookingRef.id}\\n\\n'
+            '${_text('The DOJO WALK team will confirm walker availability and any unfinalized pricing.', 'DOJO WALK टीम वॉकर की उपलब्धता और लंबित कीमत की पुष्टि करेगी।', 'DOJO WALK টিম ওয়াকারের উপলভ্যতা ও অনিশ্চিত মূল্য নিশ্চিত করবে।')}',
           ),
           actions: [
             FilledButton(
