@@ -290,5 +290,22 @@
   "dogSelectionEmptyBody": "Add your dog’s details before continuing with booking.",
   "dogSelectionAddDog": "Add Your Dog",
   "dogSelectionOpening": "Opening...",
-  "dogSelectionContinue": "Continue"
+  "dogSelectionContinue": "Continue",
+  "dogBreedNotProvided": "Breed not provided",
+  "dogNotSpecified": "Not specified",
+  "dogAgeYears": "years",
+  "dogAgeNotProvided": "Age not provided",
+  "dogOpenDetailsFailed": "Could not open dog details. Please try again.",
+  "dogLoginFirst": "Please log in first.",
+  "dogSelectOne": "Please select a dog.",
+  "dogNoLongerSaved": "This dog is no longer in your saved list. Please select again.",
+  "dogNameMissing": "This dog has no name. Update its details first.",
+  "dogAccessFailed": "Could not access dog details. Please try again.",
+  "dogLoadFailed": "Could not load dog details. Please try again.",
+  "dogContinueFailed": "Could not continue. Please try again.",
+  "dogLoginToSelect": "Please log in to select a dog.",
+  "dogWhichForWalk": "Which dog is going for a walk?",
+  "dogOnePerBooking": "Select one dog for this booking. You can choose another dog for a separate booking later.",
+  "dogAddAnother": "Add Another Dog",
+  "dogContinuePickup": "Continue to Pickup Address"
 }
