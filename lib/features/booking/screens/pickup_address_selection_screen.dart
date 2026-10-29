@@ -7,6 +7,7 @@ import '../../addresses/screens/address_form_screen.dart';
 import 'choose_walk_screen.dart';
 import 'booking_confirmation_screen.dart';
 import '../../../app/theme.dart';
+import '../../../app/locale_controller.dart';
 
 const Color pickupOrange = DojoWalkTheme.primary;
 const Color pickupBackground = DojoWalkTheme.background;
@@ -39,6 +40,25 @@ class _PickupAddressSelectionScreenState
 
   bool _isContinuing = false;
   bool _isOpeningForm = false;
+
+  @override
+  void initState() {
+    super.initState();
+    appLocale.addListener(_onLocaleChanged);
+  }
+
+  @override
+  void dispose() {
+    appLocale.removeListener(_onLocaleChanged);
+    super.dispose();
+  }
+
+  void _onLocaleChanged() {
+    if (mounted) setState(() {});
+  }
+
+  String _text(String en, String hi, String bn) =>
+      appText(en: en, hi: hi, bn: bn);
 
   String _addressText(SavedAddress address) {
     final parts = <String>[
@@ -96,7 +116,7 @@ class _PickupAddressSelectionScreenState
       // Address list will refresh through the service stream.
       setState(() {});
     } catch (e) {
-      _showMessage('Address form open nahi hua: $e');
+      _showMessage(_text('Could not open the address form. Please try again.', 'पता जोड़ने वाला फ़ॉर्म नहीं खुला। दोबारा कोशिश करें।', 'ঠিকানা ফর্ম খোলা যায়নি। আবার চেষ্টা করুন.'));
     } finally {
       if (mounted) {
         setState(() => _isOpeningForm = false);
@@ -110,14 +130,14 @@ class _PickupAddressSelectionScreenState
     final address = _selectedAddress;
 
     if (address == null || _selectedAddressId == null) {
-      _showMessage('Please pickup address select karein.');
+      _showMessage(_text('Please select a pickup address.', 'कृपया पिकअप का पता चुनें।', 'পিকআপের ঠিকানা বেছে নিন.'));
       return;
     }
 
     final fullAddress = _addressText(address);
 
     if (fullAddress.isEmpty) {
-      _showMessage('Selected address incomplete hai. Address update karein.');
+      _showMessage(_text('This address is incomplete. Please update it.', 'यह पता अधूरा है। कृपया इसे अपडेट करें।', 'ঠিকানাটি অসম্পূর্ণ। আপডেট করুন.'));
       return;
     }
 
@@ -157,7 +177,7 @@ class _PickupAddressSelectionScreenState
         ),
       );
     } catch (e) {
-      _showMessage('Confirmation screen open nahi hui: $e');
+      _showMessage(_text('Could not open booking review. Please try again.', 'बुकिंग की समीक्षा नहीं खुली। दोबारा कोशिश करें।', 'বুকিং পর্যালোচনা খোলা যায়নি। আবার চেষ্টা করুন.'));
     } finally {
       if (mounted) {
         setState(() => _isContinuing = false);
@@ -173,8 +193,8 @@ class _PickupAddressSelectionScreenState
         backgroundColor: pickupOrange,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
-          'Pickup Address',
+        title: Text(
+          _text('Pickup Address', 'पिकअप का पता', 'পিকআপের ঠিকানা'),
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
@@ -195,8 +215,8 @@ class _PickupAddressSelectionScreenState
                         color: pickupOrange,
                       ),
                       const SizedBox(height: 12),
-                      const Text(
-                        'Saved addresses load nahi ho paaye.',
+                      Text(
+                        _text('Could not load saved addresses.', 'सेव किए गए पते लोड नहीं हो सके।', 'সংরক্ষিত ঠিকানা লোড করা যায়নি.'),
                         style: TextStyle(fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,
                       ),
@@ -212,7 +232,7 @@ class _PickupAddressSelectionScreenState
                       const SizedBox(height: 12),
                       OutlinedButton(
                         onPressed: () => setState(() {}),
-                        child: const Text('Retry'),
+                        child: Text(_text('Retry', 'फिर कोशिश करें', 'আবার চেষ্টা করুন')),
                       ),
                     ],
                   ),
@@ -266,8 +286,8 @@ class _PickupAddressSelectionScreenState
                       : ListView(
                           padding: const EdgeInsets.all(16),
                           children: [
-                            const Text(
-                              'Where should the walker pick up your dog?',
+                            Text(
+                              _text('Where should the walker pick up your dog?', 'वॉकर आपके डॉग को कहाँ से पिकअप करे?', 'ওয়াকার আপনার কুকুরকে কোথা থেকে নেবেন?'),
                               style: TextStyle(
                                 fontSize: 21,
                                 fontWeight: FontWeight.bold,
@@ -275,9 +295,8 @@ class _PickupAddressSelectionScreenState
                               ),
                             ),
                             const SizedBox(height: 6),
-                            const Text(
-                              'Apna saved address select karein. '
-                              'Booking submit karne se pehle details review kar sakte hain.',
+                            Text(
+                              _text('Choose a saved address. You can review the details before submitting your booking.', 'सेव किया गया पता चुनें। बुकिंग भेजने से पहले विवरण देख सकते हैं।', 'সংরক্ষিত ঠিকানা বেছে নিন। বুকিং জমা দেওয়ার আগে বিবরণ দেখে নিতে পারবেন.'),
                               style: TextStyle(
                                 color: pickupMuted,
                                 height: 1.4,
@@ -345,7 +364,7 @@ class _PickupAddressSelectionScreenState
                                                       address.label
                                                               .trim()
                                                               .isEmpty
-                                                          ? 'Saved Address'
+                                                          ? _text('Saved Address', 'सेव किया गया पता', 'সংরক্ষিত ঠিকানা')
                                                           : address.label,
                                                       style: const TextStyle(
                                                         fontSize: 16,
@@ -428,8 +447,8 @@ class _PickupAddressSelectionScreenState
                               icon: const Icon(Icons.add),
                               label: Text(
                                 _isOpeningForm
-                                    ? 'Opening...'
-                                    : 'Add Another Address',
+                                    ? _text('Opening...', 'खोल रहे हैं...', 'খোলা হচ্ছে...')
+                                    : _text('Add Another Address', 'एक और पता जोड़ें', 'আরেকটি ঠিকানা যোগ করুন'),
                               ),
                             ),
                           ],
@@ -470,7 +489,7 @@ class _PickupAddressSelectionScreenState
                                   ),
                                 )
                               : const Text(
-                                  'Continue to Booking Review',
+                                  _text('Continue to Booking Review', 'बुकिंग की समीक्षा पर जाएँ', 'বুকিং পর্যালোচনায় এগিয়ে যান'),
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -482,7 +501,7 @@ class _PickupAddressSelectionScreenState
                         onPressed:
                             _isOpeningForm ? null : _addAddress,
                         icon: const Icon(Icons.add_location_alt_outlined),
-                        label: const Text('Add New Address'),
+                        label: Text(_text('Add New Address', 'नया पता जोड़ें', 'নতুন ঠিকানা যোগ করুন')),
                         style: TextButton.styleFrom(
                           foregroundColor: pickupOrange,
                         ),
@@ -521,7 +540,7 @@ class _PickupAddressSelectionScreenState
               ),
               SizedBox(height: 16),
               Text(
-                'No Saved Address',
+                _text('No Saved Address', 'कोई पता सेव नहीं है', 'কোনো ঠিকানা সংরক্ষিত নেই'),
                 style: TextStyle(
                   fontSize: 19,
                   fontWeight: FontWeight.bold,
@@ -530,8 +549,7 @@ class _PickupAddressSelectionScreenState
               ),
               SizedBox(height: 8),
               Text(
-                'Booking continue karne ke liye '
-                'pehle pickup address add karein.',
+                _text('Add a pickup address before continuing with your booking.', 'बुकिंग जारी रखने से पहले पिकअप का पता जोड़ें।', 'বুকিং চালিয়ে যাওয়ার আগে পিকআপের ঠিকানা যোগ করুন.'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: pickupMuted,
@@ -550,7 +568,7 @@ class _PickupAddressSelectionScreenState
           ),
           icon: const Icon(Icons.add_location_alt_outlined),
           label: Text(
-            _isOpeningForm ? 'Opening...' : 'Add Pickup Address',
+            _isOpeningForm ? _text('Opening...', 'खोल रहे हैं...', 'খোলা হচ্ছে...') : _text('Add Pickup Address', 'पिकअप का पता जोड़ें', 'পিকআপের ঠিকানা যোগ করুন'),
           ),
         ),
       ],
