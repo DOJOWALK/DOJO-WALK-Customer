@@ -178,7 +178,8 @@ String _duration(Map<String, dynamic> data) {
   return duration;
 }
 
-String _plan(Map<String, dynamic> data) {
+String _plan(BuildContext context, Map<String, dynamic> data) {
+  final l10n = AppLocalizations.of(context);
   final plan = _text(
     data['bookingPlan'],
     fallback: '',
@@ -190,14 +191,14 @@ String _plan(Map<String, dynamic> data) {
   ).toLowerCase();
 
   if (plan == 'regular' || service == 'regular_walk') {
-    return _t('Regular Walk', 'रेगুলर वॉक', 'নিয়মিত ওয়াক');
+    return l10n.bookingRegularWalk;
   }
 
   if (plan == 'customize' || service == 'custom_walk') {
-    return _t('Customized Walk', 'कस्टম वॉक', 'কাস্টম ওয়াক');
+    return l10n.bookingCustomizedWalk;
   }
 
-  return _t('One-Time Walk', 'एक बार की वॉक', 'একবারের ওয়াক');
+  return l10n.bookingOneTimeWalk;
 }
 
 String _address(dynamic value) {
@@ -671,7 +672,7 @@ class _BookingCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 3),
                         Text(
-                          '${_plan(data)} · ${_duration(data)}',
+                          '${_plan(context, data)} · ${_duration(data)}',
                           style: const TextStyle(
                             fontSize: 12,
                             color: bookingsMuted,
@@ -939,7 +940,7 @@ class BookingDetailsScreen extends StatelessWidget {
 
             final pet = _petDetails(data);
             final address = _address(data['pickupAddress']);
-            final plan = _plan(data);
+            final plan = _plan(context, data);
 
             final regular = data['bookingPlan'] == 'regular' ||
                 data['serviceType'] == 'regular_walk';
