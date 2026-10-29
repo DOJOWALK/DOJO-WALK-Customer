@@ -64,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String _clean(String? value) => (value ?? '').trim();
 
-  String _formatSavedAddress(SavedAddress address) {
+  String _formatSavedAddress(BuildContext context, SavedAddress address) {
     final parts = <String>[
       _clean(address.flatHouse),
       _clean(address.buildingSociety),
@@ -114,7 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       setState(() {
         _selectedSavedAddress = selected;
-        _selectedAddress = _formatSavedAddress(selected);
+        _selectedAddress = _formatSavedAddress(context, selected);
         _loadingAddress = false;
       });
     } catch (_) {
@@ -348,7 +348,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             subtitle: Padding(
                               padding: const EdgeInsets.only(top: 5),
                               child: Text(
-                                _formatSavedAddress(address),
+                                _formatSavedAddress(context, address),
                                 maxLines: 3,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
