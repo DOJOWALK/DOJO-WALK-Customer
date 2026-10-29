@@ -1100,11 +1100,7 @@ class BookingDetailsScreen extends StatelessWidget {
                       _detail(
                         AppLocalizations.of(context).bookingFullAddress,
                         address.isEmpty
-                            ? _t(
-                                'Not provided',
-                                'जानकारी उपलब्ध नहीं',
-                                'তথ্য দেওয়া নেই',
-                              )
+                            ? AppLocalizations.of(context).bookingNotProvided
                             : address,
                       ),
                       _detail(
@@ -1414,11 +1410,7 @@ List<Widget> _scheduleDetails(BuildContext context, dynamic value) {
     return [
       _detail(
         AppLocalizations.of(context).bookingSchedule,
-        _t(
-          'Not provided',
-          'जानकारी उपलब्ध नहीं',
-          'তথ্য দেওয়া নেই',
-        ),
+        AppLocalizations.of(context).bookingNotProvided,
       ),
     ];
   }
@@ -1438,11 +1430,7 @@ List<Widget> _dateScheduleDetails(BuildContext context, dynamic value) {
     return [
       _detail(
         AppLocalizations.of(context).bookingDates,
-        _t(
-          'Not provided',
-          'जानकारी उपलब्ध नहीं',
-          'তথ্য দেওয়া নেই',
-        ),
+        AppLocalizations.of(context).bookingNotProvided,
       ),
     ];
   }
