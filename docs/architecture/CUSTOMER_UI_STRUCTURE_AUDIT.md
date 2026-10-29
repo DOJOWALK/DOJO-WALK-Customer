@@ -141,3 +141,11 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 3. Re-run the PR validation workflow after source edits; inspect the run for the latest head SHA.
 4. Build Android and web separately and perform visual/accessibility QA before calling the customer UI complete.
 5. Backend/Firebase integration remains deferred until the Notion-aligned customer UI audit is complete.
+
+
+## OTP screen localization and validation (2026-10-29)
+
+- `lib/features/auth/screens/otp_verification_screen.dart`: added shared `appLocale` listening with English/Hindi/Bangla copy for the OTP screen's primary headings, input hint, verify/resend/change-number actions, secure-login note, and common Firebase OTP error states. Existing OTP credential, resend timer, session and navigation logic was intentionally left unchanged.
+- CI run [40928627423](https://github.com/DOJOWALK/DOJO-WALK-Customer/actions/runs/40928627423) caught a missing closing parenthesis in the locale-builder wrapper; corrected it in commit `eaeb5c9e40837022c03267615a649d30f4db2f60`.
+- **Latest source validation:** run [40928873771](https://github.com/DOJOWALK/DOJO-WALK-Customer/actions/runs/40928873771) for that corrected source commit completed successfully: dependency install, `flutter analyze`, and `flutter test` all passed.
+- The OTP screen still needs a focused widget-level locale test, and remaining less-common error strings should be reviewed. This pass does not verify actual SMS delivery, Firebase phone-auth configuration, Android/web builds, or visual QA.
