@@ -307,5 +307,22 @@
   "dogWhichForWalk": "Which dog is going for a walk?",
   "dogOnePerBooking": "Select one dog for this booking. You can choose another dog for a separate booking later.",
   "dogAddAnother": "Add Another Dog",
-  "dogContinuePickup": "Continue to Pickup Address"
+  "dogContinuePickup": "Continue to Pickup Address",
+  "pickupOpenAddressFailed": "Could not open the address form. Please try again.",
+  "pickupSelectAddress": "Please select a pickup address.",
+  "pickupAddressIncomplete": "This address is incomplete. Please update it.",
+  "pickupOpenReviewFailed": "Could not open booking review. Please try again.",
+  "pickupAddressTitle": "Pickup Address",
+  "pickupLoadAddressesFailed": "Could not load saved addresses.",
+  "pickupRetry": "Retry",
+  "pickupPrompt": "Where should the walker pick up your dog?",
+  "pickupIntro": "Choose a saved address. You can review the details before submitting your booking.",
+  "pickupSavedAddress": "Saved Address",
+  "pickupOpening": "Opening...",
+  "pickupAddAnotherAddress": "Add Another Address",
+  "pickupContinueReview": "Continue to Booking Review",
+  "pickupAddNewAddress": "Add New Address",
+  "pickupEmptyTitle": "No Saved Address",
+  "pickupEmptyBody": "Add a pickup address before continuing with your booking.",
+  "pickupAddAddress": "Add Pickup Address"
 }
