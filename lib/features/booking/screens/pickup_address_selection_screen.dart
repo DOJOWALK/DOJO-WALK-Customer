@@ -8,6 +8,7 @@ import 'choose_walk_screen.dart';
 import 'booking_confirmation_screen.dart';
 import '../../../app/theme.dart';
 import '../../../app/locale_controller.dart';
+import '../../../l10n/app_localizations.dart';
 
 const Color pickupOrange = DojoWalkTheme.primary;
 const Color pickupBackground = DojoWalkTheme.background;
@@ -56,9 +57,6 @@ class _PickupAddressSelectionScreenState
   void _onLocaleChanged() {
     if (mounted) setState(() {});
   }
-
-  String _text(String en, String hi, String bn) =>
-      appText(en: en, hi: hi, bn: bn);
 
   String _addressText(SavedAddress address) {
     final parts = <String>[
@@ -116,7 +114,7 @@ class _PickupAddressSelectionScreenState
       // Address list will refresh through the service stream.
       setState(() {});
     } catch (e) {
-      _showMessage(_text('Could not open the address form. Please try again.', 'पता जोड़ने वाला फ़ॉर्म नहीं खुला। दोबारा कोशिश करें।', 'ঠিকানা ফর্ম খোলা যায়নি। আবার চেষ্টা করুন.'));
+      _showMessage(AppLocalizations.of(context).pickupOpenAddressFailed);
     } finally {
       if (mounted) {
         setState(() => _isOpeningForm = false);
@@ -130,14 +128,14 @@ class _PickupAddressSelectionScreenState
     final address = _selectedAddress;
 
     if (address == null || _selectedAddressId == null) {
-      _showMessage(_text('Please select a pickup address.', 'कृपया पिकअप का पता चुनें।', 'পিকআপের ঠিকানা বেছে নিন.'));
+      _showMessage(AppLocalizations.of(context).pickupSelectAddress);
       return;
     }
 
     final fullAddress = _addressText(address);
 
     if (fullAddress.isEmpty) {
-      _showMessage(_text('This address is incomplete. Please update it.', 'यह पता अधूरा है। कृपया इसे अपडेट करें।', 'ঠিকানাটি অসম্পূর্ণ। আপডেট করুন.'));
+      _showMessage(AppLocalizations.of(context).pickupAddressIncomplete);
       return;
     }
 
@@ -177,7 +175,7 @@ class _PickupAddressSelectionScreenState
         ),
       );
     } catch (e) {
-      _showMessage(_text('Could not open booking review. Please try again.', 'बुकिंग की समीक्षा नहीं खुली। दोबारा कोशिश करें।', 'বুকিং পর্যালোচনা খোলা যায়নি। আবার চেষ্টা করুন.'));
+      _showMessage(AppLocalizations.of(context).pickupOpenReviewFailed);
     } finally {
       if (mounted) {
         setState(() => _isContinuing = false);
@@ -194,7 +192,7 @@ class _PickupAddressSelectionScreenState
         foregroundColor: Colors.white,
         elevation: 0,
         title: Text(
-          _text('Pickup Address', 'पिकअप का पता', 'পিকআপের ঠিকানা'),
+          AppLocalizations.of(context).pickupAddressTitle,
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
@@ -216,7 +214,7 @@ class _PickupAddressSelectionScreenState
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        _text('Could not load saved addresses.', 'सेव किए गए पते लोड नहीं हो सके।', 'সংরক্ষিত ঠিকানা লোড করা যায়নি.'),
+                        AppLocalizations.of(context).pickupLoadAddressesFailed,
                         style: TextStyle(fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,
                       ),
@@ -232,7 +230,7 @@ class _PickupAddressSelectionScreenState
                       const SizedBox(height: 12),
                       OutlinedButton(
                         onPressed: () => setState(() {}),
-                        child: Text(_text('Retry', 'फिर कोशिश करें', 'আবার চেষ্টা করুন')),
+                        child: Text(AppLocalizations.of(context).pickupRetry),
                       ),
                     ],
                   ),
@@ -287,7 +285,7 @@ class _PickupAddressSelectionScreenState
                           padding: const EdgeInsets.all(16),
                           children: [
                             Text(
-                              _text('Where should the walker pick up your dog?', 'वॉकर आपके डॉग को कहाँ से पिकअप करे?', 'ওয়াকার আপনার কুকুরকে কোথা থেকে নেবেন?'),
+                              AppLocalizations.of(context).pickupPrompt,
                               style: TextStyle(
                                 fontSize: 21,
                                 fontWeight: FontWeight.bold,
@@ -296,7 +294,7 @@ class _PickupAddressSelectionScreenState
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              _text('Choose a saved address. You can review the details before submitting your booking.', 'सेव किया गया पता चुनें। बुकिंग भेजने से पहले विवरण देख सकते हैं।', 'সংরক্ষিত ঠিকানা বেছে নিন। বুকিং জমা দেওয়ার আগে বিবরণ দেখে নিতে পারবেন.'),
+                              AppLocalizations.of(context).pickupIntro,
                               style: TextStyle(
                                 color: pickupMuted,
                                 height: 1.4,
@@ -364,7 +362,7 @@ class _PickupAddressSelectionScreenState
                                                       address.label
                                                               .trim()
                                                               .isEmpty
-                                                          ? _text('Saved Address', 'सेव किया गया पता', 'সংরক্ষিত ঠিকানা')
+                                                          ? AppLocalizations.of(context).pickupSavedAddress
                                                           : address.label,
                                                       style: const TextStyle(
                                                         fontSize: 16,
@@ -447,8 +445,8 @@ class _PickupAddressSelectionScreenState
                               icon: const Icon(Icons.add),
                               label: Text(
                                 _isOpeningForm
-                                    ? _text('Opening...', 'खोल रहे हैं...', 'খোলা হচ্ছে...')
-                                    : _text('Add Another Address', 'एक और पता जोड़ें', 'আরেকটি ঠিকানা যোগ করুন'),
+                                    ? AppLocalizations.of(context).pickupOpening
+                                    : AppLocalizations.of(context).pickupAddAnotherAddress,
                               ),
                             ),
                           ],
@@ -489,7 +487,7 @@ class _PickupAddressSelectionScreenState
                                   ),
                                 )
                               : Text(
-                                  _text('Continue to Booking Review', 'बुकिंग की समीक्षा पर जाएँ', 'বুকিং পর্যালোচনায় এগিয়ে যান'),
+                                  AppLocalizations.of(context).pickupContinueReview,
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -501,7 +499,7 @@ class _PickupAddressSelectionScreenState
                         onPressed:
                             _isOpeningForm ? null : _addAddress,
                         icon: const Icon(Icons.add_location_alt_outlined),
-                        label: Text(_text('Add New Address', 'नया पता जोड़ें', 'নতুন ঠিকানা যোগ করুন')),
+                        label: Text(AppLocalizations.of(context).pickupAddNewAddress),
                         style: TextButton.styleFrom(
                           foregroundColor: pickupOrange,
                         ),
@@ -540,7 +538,7 @@ class _PickupAddressSelectionScreenState
               ),
               SizedBox(height: 16),
               Text(
-                _text('No Saved Address', 'कोई पता सेव नहीं है', 'কোনো ঠিকানা সংরক্ষিত নেই'),
+                AppLocalizations.of(context).pickupEmptyTitle,
                 style: TextStyle(
                   fontSize: 19,
                   fontWeight: FontWeight.bold,
@@ -549,7 +547,7 @@ class _PickupAddressSelectionScreenState
               ),
               SizedBox(height: 8),
               Text(
-                _text('Add a pickup address before continuing with your booking.', 'बुकिंग जारी रखने से पहले पिकअप का पता जोड़ें।', 'বুকিং চালিয়ে যাওয়ার আগে পিকআপের ঠিকানা যোগ করুন.'),
+                AppLocalizations.of(context).pickupEmptyBody,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: pickupMuted,
@@ -568,7 +566,7 @@ class _PickupAddressSelectionScreenState
           ),
           icon: const Icon(Icons.add_location_alt_outlined),
           label: Text(
-            _isOpeningForm ? _text('Opening...', 'खोल रहे हैं...', 'খোলা হচ্ছে...') : _text('Add Pickup Address', 'पिकअप का पता जोड़ें', 'পিকআপের ঠিকানা যোগ করুন'),
+            _isOpeningForm ? AppLocalizations.of(context).pickupOpening : AppLocalizations.of(context).pickupAddAddress,
           ),
         ),
       ],
