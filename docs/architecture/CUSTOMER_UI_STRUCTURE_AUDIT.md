@@ -160,3 +160,11 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 - Added registry tests to ensure 23 language entries exist and untranslated languages are not selectable.
 - Detailed rollout plan: `docs/architecture/CENTRALIZED_LOCALIZATION_PLAN.md`.
 - **Important:** this is the foundation, not a completed all-screen migration. Existing feature screens still contain inline translations and must be migrated to generated keys incrementally. Do not advertise all Indian languages as available until each has reviewed translations and coverage across the released screens.
+
+
+## Generated-key migration: Notifications (2026-10-30)
+
+- Migrated `NotificationsScreen` to generated `AppLocalizations` getters; it no longer embeds separate English/Hindi/Bengali strings or listens to `appLocale` itself.
+- Added `notificationsTitle`, `noNotificationsYet` and `notificationsNotConnected` to the English, Hindi and Bengali ARB catalogs.
+- Updated the locale controller so its supported locale list comes from the generated catalog. The legacy `appText` helper remains temporarily for screens not yet migrated.
+- Next migration targets: Help & Support, authentication screens, then booking screens. Preserve booking payload values and backend statuses while changing display strings only.
