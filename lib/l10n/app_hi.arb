@@ -206,5 +206,11 @@
   "bookingHelpSupport": "मदद और सहायता",
   "bookingStatusLabel": "स्थिति",
   "bookingWalkerId": "वॉकर ID",
-  "bookingFrequency": "आवृत्ति"
+  "bookingFrequency": "आवृत्ति",
+  "bookingCancelConfirmTitle": "बुकिंग रद्द करने का अनुरोध?",
+  "bookingCancelConfirmBody": "आपके अनुरोध की जाँच होगी। इससे बुकिंग अपने-आप रद्द नहीं होगी।",
+  "bookingGoBack": "वापस जाएँ",
+  "bookingConfirm": "पुष्टि करें",
+  "bookingCancelSubmitted": "रद्द करने का अनुरोध भेज दिया गया।",
+  "bookingRequestFailed": "अनुरोध असफल"
 }
