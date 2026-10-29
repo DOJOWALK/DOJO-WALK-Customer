@@ -470,7 +470,7 @@ Widget _centerMessage(
             const SizedBox(height: 12),
             TextButton(
               onPressed: retry,
-              child: Text(_text('Retry', 'फिर कोशिश करें', 'আবার চেষ্টা করুন')),
+              child: Text(appText(en: 'Retry', hi: 'फिर कोशिश करें', bn: 'আবার চেষ্টা করুন')),
             ),
           ],
         ],
