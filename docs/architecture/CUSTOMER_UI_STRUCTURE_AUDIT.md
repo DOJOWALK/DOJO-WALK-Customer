@@ -184,3 +184,11 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 - Added matching English, Hindi and Bengali ARB entries. Category values stored by the form remain canonical English identifiers; only their displayed labels are translated.
 - FAQ question/answer content still uses the compatibility inline translation helper and remains a follow-up migration item.
 - Support submission remains intentionally non-functional until an actual support integration is implemented; UI copy continues to disclose this.
+
+## Generated-key migration: Help & Support FAQ (2026-10-30)
+
+- Moved all six Help & Support FAQ questions and answers into generated localization catalogs (app_en.arb, app_hi.arb, app_bn.arb).
+- The support screen now resolves FAQ copy through AppLocalizations; removed the screen-specific inline English/Hindi/Bengali translation helper and locale listener. Flutter's generated localization delegate is the single source for displayed FAQ language.
+- The stored FAQ identifiers and support form category values remain canonical keys; no booking, authentication, pricing, or backend behavior was changed.
+- Support submission remains a clearly disclosed UI placeholder and does not send a message.
+- Validation must be confirmed from GitHub Actions for the current branch head; no claim of local formatting, device visual QA, Android/web build, or backend integration is made here.
