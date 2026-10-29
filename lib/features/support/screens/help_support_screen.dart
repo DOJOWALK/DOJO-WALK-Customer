@@ -219,7 +219,6 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
               ),
             ],
           ),
-        );
     );
   }
 
