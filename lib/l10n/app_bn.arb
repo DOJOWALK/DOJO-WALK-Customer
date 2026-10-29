@@ -306,5 +306,22 @@
   "dogWhichForWalk": "কোন কুকুরটি হাঁটতে যাবে?",
   "dogOnePerBooking": "এই বুকিংয়ের জন্য একটি কুকুর বেছে নিন। পরে আলাদা বুকিংয়ে অন্য কুকুর বেছে নিতে পারবেন।",
   "dogAddAnother": "আরেকটি কুকুর যোগ করুন",
-  "dogContinuePickup": "পিকআপ ঠিকানায় এগিয়ে যান"
+  "dogContinuePickup": "পিকআপ ঠিকানায় এগিয়ে যান",
+  "pickupOpenAddressFailed": "ঠিকানা ফর্ম খোলা যায়নি। আবার চেষ্টা করুন।",
+  "pickupSelectAddress": "পিকআপের ঠিকানা বেছে নিন।",
+  "pickupAddressIncomplete": "ঠিকানাটি অসম্পূর্ণ। আপডেট করুন।",
+  "pickupOpenReviewFailed": "বুকিং পর্যালোচনা খোলা যায়নি। আবার চেষ্টা করুন।",
+  "pickupAddressTitle": "পিকআপের ঠিকানা",
+  "pickupLoadAddressesFailed": "সংরক্ষিত ঠিকানা লোড করা যায়নি।",
+  "pickupRetry": "আবার চেষ্টা করুন",
+  "pickupPrompt": "ওয়াকার আপনার কুকুরকে কোথা থেকে নেবেন?",
+  "pickupIntro": "সংরক্ষিত ঠিকানা বেছে নিন। বুকিং জমা দেওয়ার আগে বিবরণ দেখে নিতে পারবেন।",
+  "pickupSavedAddress": "সংরক্ষিত ঠিকানা",
+  "pickupOpening": "খোলা হচ্ছে...",
+  "pickupAddAnotherAddress": "আরেকটি ঠিকানা যোগ করুন",
+  "pickupContinueReview": "বুকিং পর্যালোচনায় এগিয়ে যান",
+  "pickupAddNewAddress": "নতুন ঠিকানা যোগ করুন",
+  "pickupEmptyTitle": "কোনো ঠিকানা সংরক্ষিত নেই",
+  "pickupEmptyBody": "বুকিং চালিয়ে যাওয়ার আগে পিকআপের ঠিকানা যোগ করুন।",
+  "pickupAddAddress": "পিকআপের ঠিকানা যোগ করুন"
 }
