@@ -54,9 +54,6 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
     if (mounted) setState(() {});
   }
 
-  String _text(String en, String hi, String bn) =>
-      appText(en: en, hi: hi, bn: bn);
-
   Stream<QuerySnapshot<Map<String, dynamic>>> _watchDogs() {
     final user = _user;
 
@@ -226,7 +223,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
             : AppLocalizations.of(context).dogLoadFailed,
       );
     } catch (e) {
-      _showMessage(_text('Could not continue. Please try again.', 'आगे नहीं बढ़ सके। दोबारा कोशिश करें।', 'এগোনো যায়নি। আবার চেষ্টা করুন।'));
+      _showMessage(AppLocalizations.of(context).dogContinueFailed);
     } finally {
       if (mounted) {
         setState(() => _isContinuing = false);
