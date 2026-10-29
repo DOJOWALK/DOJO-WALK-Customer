@@ -158,5 +158,16 @@
   "bookingNotFound": "Booking not found.",
   "cannotChangeBooking": "You cannot change this booking.",
   "cancellationNotAvailable": "Cancellation is not available for this status.",
-  "cancellationAlreadyRequested": "A cancellation request already exists."
+  "cancellationAlreadyRequested": "A cancellation request already exists.",
+  "bookingStatusPending": "Pending",
+  "bookingStatusFindingWalker": "Finding Walker",
+  "bookingStatusWalkerAssigned": "Walker Assigned",
+  "bookingStatusWalkerArriving": "Walker Arriving",
+  "bookingStatusConfirmed": "Confirmed",
+  "bookingStatusInProgress": "In Progress",
+  "bookingStatusCompleted": "Completed",
+  "bookingStatusCancelled": "Cancelled",
+  "bookingStatusNotRequested": "Not Requested",
+  "bookingStatusApproved": "Approved",
+  "bookingStatusRejected": "Rejected"
 }
