@@ -750,7 +750,7 @@ class _BookingCard extends StatelessWidget {
                 const SizedBox(height: 12),
                 _row(
                   Icons.location_on_outlined,
-                  _t('Pickup', 'पिकअप', 'পিকআপ'),
+                  AppLocalizations.of(context).bookingPickup,
                   address,
                 ),
               ],
@@ -1041,14 +1041,10 @@ class BookingDetailsScreen extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(16, 10, 16, 28),
                 children: [
                   _section(
-                    _t(
-                      'Booking Summary',
-                      'बुकिंग का सारांश',
-                      'বুকিংয়ের সারাংশ',
-                    ),
+                    AppLocalizations.of(context).bookingSummary,
                     [
                       _detail(
-                        _t('Booking ID', 'बुकिंग ID', 'বুকিং ID'),
+                        AppLocalizations.of(context).bookingIdLabel,
                         _text(
                           data['bookingId'],
                           fallback: documentId,
@@ -1076,7 +1072,7 @@ class BookingDetailsScreen extends StatelessWidget {
                         ),
                       ),
                       _detail(
-                        _t('Status', 'स्थिति', 'অবস্থা'),
+                        AppLocalizations.of(context).bookingStatusLabel,
                         _statusText(context, _status(data)),
                       ),
                       _detail(
@@ -1090,11 +1086,7 @@ class BookingDetailsScreen extends StatelessWidget {
 
                   // PRICE DETAILS
                   _section(
-                    _t(
-                      'Price Details',
-                      'कीमत का विवरण',
-                      'দামের বিবরণ',
-                    ),
+                    AppLocalizations.of(context).bookingPriceDetails,
                     [
                       _detail(
                         AppLocalizations.of(context).bookingWalkCharges,
@@ -1125,11 +1117,7 @@ class BookingDetailsScreen extends StatelessWidget {
                   const SizedBox(height: 14),
 
                   _section(
-                    _t(
-                      'Dog Details',
-                      'डॉग की जानकारी',
-                      'কুকুরের বিবরণ',
-                    ),
+                    AppLocalizations.of(context).bookingDogDetails,
                     [
                       _detail(
                         AppLocalizations.of(context).bookingDogName,
@@ -1228,7 +1216,7 @@ class BookingDetailsScreen extends StatelessWidget {
                     ),
                     [
                       _detail(
-                        _t('Walker ID', 'वॉकर ID', 'ওয়াকার ID'),
+                        AppLocalizations.of(context).bookingWalkerId,
                         _text(
                           data['walkerId'],
                           fallback: _t(
@@ -1263,7 +1251,7 @@ class BookingDetailsScreen extends StatelessWidget {
                       ),
                       [
                         _detail(
-                          _t('Frequency', 'आवृत्ति', 'কতবার'),
+                          AppLocalizations.of(context).bookingFrequency,
                           _text(data['frequency']),
                         ),
                         _detail(
