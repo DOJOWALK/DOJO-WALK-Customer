@@ -106,3 +106,13 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 - **Verification remains NOT VERIFIED:** this connected workflow interface has not shown a run for the latest commit. Flutter analyze, tests, builds and visual QA still need actual execution before the UI can be marked complete.
 
 - Added `test/app/locale_controller_test.dart` with unit cases for supported locale codes, English/Hindi/Bangla selection, and English fallback for unsupported locales. The test source is committed but **has not been executed**; CI/test success remains unverified.
+
+## CI-driven compile fix pass (2026-10-29)
+
+- Retrieved the actual GitHub Actions run for commit `159aeb549f7b01ee7d87c91b8d7403b3ec41c4e3`. `flutter pub get` succeeded; `flutter analyze` failed with 8 `const_eval_method_invocation` errors in:
+  - `lib/features/addresses/screens/address_form_screen.dart:659`
+  - `lib/features/addresses/screens/my_addresses_screen.dart:58`
+  - `lib/features/booking/screens/dog_selection_screen.dart:250, 291, 351, 390, 399, 553`
+- Fixed the dynamic translated strings inside const widget contexts in those three screens by removing const from the relevant parent/widgets while keeping static child values const where possible.
+- Source delimiter sanity checks passed for the three edited files. **This does not mean the analyzer is fixed yet**; the latest commit must run through GitHub Actions to confirm, and any new analyzer findings must be addressed.
+- Latest recorded run for the earlier commit failed at Analyze, so Tests were skipped. No merge and no backend/Firebase work until validation is clean.
