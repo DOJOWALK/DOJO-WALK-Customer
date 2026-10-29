@@ -20,5 +20,16 @@
   "errorGeneric": "कुछ गलत हुआ। कृपया फिर कोशिश करें।",
   "notificationsTitle": "नोटिफ़िकेशन",
   "noNotificationsYet": "अभी कोई नोटिफ़िकेशन नहीं है",
-  "notificationsNotConnected": "नोटिफ़िकेशन सेवा जुड़ने के बाद बुकिंग अपडेट, वॉक रिमाइंडर और ज़रूरी संदेश यहाँ दिखेंगे।"
+  "notificationsNotConnected": "नोटिफ़िकेशन सेवा जुड़ने के बाद बुकिंग अपडेट, वॉक रिमाइंडर और ज़रूरी संदेश यहाँ दिखेंगे।",
+  "phoneLoginTitle": "मोबाइल से लॉगिन",
+  "welcomeToDojoWalk": "DOJO WALK में आपका स्वागत है",
+  "phoneLoginInstruction": "ऐप में आगे बढ़ने के लिए अपना मोबाइल नंबर डालें।",
+  "mobileNumber": "मोबाइल नंबर",
+  "mobileNumberHint": "10 अंकों का मोबाइल नंबर",
+  "sendOtp": "OTP भेजें",
+  "secureLogin": "DOJO WALK के साथ सुरक्षित लॉगिन",
+  "invalidIndianMobile": "सही 10 अंकों का भारतीय मोबाइल नंबर डालें।",
+  "loginIncomplete": "लॉगिन पूरा नहीं हुआ।",
+  "otpSendFailed": "OTP नहीं भेजा जा सका। कृपया फिर कोशिश करें।",
+  "loginProblem": "लॉगिन में समस्या हुई। इंटरनेट जाँचकर फिर कोशिश करें।"
 }
