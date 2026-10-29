@@ -169,5 +169,6 @@
   "bookingStatusCancelled": "Cancelled",
   "bookingStatusNotRequested": "Not Requested",
   "bookingStatusApproved": "Approved",
-  "bookingStatusRejected": "Rejected"
+  "bookingStatusRejected": "Rejected",
+  "languageTranslationInProgress": "Translation in progress"
 }
