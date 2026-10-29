@@ -286,3 +286,11 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 - Removed the obsolete three-language `_t` helper from `home_screen.dart`; a source scan now finds no `_t(` call or helper in that file.
 - The Home screen still requires visual/locale-switch QA and an audit for other localization gaps. Only EN/HI/BN catalogs are currently available; this does not mean all 23 language options are translated.
 - The latest successful Customer UI Validation run (#40953133306) was for the preceding Home address localization commit. Newer Home catalog/UI changes require a fresh run before being considered verified.
+
+
+### Dog-selection localization checkpoint (2026-10-30)
+
+- Added matching EN/HI/BN generated catalog entries for the dog-selection screen title, retry action, empty-state title/body, add-dog action/loading label, and continue action.
+- Migrated those visible strings to generated AppLocalizations getters. Booking behavior and the one-dog-per-booking contract remain unchanged.
+- The previous Home localization validation run (#40953817937) passed. A new CI run is required for this dog-selection change; do not treat it as verified until Analyze and Tests pass.
+- Remaining dog-selection copy still uses the legacy three-language helper and needs a separate complete visible-string audit.
