@@ -7,6 +7,7 @@ import 'choose_walk_screen.dart';
 import 'pickup_address_selection_screen.dart';
 import '../../../app/theme.dart';
 import '../../../app/locale_controller.dart';
+import '../../../l10n/app_localizations.dart';
 
 const Color dogSelectionOrange = DojoWalkTheme.primary;
 const Color dogSelectionBackground = DojoWalkTheme.background;
@@ -241,7 +242,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
         appBar: AppBar(
           backgroundColor: dogSelectionOrange,
           foregroundColor: Colors.white,
-          title: Text(_text('Select Your Dog', 'अपना डॉग चुनें', 'আপনার কুকুর বেছে নিন')),
+          title: Text(AppLocalizations.of(context).dogSelectionTitle),
         ),
         body: Center(
           child: Padding(
@@ -262,7 +263,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
         foregroundColor: Colors.white,
         elevation: 0,
         title: Text(
-          _text('Select Your Dog', 'अपना डॉग चुनें', 'আপনার কুকুর বেছে নিন'),
+          AppLocalizations.of(context).dogSelectionTitle,
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
@@ -305,7 +306,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                             const SizedBox(height: 12),
                             OutlinedButton(
                               onPressed: () => setState(() {}),
-                              child: Text(_text('Retry', 'फिर कोशिश करें', 'আবার চেষ্টা করুন')),
+                              child: Text(AppLocalizations.of(context).dogSelectionRetry),
                             ),
                           ],
                         ),
@@ -348,7 +349,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                               ),
                               SizedBox(height: 16),
                               Text(
-                                _text('No Dogs Added Yet', 'अभी कोई डॉग नहीं जोड़ा गया', 'এখনও কোনো কুকুর যোগ করা হয়নি'),
+                                AppLocalizations.of(context).dogSelectionEmptyTitle,
                                 style: TextStyle(
                                   fontSize: 19,
                                   fontWeight: FontWeight.bold,
@@ -357,7 +358,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                               ),
                               SizedBox(height: 8),
                               Text(
-                                _text('Add your dog’s details before continuing with booking.', 'बुकिंग जारी रखने से पहले अपने डॉग की जानकारी जोड़ें।', 'বুকিং চালিয়ে যাওয়ার আগে আপনার কুকুরের তথ্য যোগ করুন.'),
+                                AppLocalizations.of(context).dogSelectionEmptyBody,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: dogSelectionMuted,
@@ -376,7 +377,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                           ),
                           icon: const Icon(Icons.add),
                           label: Text(
-                            _isOpeningDogs ? _text('Opening...', 'खोल रहे हैं...', 'খোলা হচ্ছে...') : _text('Add Your Dog', 'अपना डॉग जोड़ें', 'আপনার কুকুর যোগ করুন'),
+                            _isOpeningDogs ? AppLocalizations.of(context).dogSelectionOpening : AppLocalizations.of(context).dogSelectionAddDog,
                           ),
                         ),
                       ],
