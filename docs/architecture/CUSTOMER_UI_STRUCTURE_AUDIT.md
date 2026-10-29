@@ -271,3 +271,10 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 - No booking schema, price calculation, scheduling rules, or backend behavior changed.
 - CI run #40952258375 passed for the preceding helper/fallback localization commit. The new schedule-duration change has a fresh CI run pending; do not mark it verified until Analyze and Tests both pass.
 - Remaining localization work includes legacy generic fallback handling, full locale-aware date/time formatting, a screen-by-screen visible-string audit, and real translations/review for the other 20 Indian languages. Only EN/HI/BN catalogs are currently available; all 23 registry options are not yet fully supported.
+
+
+### Home pickup-address localization checkpoint (2026-10-30)
+
+- Added matching generated localization keys to English, Hindi, and Bengali ARB catalogs for the Home screen's saved-address fallback, location prompt, login-required address actions, pickup-address selector title, and address-loading error.
+- Migrated those six Home screen strings from inline three-language literals to generated AppLocalizations getters. Updated the saved-address formatting helper to accept BuildContext where needed.
+- The Home screen still contains other inline _t strings; this is a partial migration, not a full Home localization pass. The current validation run must pass before this change is considered verified.
