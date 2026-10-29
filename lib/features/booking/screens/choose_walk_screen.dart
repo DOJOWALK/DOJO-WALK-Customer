@@ -126,19 +126,20 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
   bool get _isOneTime => _selectedType == WalkBookingType.oneTime;
 
   String _formatDate(DateTime date) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
+    final l10n = AppLocalizations.of(context);
+    final months = [
+      l10n.monthJan,
+      l10n.monthFeb,
+      l10n.monthMar,
+      l10n.monthApr,
+      l10n.monthMay,
+      l10n.monthJun,
+      l10n.monthJul,
+      l10n.monthAug,
+      l10n.monthSep,
+      l10n.monthOct,
+      l10n.monthNov,
+      l10n.monthDec,
     ];
 
     return '${date.day} ${months[date.month - 1]} ${date.year}';
@@ -994,7 +995,7 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
             ),
           const SizedBox(height: 8),
           Text(
-            'Editing: ${_formatDate(_selectedDate)}',
+            '${AppLocalizations.of(context).editingDatePrefix}: ${_formatDate(_selectedDate)}',
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               color: bookingOrange,
