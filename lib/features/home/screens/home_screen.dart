@@ -367,7 +367,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               setState(() {
                                 _selectedSavedAddress = address;
                                 _selectedAddress =
-                                    _formatSavedAddress(address);
+                                    _formatSavedAddress(context, address);
                               });
                               Navigator.of(sheetContext).pop();
                             },
