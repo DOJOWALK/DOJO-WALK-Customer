@@ -44,6 +44,14 @@
 - Registry coverage test verifies the exact 23 locale codes and duplicate-code absence.
 - Translation completeness for the other 20 languages is not achieved. Build/device visual QA has not been performed. The latest CI run for code commit `65ddd0121463fe87bc7caf758dd3b21eb60bdb3f` was in progress at the time of this note.
 
+## Schedule-label localization checkpoint (2026-10-30)
+
+- Migrated the My Bookings schedule/date list labels (Schedule, Dates, Date, Walk) to generated `AppLocalizations` getters and passed `BuildContext` into the schedule helper functions.
+- Migrated the Booking Details app-bar title to the generated localization getter.
+- EN/HI/BN catalogs remain at 260 matching non-metadata keys; key parity and presence of the schedule keys were checked.
+- Latest CI for this code commit is queued; no PASS claim until it completes.
+- Helper-level strings for date/time/duration/plan/price/age still use the existing EN/HI/BN helper and need a wider locale-formatting review. No backend/Firebase changes were made.
+
 ## My Bookings localization and date-format checkpoint (2026-10-30)
 
 - Migrated additional My Bookings list/detail copy to generated localization getters: login-required state, Firestore connection/permission error, refresh, total amount label, view-details action, details login/load errors, and walker-not-assigned fallback.
