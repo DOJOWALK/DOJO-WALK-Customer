@@ -265,5 +265,22 @@
   "homeLoginManageAddresses": "সংরক্ষিত ঠিকানা পরিচালনা করতে লগ ইন করুন।",
   "homeLoginSelectAddress": "সংরক্ষিত ঠিকানা বেছে নিতে লগ ইন করুন।",
   "homeChoosePickupAddress": "পিকআপের ঠিকানা বেছে নিন",
-  "homeAddressesLoadError": "ঠিকানা লোড করা যায়নি। আবার চেষ্টা করুন।"
+  "homeAddressesLoadError": "ঠিকানা লোড করা যায়নি। আবার চেষ্টা করুন।",
+  "homeNoSavedAddresses": "এখনও কোনো ঠিকানা সংরক্ষিত নেই।",
+  "homeAddAddressForPickup": "পিকআপের জন্য একটি ঠিকানা যোগ করুন।",
+  "homeDefaultAddress": "ডিফল্ট",
+  "homeAddNewAddress": "নতুন ঠিকানা যোগ করুন",
+  "homeTagline": "আনন্দের ওয়াক, আরও খুশি কুকুর।",
+  "homeNotifications": "বিজ্ঞপ্তি",
+  "homePickupLocationLabel": "আপনার পিকআপ লোকেশন",
+  "homeLoadingSavedAddress": "সংরক্ষিত ঠিকানা লোড হচ্ছে...",
+  "homeDogWalkingService": "ডগ ওয়াকিং পরিষেবা",
+  "homeHeroTitle": "প্রতিটি ওয়াকে,\nআরও খুশি কুকুর।",
+  "homeHeroSubtitle": "আপনার দৈনন্দিন সময় অনুযায়ী বিশ্বস্ত ডগ ওয়াক বুক করুন।",
+  "homeBookWalk": "ওয়াক বুক করুন",
+  "homeYourDogs": "আপনার কুকুর",
+  "homeMyDogs": "আমার কুকুর",
+  "homeManageDogsSubtitle": "আপনার কুকুর এবং তাদের সংরক্ষিত তথ্য পরিচালনা করুন।",
+  "homeHelpSupport": "সাহায্য ও সহায়তা",
+  "homeHelpSupportSubtitle": "বুকিং ও ডগ ওয়াকের জন্য সাহায্য পান।"
 }
