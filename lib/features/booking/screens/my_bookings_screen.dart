@@ -492,11 +492,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                           if (bookings.isEmpty) {
                             return _message(
                               Icons.receipt_long,
-                              _t(
-                                'No Bookings Yet',
-                                'अभी कोई बुकिंग नहीं',
-                                'এখনও কোনো বুকিং নেই',
-                              ),
+                              AppLocalizations.of(context).bookingsEmptyTitle,
                               _t(
                                 'Your dog walking bookings will appear here.',
                                 'आपकी डॉग वॉकिंग बुकिंग यहाँ दिखाई देंगी।',
@@ -551,10 +547,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
   Widget _buildFilters() {
     final filters = [
-      _t('All', 'सभी', 'সব'),
-      _t('Upcoming', 'आने वाली', 'আসন্ন'),
-      _t('Completed', 'पूरी हुई', 'সম্পন্ন'),
-      _t('Cancelled', 'रद्द', 'বাতিল'),
+      AppLocalizations.of(context).bookingsFilterAll,
+      AppLocalizations.of(context).bookingsFilterUpcoming,
+      AppLocalizations.of(context).bookingsFilterCompleted,
+      AppLocalizations.of(context).bookingsFilterCancelled,
     ];
 
     return SizedBox(
@@ -1018,11 +1014,7 @@ class BookingDetailsScreen extends StatelessWidget {
                 ),
                 body: Center(
                   child: Text(
-                    _t(
-                      'Booking not available.',
-                      'बुकिंग उपलब्ध नहीं है।',
-                      'বুকিং পাওয়া যায়নি।',
-                    ),
+                    AppLocalizations.of(context).bookingDetailsUnavailable,
                   ),
                 ),
               );
