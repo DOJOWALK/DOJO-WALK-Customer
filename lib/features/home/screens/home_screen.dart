@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../app/locale_controller.dart';
 import '../../../app/theme.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../addresses/models/saved_address.dart';
 import '../../addresses/services/address_service.dart';
 import '../../addresses/screens/address_form_screen.dart';
@@ -75,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (parts.isEmpty) {
       final label = _clean(address.label);
       return label.isEmpty
-          ? _t('Saved Address', 'सेव किया गया पता', 'সংরক্ষিত ঠিকানা')
+          ? AppLocalizations.of(context).homeSavedAddress
           : label;
     }
 
@@ -100,11 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (addresses.isEmpty) {
         setState(() {
           _selectedSavedAddress = null;
-          _selectedAddress = _t(
-            'Select your location',
-            'अपनी लोकेशन चुनें',
-            'আপনার লোকেশন বেছে নিন',
-          );
+          _selectedAddress = AppLocalizations.of(context).homeSelectLocation;
           _loadingAddress = false;
         });
         return;
@@ -139,11 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _openAddressForm() async {
     if (FirebaseAuth.instance.currentUser == null) {
       _showMessage(
-        _t(
-          'Please log in to manage saved addresses.',
-          'सेव किए गए पते मैनेज करने के लिए लॉग इन करें।',
-          'সংরক্ষিত ঠিকানা পরিচালনা করতে লগ ইন করুন।',
-        ),
+        AppLocalizations.of(context).homeLoginManageAddresses,
       );
       return;
     }
@@ -171,11 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _openAddressSelector() async {
     if (FirebaseAuth.instance.currentUser == null) {
       _showMessage(
-        _t(
-          'Please log in to select a saved address.',
-          'सेव किया गया पता चुनने के लिए लॉग इन करें।',
-          'সংরক্ষিত ঠিকানা বেছে নিতে লগ ইন করুন।',
-        ),
+        AppLocalizations.of(context).homeLoginSelectAddress,
       );
       return;
     }
@@ -219,11 +208,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          _t(
-                            'Choose Pickup Address',
-                            'पिकअप का पता चुनें',
-                            'পিকআপের ঠিকানা বেছে নিন',
-                          ),
+                          AppLocalizations.of(context).homeChoosePickupAddress,
                           style: const TextStyle(
                             color: dojoText,
                             fontSize: 18,
@@ -243,11 +228,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Padding(
                             padding: const EdgeInsets.all(20),
                             child: Text(
-                              _t(
-                                'Unable to load addresses. Please try again.',
-                                'पते लोड नहीं हुए। कृपया फिर कोशिश करें।',
-                                'ঠিকানা লোড করা যায়নি। আবার চেষ্টা করুন।',
-                              ),
+                              AppLocalizations.of(context).homeAddressesLoadError,
                               textAlign: TextAlign.center,
                             ),
                           ),
