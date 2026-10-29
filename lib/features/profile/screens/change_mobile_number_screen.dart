@@ -30,6 +30,19 @@ class _ChangeMobileNumberScreenState
   bool _updating = false;
 
   @override
+  void initState() {
+    super.initState();
+    appLocale.addListener(_onLocaleChanged);
+  }
+
+  void _onLocaleChanged() {
+    if (mounted) setState(() {});
+  }
+
+  String _tr(String en, String hi, String bn) =>
+      appText(en: en, hi: hi, bn: bn);
+
+  @override
   void dispose() {
     appLocale.removeListener(_onLocaleChanged);
     _phoneController.dispose();
