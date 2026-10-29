@@ -170,5 +170,16 @@
   "bookingStatusNotRequested": "Not Requested",
   "bookingStatusApproved": "Approved",
   "bookingStatusRejected": "Rejected",
-  "languageTranslationInProgress": "Translation in progress"
+  "languageTranslationInProgress": "Translation in progress",
+  "bookingsFilterAll": "All",
+  "bookingsFilterUpcoming": "Upcoming",
+  "bookingsFilterCompleted": "Completed",
+  "bookingsFilterCancelled": "Cancelled",
+  "bookingsEmptyTitle": "No Bookings Yet",
+  "bookingsEmptyBody": "Your dog walking bookings will appear here.",
+  "bookingsLoginPrompt": "Please log in to view your bookings.",
+  "bookingsLoadErrorTitle": "Could Not Load Bookings",
+  "bookingsDetailsTitle": "Booking Details",
+  "bookingDetailsUnavailable": "Booking not available.",
+  "bookingDetailsLoadError": "Unable to load booking details."
 }
