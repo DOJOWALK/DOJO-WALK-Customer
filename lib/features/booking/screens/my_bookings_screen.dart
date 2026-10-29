@@ -224,9 +224,10 @@ String _address(dynamic value) {
 // PRICE HELPERS
 // ============================================================
 
-String _money(dynamic value) {
+String _money(BuildContext context, dynamic value) {
+  final l10n = AppLocalizations.of(context);
   if (value is! num || !value.isFinite || value < 0) {
-    return _t('Price to be confirmed', 'कीमत की पुष्टि बाकी है', 'দাম নিশ্চিত করা বাকি');
+    return l10n.bookingPriceToConfirm;
   }
 
   return '₹${value.toStringAsFixed(
@@ -738,7 +739,7 @@ class _BookingCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 5),
                           Text(
-                            _money(total),
+                            _money(context, total),
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w900,
@@ -1027,12 +1028,12 @@ class BookingDetailsScreen extends StatelessWidget {
                       if (extraCharges != null && extraCharges > 0)
                         _detail(
                           AppLocalizations.of(context).bookingAdditionalCharges,
-                          _money(extraCharges),
+                          _money(context, extraCharges),
                         ),
                       const Divider(height: 24),
                       _priceDetail(
                         AppLocalizations.of(context).bookingTotalAmount,
-                        _money(grandTotal),
+                        _money(context, grandTotal),
                       ),
                       const SizedBox(height: 7),
                       Text(
@@ -1472,7 +1473,7 @@ List<Widget> _dateScheduleDetails(BuildContext context, dynamic value) {
             '${AppLocalizations.of(context).bookingWalk} ${j + 1}',
             '${_text(walk['time'])} · '
             '${_text(walk['duration'])} · '
-            '${_money(_savedWalkPrice(walk))}',
+            '${_money(context, _savedWalkPrice(walk))}',
           ),
         );
       }
