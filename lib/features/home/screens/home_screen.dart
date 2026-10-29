@@ -262,11 +262,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 const SizedBox(height: 12),
                                 Text(
-                                  _t(
-                                    'No saved addresses yet.',
-                                    'अभी कोई पता सेव नहीं है।',
-                                    'এখনও কোনো ঠিকানা সংরক্ষিত নেই।',
-                                  ),
+                                  AppLocalizations.of(context).homeNoSavedAddresses,
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w600,
                                     color: dojoText,
@@ -274,11 +270,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
-                                  _t(
-                                    'Add an address to use it for pickup.',
-                                    'पिकअप के लिए एक पता जोड़ें।',
-                                    'পিকআপের জন্য একটি ঠিকানা যোগ করুন।',
-                                  ),
+                                  AppLocalizations.of(context).homeAddAddressForPickup,
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(color: dojoMuted),
                                 ),
@@ -336,7 +328,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 if (address.isDefault)
                                   Text(
-                                    _t('DEFAULT', 'डिफ़ॉल्ट', 'ডিফল্ট'),
+                                    AppLocalizations.of(context).homeDefaultAddress,
                                     style: const TextStyle(
                                       color: dojoOrange,
                                       fontSize: 10,
@@ -388,11 +380,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                       icon: const Icon(Icons.add_location_alt_outlined),
                       label: Text(
-                        _t(
-                          'Add New Address',
-                          'नया पता जोड़ें',
-                          'নতুন ঠিকানা যোগ করুন',
-                        ),
+                        AppLocalizations.of(context).homeAddNewAddress,
                       ),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: dojoOrange,
@@ -510,11 +498,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             const SizedBox(height: 3),
                             Text(
-                              _t(
-                                'Happy walks. Happier dogs.',
-                                'खुशहाल वॉक, खुशहाल डॉग्स।',
-                                'আনন্দের ওয়াক, আরও খুশি কুকুর।',
-                              ),
+                              AppLocalizations.of(context).homeTagline,
                               style: const TextStyle(
                                 fontSize: 12,
                                 color: dojoMuted,
@@ -524,11 +508,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       IconButton(
-                        tooltip: _t(
-                          'Notifications',
-                          'नोटिफिकेशन',
-                          'বিজ্ঞপ্তি',
-                        ),
+                        tooltip: AppLocalizations.of(context).homeNotifications,
                         onPressed: () {
                           _openScreen(const NotificationsScreen());
                         },
@@ -566,11 +546,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  _t(
-                                    'YOUR PICKUP LOCATION',
-                                    'आपकी पिकअप लोकेशन',
-                                    'আপনার পিকআপ লোকেশন',
-                                  ),
+                                  AppLocalizations.of(context).homePickupLocationLabel,
                                   style: const TextStyle(
                                     color: dojoMuted,
                                     fontSize: 10,
@@ -581,11 +557,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 const SizedBox(height: 6),
                                 Text(
                                   _loadingAddress
-                                      ? _t(
-                                          'Loading saved address...',
-                                          'सेव किया गया पता लोड हो रहा है...',
-                                          'সংরক্ষিত ঠিকানা লোড হচ্ছে...',
-                                        )
+                                      ? AppLocalizations.of(context).homeLoadingSavedAddress
                                       : _selectedAddress,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
@@ -630,11 +602,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             borderRadius: BorderRadius.circular(30),
                           ),
                           child: Text(
-                            _t(
-                              'DOG WALKING SERVICE',
-                              'डॉग वॉकिंग सर्विस',
-                              'ডগ ওয়াকিং পরিষেবা',
-                            ),
+                            AppLocalizations.of(context).homeDogWalkingService,
                             style: const TextStyle(
                               color: dojoOrange,
                               fontSize: 10,
@@ -645,11 +613,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          _t(
-                            'Every walk,\na happier dog.',
-                            'हर वॉक,\nएक खुशहाल डॉग।',
-                            'প্রতিটি ওয়াকে,\nআরও খুশি কুকুর।',
-                          ),
+                          AppLocalizations.of(context).homeHeroTitle,
                           style: const TextStyle(
                             color: dojoText,
                             fontSize: 30,
@@ -659,11 +623,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          _t(
-                            'Book a trusted dog walk that fits your routine.',
-                            'अपनी दिनचर्या के अनुसार भरोसेमंद डॉग वॉक बुक करें।',
-                            'আপনার দৈনন্দিন সময় অনুযায়ী বিশ্বস্ত ডগ ওয়াক বুক করুন।',
-                          ),
+                          AppLocalizations.of(context).homeHeroSubtitle,
                           style: const TextStyle(
                             color: dojoMuted,
                             fontSize: 14,
@@ -677,11 +637,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             onPressed: _openBooking,
                             icon: const Icon(Icons.directions_walk),
                             label: Text(
-                              _t(
-                                'Book a Walk',
-                                'वॉक बुक करें',
-                                'ওয়াক বুক করুন',
-                              ),
+                              AppLocalizations.of(context).homeBookWalk,
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: dojoOrange,
@@ -704,7 +660,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    _t('YOUR DOGS', 'आपके डॉग्स', 'আপনার কুকুর'),
+                    AppLocalizations.of(context).homeYourDogs,
                     style: const TextStyle(
                       color: dojoMuted,
                       fontSize: 11,
@@ -715,27 +671,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 10),
                   _sectionCard(
                     icon: Icons.pets,
-                    title: _t('My Dogs', 'मेरे डॉग्स', 'আমার কুকুর'),
-                    subtitle: _t(
-                      'Manage your dogs and their saved details.',
-                      'अपने डॉग्स और उनकी सेव की गई जानकारी मैनेज करें।',
-                      'আপনার কুকুর এবং তাদের সংরক্ষিত তথ্য পরিচালনা করুন।',
-                    ),
+                    title: AppLocalizations.of(context).homeMyDogs,
+                    subtitle: AppLocalizations.of(context).homeManageDogsSubtitle,
                     onTap: () => _openScreen(const MyDogsScreen()),
                   ),
                   const SizedBox(height: 14),
                   _sectionCard(
                     icon: Icons.support_agent,
-                    title: _t(
-                      'Help & Support',
-                      'मदद और सपोर्ट',
-                      'সাহায্য ও সহায়তা',
-                    ),
-                    subtitle: _t(
-                      'Get help with bookings and dog walks.',
-                      'बुकिंग और डॉग वॉक में मदद पाएँ।',
-                      'বুকিং ও ডগ ওয়াকের জন্য সাহায্য পান।',
-                    ),
+                    title: AppLocalizations.of(context).homeHelpSupport,
+                    subtitle: AppLocalizations.of(context).homeHelpSupportSubtitle,
                     onTap: () => _openScreen(const HelpSupportScreen()),
                   ),
                 ],
