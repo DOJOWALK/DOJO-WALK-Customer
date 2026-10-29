@@ -72,6 +72,12 @@ class _BookingConfirmationScreenState
     return 'One-Time Walk';
   }
 
+  String get _displayPlanName {
+    if (_isRegular) return _text('Regular Daily Walk', 'नियमित डेली वॉक', 'নিয়মিত দৈনিক ওয়াক');
+    if (_isChooseDates) return _text('Choose Dates', 'तारीखें चुनें', 'তারিখ বেছে নিন');
+    return _text('One-Time Walk', 'एक बार की वॉक', 'একবারের ওয়াক');
+  }
+
   String get _bookingPlan {
     if (_isRegular) return 'regular';
     if (_isChooseDates) return 'customize';
@@ -328,7 +334,7 @@ class _BookingConfirmationScreenState
   }
 
   String get _summaryTime {
-    if (_isImmediate) return 'As soon as possible';
+    if (_isImmediate) return _text('As soon as possible', 'जितनी जल्दी संभव हो', 'যত তাড়াতাড়ি সম্ভব');
 
     final walk = _summaryWalk;
 
@@ -464,7 +470,7 @@ class _BookingConfirmationScreenState
           ),
           const SizedBox(height: 3),
           Text(
-            _planName,
+            _displayPlanName,
             style: const TextStyle(
               color: confirmationOrange,
               fontSize: 13,
@@ -637,7 +643,7 @@ class _BookingConfirmationScreenState
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  '${_duration(walk)} minutes',
+                  '${_duration(walk)} ${_text('minutes', 'मिनट', 'মিনিট')}',
                   style: const TextStyle(
                     color: confirmationMuted,
                     fontSize: 12,
@@ -697,7 +703,7 @@ class _BookingConfirmationScreenState
                         padding: const EdgeInsets.only(bottom: 7),
                         child: Text(
                           '• ${_formatTime(walk['time'])}  ·  '
-                          '${_duration(walk)} min  ·  '
+                          '${_duration(walk)} ${_text('min', 'मिनट', 'মিনিট')}  ·  '
                           '${_money(_price(walk))}',
                           style: const TextStyle(
                             fontSize: 13,
@@ -727,7 +733,7 @@ class _BookingConfirmationScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _infoLine(_text('Plan', 'प्लान', 'প্ল্যান'), _planName),
+          _infoLine(_text('Plan', 'प्लान', 'প্ল্যান'), _displayPlanName),
           _infoLine(
             _text('Start date', 'शुरू होने की तारीख', 'শুরুর তারিখ'),
             _isImmediate
@@ -1109,7 +1115,7 @@ class _BookingConfirmationScreenState
                         _infoLine(
                           _text('Gender', 'लिंग', 'লিঙ্গ'),
                           (widget.dogDetails['gender'] ??
-                                  'Not specified')
+                                  _text('Not specified', 'उल्लेख नहीं किया गया', 'উল্লেখ করা হয়নি'))
                               .toString(),
                         ),
                       ],
