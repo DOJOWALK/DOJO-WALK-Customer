@@ -1420,7 +1420,7 @@ List<Widget> _scheduleDetails(BuildContext context, dynamic value) {
 
     return _detail(
       '${AppLocalizations.of(context).bookingWalk} ${index + 1}',
-      '${_text(walk['time'])} · ${_text(walk['duration'])}',
+      '${_text(walk['time'])} · ${_duration(context, walk)}',
     );
   });
 }
@@ -1457,7 +1457,7 @@ List<Widget> _dateScheduleDetails(BuildContext context, dynamic value) {
           _detail(
             '${AppLocalizations.of(context).bookingWalk} ${j + 1}',
             '${_text(walk['time'])} · '
-            '${_text(walk['duration'])} · '
+            '${_duration(context, walk)} · '
             '${_money(context, _savedWalkPrice(walk))}',
           ),
         );
