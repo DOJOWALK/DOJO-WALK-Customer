@@ -1612,6 +1612,7 @@ Future<void> _requestCancellation(
   );
 
   if (confirmed != true || !context.mounted) return;
+  final l10n = AppLocalizations.of(context);
 
   try {
     final ref = FirebaseFirestore.instance
@@ -1623,26 +1624,26 @@ Future<void> _requestCancellation(
         final snapshot = await transaction.get(ref);
 
         if (!snapshot.exists) {
-          throw Exception(AppLocalizations.of(context).bookingNotFound);
+          throw Exception(l10n.bookingNotFound);
         }
 
         final current = snapshot.data() ?? <String, dynamic>{};
 
         if (current['customerId'] != userId) {
-          throw Exception(AppLocalizations.of(context).cannotChangeBooking);
+          throw Exception(l10n.cannotChangeBooking);
         }
 
         final status = _status(current);
 
         if (!_isUpcoming(status)) {
           throw Exception(
-            AppLocalizations.of(context).cancellationNotAvailable,
+            l10n.cancellationNotAvailable,
           );
         }
 
         if (current['cancelRequest'] != null) {
           throw Exception(
-            AppLocalizations.of(context).cancellationAlreadyRequested,
+            l10n.cancellationAlreadyRequested,
           );
         }
 
