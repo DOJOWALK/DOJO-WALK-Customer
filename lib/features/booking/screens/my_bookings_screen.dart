@@ -370,11 +370,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
             automaticallyImplyLeading: false,
             elevation: 0,
             title: Text(
-              _t(
-                'My Bookings',
-                'मेरी बुकिंग',
-                'আমার বুকিং',
-              ),
+              AppLocalizations.of(context).myBookings,
               style: const TextStyle(
                 color: bookingsText,
                 fontSize: 23,
@@ -411,11 +407,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                             'लॉगिन ज़रूरी है',
                             'লগইন প্রয়োজন',
                           ),
-                          _t(
-                            'Please log in to view your bookings.',
-                            'अपनी बुकिंग देखने के लिए लॉगिन करें।',
-                            'আপনার বুকিং দেখতে লগইন করুন।',
-                          ),
+                          AppLocalizations.of(context).bookingsLoginPrompt,
                         );
                       }
 
@@ -432,11 +424,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                           if (snapshot.hasError) {
                             return _message(
                               Icons.error_outline,
-                              _t(
-                                'Could Not Load Bookings',
-                                'बुकिंग लोड नहीं हुई',
-                                'বুকিং লোড করা যায়নি',
-                              ),
+                              AppLocalizations.of(context).bookingsLoadErrorTitle,
                               _t(
                                 'Please check your connection and Firebase permissions.',
                                 'इंटरनेट कनेक्शन और Firebase permissions जाँचें।',
@@ -493,11 +481,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                             return _message(
                               Icons.receipt_long,
                               AppLocalizations.of(context).bookingsEmptyTitle,
-                              _t(
-                                'Your dog walking bookings will appear here.',
-                                'आपकी डॉग वॉकिंग बुकिंग यहाँ दिखाई देंगी।',
-                                'আপনার ডগ ওয়াকিং বুকিং এখানে দেখা যাবে।',
-                              ),
+                              AppLocalizations.of(context).bookingsEmptyBody,
                             );
                           }
 
@@ -980,11 +964,7 @@ class BookingDetailsScreen extends StatelessWidget {
                 backgroundColor: bookingsBackground,
                 appBar: AppBar(
                   title: Text(
-                    _t(
-                      'Booking Details',
-                      'बुकिंग की जानकारी',
-                      'বুকিংয়ের বিবরণ',
-                    ),
+                    AppLocalizations.of(context).bookingsDetailsTitle,
                   ),
                 ),
                 body: Center(
