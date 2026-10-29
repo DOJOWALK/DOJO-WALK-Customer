@@ -116,5 +116,18 @@
   "profileLoginRequired": "অনুগ্রহ করে লগইন করে প্রোফাইল সম্পূর্ণ করুন।",
   "profileIncomplete": "আগে আপনার প্রোফাইল সম্পূর্ণ করুন।",
   "ageRequirement": "বুকিং করতে গ্রাহকের বয়স ১৮ বছর বা তার বেশি হতে হবে।",
-  "continueFailed": "এগোনো যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।"
+  "continueFailed": "এগোনো যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।",
+  "editingDatePrefix": "সম্পাদনা",
+  "monthJan": "জানুয়ারি",
+  "monthFeb": "ফেব্রুয়ারি",
+  "monthMar": "মার্চ",
+  "monthApr": "এপ্রিল",
+  "monthMay": "মে",
+  "monthJun": "জুন",
+  "monthJul": "জুলাই",
+  "monthAug": "আগস্ট",
+  "monthSep": "সেপ্টেম্বর",
+  "monthOct": "অক্টোবর",
+  "monthNov": "নভেম্বর",
+  "monthDec": "ডিসেম্বর"
 }
