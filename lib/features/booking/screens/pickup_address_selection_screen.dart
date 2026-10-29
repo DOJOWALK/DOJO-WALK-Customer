@@ -141,6 +141,9 @@ class _PickupAddressSelectionScreenState
         'pincode': address.pincode,
         'pickupInstructions': address.pickupInstructions,
         'isDefault': address.isDefault,
+        // Preserve saved GPS coordinates in the immutable booking snapshot.
+        if (address.latitude != null) 'latitude': address.latitude,
+        if (address.longitude != null) 'longitude': address.longitude,
       };
 
       if (!mounted) return;
