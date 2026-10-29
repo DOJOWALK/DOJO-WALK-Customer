@@ -280,9 +280,9 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Center(
+                  Center(
                     child: Text(
-                      'Your personal information',
+                      _tr('Your personal information', 'आपकी व्यक्तिगत जानकारी', 'আপনার ব্যক্তিগত তথ্য'),
                       style: TextStyle(color: accountMuted),
                     ),
                   ),
@@ -303,7 +303,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                   const SizedBox(height: 20),
                   Row(
                     children: [
-                      const Expanded(
+                      Expanded(
                         child: Text(
                           _tr('Mobile Number', 'मोबाइल नंबर', 'মোবাইল নম্বর'),
                           style: TextStyle(
@@ -397,7 +397,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                     initialValue:
                         _gender.isEmpty ? null : _gender,
                     decoration: _decoration(_tr('Select gender', 'लिंग चुनें', 'লিঙ্গ বেছে নিন')),
-                    items: const [
+                    items: [
                       DropdownMenuItem(
                         value: 'male',
                         child: Text(_tr('Male', 'पुरुष', 'পুরুষ')),
