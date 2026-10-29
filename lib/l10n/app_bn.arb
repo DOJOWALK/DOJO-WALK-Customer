@@ -1,0 +1,21 @@
+{
+  "@@locale": "bn",
+  "bookWalk": "ওয়াক বুক করুন",
+  "selectDog": "কুকুর বেছে নিন",
+  "selectDate": "তারিখ বেছে নিন",
+  "myBookings": "আমার বুকিং",
+  "myProfile": "আমার প্রোফাইল",
+  "settings": "সেটিংস",
+  "appLanguage": "অ্যাপের ভাষা",
+  "chooseAppLanguage": "অ্যাপের ভাষা বেছে নিন",
+  "languageSaved": "ভাষার পছন্দ সংরক্ষণ করা হয়েছে।",
+  "languageSaveFailed": "ভাষার পছন্দ সংরক্ষণ করা যায়নি।",
+  "notifications": "বিজ্ঞপ্তি",
+  "helpAndSupport": "সহায়তা ও সমর্থন",
+  "continueLabel": "চালিয়ে যান",
+  "cancel": "বাতিল",
+  "save": "সংরক্ষণ করুন",
+  "retry": "আবার চেষ্টা করুন",
+  "loading": "লোড হচ্ছে…",
+  "errorGeneric": "কিছু ভুল হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।"
+}
