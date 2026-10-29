@@ -294,3 +294,10 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 - Migrated those visible strings to generated AppLocalizations getters. Booking behavior and the one-dog-per-booking contract remain unchanged.
 - The previous Home localization validation run (#40953817937) passed. A new CI run is required for this dog-selection change; do not treat it as verified until Analyze and Tests pass.
 - Remaining dog-selection copy still uses the legacy three-language helper and needs a separate complete visible-string audit.
+
+
+### Dog-selection full copy localization checkpoint (2026-10-30)
+
+- Migrated remaining dog-selection user-facing inline English/Hindi/Bengali strings to generated `AppLocalizations` getters, including login/selection/load errors, dog breed/gender/age fallbacks, stale/missing dog validation, list heading and one-dog-per-booking guidance, add-another-dog, and continue-to-pickup actions.
+- Removed the screen's legacy three-language `_text` helper. Dog selection still stores and verifies the selected dog document and continues to the pickup-address screen; no backend, Firestore contract, or multi-dog booking behavior was changed.
+- EN/HI/BN ARB JSON and key parity are being checked after this change. CI for the latest code must pass before the change is considered verified. The other 20 scheduled Indian-language catalogs and full locale-aware formatting remain pending.
