@@ -1,0 +1,22 @@
+{
+  "@@locale": "en",
+  "@@last_modified": "2026-10-29",
+  "bookWalk": "Book a Walk",
+  "selectDog": "Select Dog",
+  "selectDate": "Select Date",
+  "myBookings": "My Bookings",
+  "myProfile": "My Profile",
+  "settings": "Settings",
+  "appLanguage": "App Language",
+  "chooseAppLanguage": "Choose App Language",
+  "languageSaved": "Language preference saved.",
+  "languageSaveFailed": "Could not save language preference.",
+  "notifications": "Notifications",
+  "helpAndSupport": "Help & Support",
+  "continueLabel": "Continue",
+  "cancel": "Cancel",
+  "save": "Save",
+  "retry": "Retry",
+  "loading": "Loading…",
+  "errorGeneric": "Something went wrong. Please try again."
+}
