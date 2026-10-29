@@ -259,5 +259,11 @@
   "bookingLessThanOneYear": "১ বছরের কম",
   "bookingYears": "বছর",
   "bookingAm": "AM",
-  "bookingPm": "PM"
+  "bookingPm": "PM",
+  "homeSelectLocation": "আপনার লোকেশন বেছে নিন",
+  "homeSavedAddress": "সংরক্ষিত ঠিকানা",
+  "homeLoginManageAddresses": "সংরক্ষিত ঠিকানা পরিচালনা করতে লগ ইন করুন।",
+  "homeLoginSelectAddress": "সংরক্ষিত ঠিকানা বেছে নিতে লগ ইন করুন।",
+  "homeChoosePickupAddress": "পিকআপের ঠিকানা বেছে নিন",
+  "homeAddressesLoadError": "ঠিকানা লোড করা যায়নি। আবার চেষ্টা করুন।"
 }
