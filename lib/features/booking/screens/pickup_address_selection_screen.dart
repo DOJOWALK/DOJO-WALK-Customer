@@ -6,6 +6,7 @@ import '../../addresses/screens/address_form_screen.dart';
 
 import 'choose_walk_screen.dart';
 import 'booking_confirmation_screen.dart';
+import '../models/pickup_address_snapshot.dart';
 
 const Color pickupOrange = Color(0xFFFF7900);
 const Color pickupBackground = Color(0xFFFFFAF5);
@@ -123,28 +124,7 @@ class _PickupAddressSelectionScreenState
     setState(() => _isContinuing = true);
 
     try {
-      final addressMap = <String, dynamic>{
-        'addressId': address.id,
-        'label': address.label,
-        'flatHouse': address.flatHouse,
-        'buildingSociety': address.buildingSociety,
-        'address': [
-          address.flatHouse,
-          address.buildingSociety,
-        ]
-            .map((value) => value.trim())
-            .where((value) => value.isNotEmpty)
-            .join(', '),
-        'area': address.area,
-        'landmark': address.landmark,
-        'city': address.city,
-        'pincode': address.pincode,
-        'pickupInstructions': address.pickupInstructions,
-        'isDefault': address.isDefault,
-        // Preserve saved GPS coordinates in the immutable booking snapshot.
-        if (address.latitude != null) 'latitude': address.latitude,
-        if (address.longitude != null) 'longitude': address.longitude,
-      };
+      final addressMap = buildPickupAddressSnapshot(address);
 
       if (!mounted) return;
 
