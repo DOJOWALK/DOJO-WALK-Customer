@@ -96,3 +96,11 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 - **Still NOT VERIFIED:** Flutter formatting, static analysis, automated tests, Android/web builds and visual QA have not been run successfully or recorded. The new pull-request validation workflow has not returned a run in the connected workflow lookup. Keep PR #29 in draft; backend/Firebase alignment remains deferred.
 
 - `lib/features/profile/screens/change_mobile_number_screen.dart`: aligned colors with the shared Notion theme and localized phone/OTP labels, validation, Firebase Auth error messages, status feedback and security note in English/Hindi/Bangla. The existing OTP verification and account-update flow was preserved; no authentication behavior or Firebase rules were changed.
+
+## Static source safety follow-up (2026-10-29)
+
+- A deeper source review caught and fixed two issues introduced during localization:
+  - The Change Mobile Number screen referenced the locale listener and translation helper without defining their lifecycle/helper methods. Added `initState`, `_onLocaleChanged`, and `_tr`, with listener cleanup in `dispose`.
+  - Account Details had dynamic translated text inside `const` widgets/menu items. Removed the invalid const contexts so translated gender labels and section text can rebuild safely.
+- Re-fetched the three edited screens after fixes. Brace and parenthesis counts match, and a heuristic scan found no remaining dynamic translation calls in nearby const widget contexts. These checks cannot replace Dart analyzer/compiler output.
+- **Verification remains NOT VERIFIED:** this connected workflow interface has not shown a run for the latest commit. Flutter analyze, tests, builds and visual QA still need actual execution before the UI can be marked complete.
