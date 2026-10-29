@@ -157,5 +157,16 @@
   "bookingNotFound": "বুকিং পাওয়া যায়নি।",
   "cannotChangeBooking": "আপনি এই বুকিং পরিবর্তন করতে পারবেন না।",
   "cancellationNotAvailable": "এই অবস্থায় বুকিং বাতিল করা যাবে না।",
-  "cancellationAlreadyRequested": "বাতিলের অনুরোধ আগেই করা হয়েছে।"
+  "cancellationAlreadyRequested": "বাতিলের অনুরোধ আগেই করা হয়েছে।",
+  "bookingStatusPending": "অপেক্ষমাণ",
+  "bookingStatusFindingWalker": "ওয়াকার খোঁজা হচ্ছে",
+  "bookingStatusWalkerAssigned": "ওয়াকার নিযুক্ত",
+  "bookingStatusWalkerArriving": "ওয়াকার আসছেন",
+  "bookingStatusConfirmed": "নিশ্চিত",
+  "bookingStatusInProgress": "চলছে",
+  "bookingStatusCompleted": "সম্পন্ন",
+  "bookingStatusCancelled": "বাতিল",
+  "bookingStatusNotRequested": "অনুরোধ করা হয়নি",
+  "bookingStatusApproved": "অনুমোদিত",
+  "bookingStatusRejected": "প্রত্যাখ্যাত"
 }
