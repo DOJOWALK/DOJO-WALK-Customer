@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../app/locale_controller.dart';
 import '../../../app/theme.dart';
+import '../../../l10n/app_localizations.dart';
 
 const Color supportOrange = DojoWalkTheme.primary;
 const Color supportBackground = DojoWalkTheme.background;
@@ -106,11 +107,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text(_tr(
-            'Your message is not sent yet. Support submission will be enabled after integration.',
-            'आपका संदेश अभी भेजा नहीं गया है। इंटीग्रेशन के बाद सपोर्ट अनुरोध भेजना उपलब्ध होगा।',
-            'আপনার বার্তাটি এখনও পাঠানো হয়নি। ইন্টিগ্রেশনের পরে সাপোর্ট অনুরোধ পাঠানো যাবে।',
-          )),
+          content: Text(AppLocalizations.of(context).supportMessageNotSent),
           backgroundColor: supportOrange,
           duration: const Duration(seconds: 4),
         ),
@@ -150,14 +147,10 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(_tr('How can we help?', 'हम आपकी कैसे मदद करें?', 'আমরা কীভাবে সাহায্য করতে পারি?'),
+                          Text(AppLocalizations.of(context).supportHowCanWeHelp,
                               style: const TextStyle(color: Colors.white, fontSize: 21, fontWeight: FontWeight.w900)),
                           const SizedBox(height: 6),
-                          Text(_tr(
-                            'Find answers about your dog walks and bookings.',
-                            'डॉग वॉक और बुकिंग से जुड़े जवाब यहाँ पाएँ।',
-                            'ডগ ওয়াক ও বুকিং সম্পর্কে উত্তর এখানে খুঁজুন।',
-                          ), style: const TextStyle(color: Colors.white, height: 1.4)),
+                          Text(AppLocalizations.of(context).supportIntro, style: const TextStyle(color: Colors.white, height: 1.4)),
                         ],
                       ),
                     ),
@@ -165,7 +158,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                 ),
               ),
               const SizedBox(height: 26),
-              Text(_tr('Frequently Asked Questions', 'अक्सर पूछे जाने वाले सवाल', 'প্রায়শই জিজ্ঞাসিত প্রশ্ন'),
+              Text(AppLocalizations.of(context).supportFaqTitle,
                   style: const TextStyle(color: supportText, fontSize: 19, fontWeight: FontWeight.w900)),
               const SizedBox(height: 12),
               Container(
@@ -199,10 +192,10 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                 ),
               ),
               const SizedBox(height: 28),
-              Text(_tr('Still need help?', 'अब भी मदद चाहिए?', 'এখনও সাহায্য দরকার?'),
+              Text(AppLocalizations.of(context).supportStillNeedHelp,
                   style: const TextStyle(color: supportText, fontSize: 19, fontWeight: FontWeight.w900)),
               const SizedBox(height: 6),
-              Text(_tr('Describe your issue below.', 'अपनी समस्या नीचे लिखें।', 'নিচে আপনার সমস্যাটি লিখুন।'),
+              Text(AppLocalizations.of(context).supportDescribeIssueBelow,
                   style: const TextStyle(color: supportMuted, height: 1.4)),
               const SizedBox(height: 14),
               Container(
@@ -217,28 +210,28 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(_tr('What do you need help with?', 'किस विषय में मदद चाहिए?', 'কোন বিষয়ে সাহায্য দরকার?'),
+                      Text(AppLocalizations.of(context).supportTopicPrompt,
                           style: const TextStyle(color: supportText, fontWeight: FontWeight.w800)),
                       const SizedBox(height: 9),
                       DropdownButtonFormField<String>(
                         initialValue: _category,
                         isExpanded: true,
-                        decoration: _inputDecoration(_tr('Select a topic', 'विषय चुनें', 'বিষয় বেছে নিন')),
+                        decoration: _inputDecoration(AppLocalizations.of(context).supportSelectTopic),
                         items: [
-                          DropdownMenuItem(value: 'Booking', child: Text(_tr('Booking', 'बुकिंग', 'বুকিং'))),
-                          DropdownMenuItem(value: 'Regular Walk Plan', child: Text(_tr('Regular Walk Plan', 'रेगुलर वॉक प्लान', 'রেগুলার ওয়াক প্ল্যান'))),
-                          DropdownMenuItem(value: 'Walker', child: Text(_tr('Walker', 'वॉकर', 'ওয়াকার'))),
-                          DropdownMenuItem(value: 'Payment', child: Text(_tr('Payment', 'भुगतान', 'পেমেন্ট'))),
-                          DropdownMenuItem(value: 'My Dogs', child: Text(_tr('My Dogs', 'मेरे कुत्ते', 'আমার কুকুর'))),
-                          DropdownMenuItem(value: 'Safety', child: Text(_tr('Safety', 'सुरक्षा', 'নিরাপত্তা'))),
-                          DropdownMenuItem(value: 'Other', child: Text(_tr('Other', 'अन्य', 'অন্যান্য'))),
+                          DropdownMenuItem(value: 'Booking', child: Text(AppLocalizations.of(context).supportBookingCategory)),
+                          DropdownMenuItem(value: 'Regular Walk Plan', child: Text(AppLocalizations.of(context).supportRegularPlanCategory)),
+                          DropdownMenuItem(value: 'Walker', child: Text(AppLocalizations.of(context).supportWalkerCategory)),
+                          DropdownMenuItem(value: 'Payment', child: Text(AppLocalizations.of(context).supportPaymentCategory)),
+                          DropdownMenuItem(value: 'My Dogs', child: Text(AppLocalizations.of(context).supportDogsCategory)),
+                          DropdownMenuItem(value: 'Safety', child: Text(AppLocalizations.of(context).supportSafetyCategory)),
+                          DropdownMenuItem(value: 'Other', child: Text(AppLocalizations.of(context).supportOtherCategory)),
                         ],
                         onChanged: (value) {
                           if (value != null) setState(() => _category = value);
                         },
                       ),
                       const SizedBox(height: 18),
-                      Text(_tr('Describe your issue', 'अपनी समस्या बताएँ', 'আপনার সমস্যা বর্ণনা করুন'),
+                      Text(AppLocalizations.of(context).supportDescribeIssue,
                           style: const TextStyle(color: supportText, fontWeight: FontWeight.w800)),
                       const SizedBox(height: 9),
                       TextFormField(
@@ -246,10 +239,10 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                         maxLines: 5,
                         maxLength: 1000,
                         textCapitalization: TextCapitalization.sentences,
-                        decoration: _inputDecoration(_tr('Tell us what happened...', 'क्या हुआ, हमें बताएँ...', 'কী ঘটেছে আমাদের জানান...')),
+                        decoration: _inputDecoration(AppLocalizations.of(context).supportMessageHint),
                         validator: (value) {
                           if (value == null || value.trim().length < 10) {
-                            return _tr('Please enter at least 10 characters.', 'कृपया कम से कम 10 अक्षर लिखें।', 'কমপক্ষে ১০টি অক্ষর লিখুন।');
+                            return AppLocalizations.of(context).supportMinCharacters;
                           }
                           return null;
                         },
@@ -261,7 +254,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                         child: ElevatedButton.icon(
                           onPressed: _submitRequest,
                           icon: const Icon(Icons.send_rounded),
-                          label: Text(_tr('Submit Support Request', 'सपोर्ट अनुरोध भेजें', 'সাপোর্ট অনুরোধ জমা দিন'),
+                          label: Text(AppLocalizations.of(context).supportSubmitRequest,
                               style: const TextStyle(fontWeight: FontWeight.w800)),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: supportOrange,
@@ -272,11 +265,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      Text(_tr(
-                        'Not connected yet: this form will not send your message until support integration is implemented.',
-                        'अभी कनेक्ट नहीं है: सपोर्ट इंटीग्रेशन होने तक यह फ़ॉर्म आपका संदेश नहीं भेजेगा।',
-                        'এখনও সংযুক্ত নয়: সাপোর্ট ইন্টিগ্রেশন না হওয়া পর্যন্ত এই ফর্ম বার্তা পাঠাবে না।',
-                      ), style: const TextStyle(color: supportMuted, fontSize: 12, height: 1.45)),
+                      Text(AppLocalizations.of(context).supportFormNotConnected, style: const TextStyle(color: supportMuted, fontSize: 12, height: 1.45)),
                     ],
                   ),
                 ),
