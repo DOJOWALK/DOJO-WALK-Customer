@@ -302,11 +302,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Expanded(
                                   child: Text(
                                     _clean(address.label).isEmpty
-                                        ? _t(
-                                            'Saved Address',
-                                            'सेव किया गया पता',
-                                            'সংরক্ষিত ঠিকানা',
-                                          )
+                                        ? AppLocalizations.of(context).homeSavedAddress
                                         : address.label,
                                     style: const TextStyle(
                                       fontWeight: FontWeight.w600,
