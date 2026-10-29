@@ -169,5 +169,16 @@
   "bookingStatusNotRequested": "অনুরোধ করা হয়নি",
   "bookingStatusApproved": "অনুমোদিত",
   "bookingStatusRejected": "প্রত্যাখ্যাত",
-  "languageTranslationInProgress": "অনুবাদ চলছে"
+  "languageTranslationInProgress": "অনুবাদ চলছে",
+  "bookingsFilterAll": "সব",
+  "bookingsFilterUpcoming": "আসন্ন",
+  "bookingsFilterCompleted": "সম্পন্ন",
+  "bookingsFilterCancelled": "বাতিল",
+  "bookingsEmptyTitle": "এখনও কোনো বুকিং নেই",
+  "bookingsEmptyBody": "আপনার কুকুরের হাঁটার বুকিং এখানে দেখা যাবে।",
+  "bookingsLoginPrompt": "আপনার বুকিং দেখতে লগ ইন করুন।",
+  "bookingsLoadErrorTitle": "বুকিং লোড করা যায়নি",
+  "bookingsDetailsTitle": "বুকিংয়ের বিবরণ",
+  "bookingDetailsUnavailable": "বুকিং পাওয়া যায়নি।",
+  "bookingDetailsLoadError": "বুকিংয়ের বিবরণ লোড করা যায়নি।"
 }
