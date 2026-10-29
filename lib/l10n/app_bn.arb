@@ -282,5 +282,12 @@
   "homeMyDogs": "আমার কুকুর",
   "homeManageDogsSubtitle": "আপনার কুকুর এবং তাদের সংরক্ষিত তথ্য পরিচালনা করুন।",
   "homeHelpSupport": "সাহায্য ও সহায়তা",
-  "homeHelpSupportSubtitle": "বুকিং ও ডগ ওয়াকের জন্য সাহায্য পান।"
+  "homeHelpSupportSubtitle": "বুকিং ও ডগ ওয়াকের জন্য সাহায্য পান।",
+  "dogSelectionTitle": "আপনার কুকুর বেছে নিন",
+  "dogSelectionRetry": "আবার চেষ্টা করুন",
+  "dogSelectionEmptyTitle": "এখনও কোনো কুকুর যোগ করা হয়নি",
+  "dogSelectionEmptyBody": "বুকিং চালিয়ে যাওয়ার আগে আপনার কুকুরের তথ্য যোগ করুন।",
+  "dogSelectionAddDog": "আপনার কুকুর যোগ করুন",
+  "dogSelectionOpening": "খোলা হচ্ছে...",
+  "dogSelectionContinue": "এগিয়ে যান"
 }
