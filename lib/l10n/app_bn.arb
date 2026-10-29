@@ -206,5 +206,11 @@
   "bookingHelpSupport": "সাহায্য ও সহায়তা",
   "bookingStatusLabel": "অবস্থা",
   "bookingWalkerId": "ওয়াকার ID",
-  "bookingFrequency": "কতবার"
+  "bookingFrequency": "কতবার",
+  "bookingCancelConfirmTitle": "বুকিং বাতিলের অনুরোধ করবেন?",
+  "bookingCancelConfirmBody": "আপনার অনুরোধ পর্যালোচনা করা হবে। এতে বুকিং স্বয়ংক্রিয়ভাবে বাতিল হবে না।",
+  "bookingGoBack": "ফিরে যান",
+  "bookingConfirm": "নিশ্চিত করুন",
+  "bookingCancelSubmitted": "বাতিলের অনুরোধ পাঠানো হয়েছে।",
+  "bookingRequestFailed": "অনুরোধ ব্যর্থ"
 }
