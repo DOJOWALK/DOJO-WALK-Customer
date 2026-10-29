@@ -680,11 +680,7 @@ class _BookingCard extends StatelessWidget {
                         Text(
                           _text(
                             data['serviceName'],
-                            fallback: _t(
-                              'Dog Walking',
-                              'डॉग वॉकिंग',
-                              'ডগ ওয়াকিং',
-                            ),
+                            fallback: AppLocalizations.of(context).bookingDogWalking,
                           ),
                           style: const TextStyle(
                             fontSize: 16,
@@ -694,14 +690,10 @@ class _BookingCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${_t('Dog', 'कुत्ता', 'কুকুর')}: '
+                          '${AppLocalizations.of(context).bookingDogLabel}: '
                           '${_text(
                             pet['name'] ?? data['petName'],
-                            fallback: _t(
-                              'Your dog',
-                              'आपका डॉग',
-                              'আপনার কুকুর',
-                            ),
+                            fallback: AppLocalizations.of(context).bookingYourDog,
                           )}',
                           style: const TextStyle(
                             color: bookingsMuted,
@@ -726,11 +718,7 @@ class _BookingCard extends StatelessWidget {
               const Divider(height: 28),
               _row(
                 Icons.calendar_month_outlined,
-                _t(
-                  'Date & Time',
-                  'तारीख़ और समय',
-                  'তারিখ ও সময়',
-                ),
+                AppLocalizations.of(context).bookingDateTime,
                 '${_formatDate(_date(data['scheduledAt']))} · '
                 '${_text(
                   data['preferredTime'],
@@ -1148,11 +1136,7 @@ class BookingDetailsScreen extends StatelessWidget {
                         _text(pet['behaviour']),
                       ),
                       _detail(
-                        _t(
-                          'Special Care',
-                          'विशेष देखभाल',
-                          'বিশেষ যত্ন',
-                        ),
+                        AppLocalizations.of(context).bookingSpecialCare,
                         _text(pet['specialCare']),
                       ),
                       _detail(
@@ -1165,26 +1149,14 @@ class BookingDetailsScreen extends StatelessWidget {
                   const SizedBox(height: 14),
 
                   _section(
-                    _t(
-                      'Pickup Address',
-                      'पिकअप का पता',
-                      'পিকআপের ঠিকানা',
-                    ),
+                    AppLocalizations.of(context).bookingPickupAddress,
                     [
                       _detail(
-                        _t(
-                          'Address Type',
-                          'पते का प्रकार',
-                          'ঠিকানার ধরন',
-                        ),
+                        AppLocalizations.of(context).bookingAddressType,
                         _text(_map(data['pickupAddress'])['label']),
                       ),
                       _detail(
-                        _t(
-                          'Full Address',
-                          'पूरा पता',
-                          'সম্পূর্ণ ঠিকানা',
-                        ),
+                        AppLocalizations.of(context).bookingFullAddress,
                         address.isEmpty
                             ? _t(
                                 'Not provided',
@@ -1194,11 +1166,7 @@ class BookingDetailsScreen extends StatelessWidget {
                             : address,
                       ),
                       _detail(
-                        _t(
-                          'Landmark',
-                          'नज़दीकी पहचान',
-                          'ল্যান্ডমার্ক',
-                        ),
+                        AppLocalizations.of(context).bookingLandmark,
                         _text(
                           _map(data['pickupAddress'])['landmark'],
                         ),
@@ -1209,11 +1177,7 @@ class BookingDetailsScreen extends StatelessWidget {
                   const SizedBox(height: 14),
 
                   _section(
-                    _t(
-                      'Assigned Walker',
-                      'नियुक्त वॉकर',
-                      'নিযুক্ত ওয়াকার',
-                    ),
+                    AppLocalizations.of(context).bookingAssignedWalker,
                     [
                       _detail(
                         AppLocalizations.of(context).bookingWalkerId,
@@ -1227,11 +1191,7 @@ class BookingDetailsScreen extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        _t(
-                          'Walker name and contact details will appear when available in the booking record.',
-                          'वॉकर का नाम और संपर्क जानकारी बुकिंग रिकॉर्ड में उपलब्ध होने पर दिखाई जाएगी।',
-                          'বুকিং রেকর্ডে পাওয়া গেলে ওয়াকারের নাম ও যোগাযোগের তথ্য দেখা যাবে।',
-                        ),
+                        AppLocalizations.of(context).bookingWalkerInfoDisclosure,
                         style: const TextStyle(
                           color: bookingsMuted,
                           fontSize: 12,
@@ -1244,30 +1204,18 @@ class BookingDetailsScreen extends StatelessWidget {
                   if (regular) ...[
                     const SizedBox(height: 14),
                     _section(
-                      _t(
-                        'Regular Walk Plan',
-                        'रेगुलर वॉक प्लान',
-                        'নিয়মিত ওয়াক প্ল্যান',
-                      ),
+                      AppLocalizations.of(context).bookingRegularWalkPlan,
                       [
                         _detail(
                           AppLocalizations.of(context).bookingFrequency,
                           _text(data['frequency']),
                         ),
                         _detail(
-                          _t(
-                            'Walks Per Week',
-                            'हर सप्ताह वॉक',
-                            'প্রতি সপ্তাহে ওয়াক',
-                          ),
+                          AppLocalizations.of(context).bookingWalksPerWeek,
                           _text(data['walksPerWeek']),
                         ),
                         _detail(
-                          _t(
-                            'Walks Per Day',
-                            'हर दिन वॉक',
-                            'প্রতিদিন ওয়াক',
-                          ),
+                          AppLocalizations.of(context).bookingWalksPerDay,
                           _text(data['walksPerDay']),
                         ),
                       ],
@@ -1277,11 +1225,7 @@ class BookingDetailsScreen extends StatelessWidget {
                   if (data['walkSchedules'] is List) ...[
                     const SizedBox(height: 14),
                     _section(
-                      _t(
-                        'Walk Schedule',
-                        'वॉक का शेड्यूल',
-                        'ওয়াকের সময়সূচি',
-                      ),
+                      AppLocalizations.of(context).bookingWalkSchedule,
                       _scheduleDetails(data['walkSchedules']),
                     ),
                   ],
@@ -1289,11 +1233,7 @@ class BookingDetailsScreen extends StatelessWidget {
                   if (data['dateSchedules'] is List) ...[
                     const SizedBox(height: 14),
                     _section(
-                      _t(
-                        'Selected Dates',
-                        'चुनी हुई तारीखें',
-                        'নির্বাচিত তারিখ',
-                      ),
+                      AppLocalizations.of(context).bookingSelectedDates,
                       _dateScheduleDetails(data['dateSchedules']),
                     ),
                   ],
@@ -1301,59 +1241,31 @@ class BookingDetailsScreen extends StatelessWidget {
                   const SizedBox(height: 14),
 
                   _section(
-                    _t(
-                      'Cancel Request',
-                      'रद्द करने का अनुरोध',
-                      'বাতিলের অনুরোধ',
-                    ),
+                    AppLocalizations.of(context).bookingCancelRequestSection,
                     [
                       _detail(
-                        _t(
-                          'Request Status',
-                          'अनुरोध की स्थिति',
-                          'অনুরোধের অবস্থা',
-                        ),
+                        AppLocalizations.of(context).bookingRequestStatus,
                         _cancelStatusText(context, cancelStatus),
                       ),
                       if (_isCancelled(_status(data)))
                         Text(
-                          _t(
-                            'This booking is already cancelled.',
-                            'यह बुकिंग पहले ही रद्द हो चुकी है।',
-                            'এই বুকিং ইতিমধ্যেই বাতিল হয়েছে।',
-                          ),
+                          AppLocalizations.of(context).bookingAlreadyCancelled,
                         )
                       else if (_status(data) == 'completed')
                         Text(
-                          _t(
-                            'Completed bookings cannot be cancelled here.',
-                            'पूरी हो चुकी बुकिंग यहाँ रद्द नहीं की जा सकती।',
-                            'সম্পন্ন বুকিং এখানে বাতিল করা যাবে না।',
-                          ),
+                          AppLocalizations.of(context).bookingCompletedCannotCancel,
                         )
                       else if (cancelStatus == 'pending')
                         Text(
-                          _t(
-                            'Your cancellation request is awaiting review.',
-                            'आपका रद्द करने का अनुरोध जाँच के लिए लंबित है।',
-                            'আপনার বাতিলের অনুরোধ পর্যালোচনার অপেক্ষায় আছে।',
-                          ),
+                          AppLocalizations.of(context).bookingCancellationAwaitingReview,
                         )
                       else if (cancelStatus == 'approved')
                         Text(
-                          _t(
-                            'Cancellation request approved.',
-                            'रद्द करने का अनुरोध स्वीकार हुआ।',
-                            'বাতিলের অনুরোধ অনুমোদিত হয়েছে।',
-                          ),
+                          AppLocalizations.of(context).bookingCancellationApproved,
                         )
                       else if (cancelStatus == 'rejected')
                         Text(
-                          _t(
-                            'Your cancellation request was rejected.',
-                            'आपका रद्द करने का अनुरोध अस्वीकार हुआ।',
-                            'আপনার বাতিলের অনুরোধ প্রত্যাখ্যান করা হয়েছে।',
-                          ),
+                          AppLocalizations.of(context).bookingCancellationRejected,
                         )
                       else if (_isUpcoming(_status(data)))
                         SizedBox(
@@ -1361,11 +1273,7 @@ class BookingDetailsScreen extends StatelessWidget {
                           child: OutlinedButton.icon(
                             icon: const Icon(Icons.cancel_outlined),
                             label: Text(
-                              _t(
-                                'Request Cancellation',
-                                'बुकिंग रद्द करने का अनुरोध करें',
-                                'বুকিং বাতিলের অনুরোধ করুন',
-                              ),
+                              AppLocalizations.of(context).bookingRequestCancellation,
                             ),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: Colors.red,
@@ -1386,18 +1294,10 @@ class BookingDetailsScreen extends StatelessWidget {
                   const SizedBox(height: 14),
 
                   _section(
-                    _t(
-                      'Help & Support',
-                      'मदद और सहायता',
-                      'সাহায্য ও সহায়তা',
-                    ),
+                    AppLocalizations.of(context).bookingHelpSupport,
                     [
                       Text(
-                        _t(
-                          'If you have a problem with this booking, contact DOJO WALK Support.',
-                          'इस बुकिंग में समस्या होने पर DOJO WALK Support से संपर्क करें।',
-                          'এই বুকিংয়ে সমস্যা হলে DOJO WALK Support-এর সঙ্গে যোগাযোগ করুন।',
-                        ),
+                        AppLocalizations.of(context).bookingHelpSupportDisclosure,
                         style: const TextStyle(height: 1.5),
                       ),
                     ],
