@@ -283,5 +283,12 @@
   "homeMyDogs": "My Dogs",
   "homeManageDogsSubtitle": "Manage your dogs and their saved details.",
   "homeHelpSupport": "Help & Support",
-  "homeHelpSupportSubtitle": "Get help with bookings and dog walks."
+  "homeHelpSupportSubtitle": "Get help with bookings and dog walks.",
+  "dogSelectionTitle": "Select Your Dog",
+  "dogSelectionRetry": "Retry",
+  "dogSelectionEmptyTitle": "No Dogs Added Yet",
+  "dogSelectionEmptyBody": "Add your dog’s details before continuing with booking.",
+  "dogSelectionAddDog": "Add Your Dog",
+  "dogSelectionOpening": "Opening...",
+  "dogSelectionContinue": "Continue"
 }
