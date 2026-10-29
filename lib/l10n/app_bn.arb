@@ -130,5 +130,8 @@
   "monthOct": "অক্টোবর",
   "monthNov": "নভেম্বর",
   "monthDec": "ডিসেম্বর",
-  "loginSessionMissing": "লগইন সেশন পাওয়া যায়নি। অনুগ্রহ করে আবার OTP যাচাই করুন।"
+  "loginSessionMissing": "লগইন সেশন পাওয়া যায়নি। অনুগ্রহ করে আবার OTP যাচাই করুন।",
+  "automaticVerificationFailed": "স্বয়ংক্রিয় যাচাইকরণ হয়নি। অনুগ্রহ করে OTP দিয়ে চেষ্টা করুন।",
+  "automaticLoginFailed": "লগইনে সমস্যা হয়েছে। অনুগ্রহ করে OTP দিয়ে চেষ্টা করুন।",
+  "otpSendFallback": "OTP পাঠাতে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।"
 }
