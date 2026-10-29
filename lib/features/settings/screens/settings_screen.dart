@@ -128,11 +128,12 @@ class _SettingsScreenState extends State<SettingsScreen>
                 ),
               ),
               const SizedBox(height: 12),
-              for (final language in availableDojoLanguages)
+              for (final language in dojoLanguages)
                 _languageOption(
                   sheetContext,
                   language.code,
                   language.nativeName,
+                  enabled: language.isAvailable,
                 ),
             ],
           ),
@@ -164,8 +165,9 @@ class _SettingsScreenState extends State<SettingsScreen>
   Widget _languageOption(
     BuildContext sheetContext,
     String code,
-    String label,
-  ) {
+    String label, {
+    required bool enabled,
+  }) {
     final selected = _language == code;
 
     return ListTile(
@@ -178,12 +180,16 @@ class _SettingsScreenState extends State<SettingsScreen>
       ),
       title: Text(
         label,
-        style: const TextStyle(
-          color: settingsText,
+        style: TextStyle(
+          color: enabled ? settingsText : settingsMuted,
           fontWeight: FontWeight.w700,
         ),
       ),
-      onTap: () => Navigator.pop(sheetContext, code),
+      subtitle: enabled
+          ? null
+          : Text(AppLocalizations.of(context).languageTranslationInProgress),
+      enabled: enabled,
+      onTap: enabled ? () => Navigator.pop(sheetContext, code) : null,
     );
   }
 
