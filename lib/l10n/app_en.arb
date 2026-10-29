@@ -130,5 +130,6 @@
   "monthSep": "Sep",
   "monthOct": "Oct",
   "monthNov": "Nov",
-  "monthDec": "Dec"
+  "monthDec": "Dec",
+  "loginSessionMissing": "Login session is missing. Please verify the OTP again."
 }
