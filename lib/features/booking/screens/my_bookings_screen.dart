@@ -122,11 +122,7 @@ DateTime _date(dynamic value) {
 
 String _formatDate(DateTime date) {
   if (date.year <= 2000) {
-    return _t(
-      'Not provided',
-      'जानकारी उपलब्ध नहीं',
-      'তথ্য দেওয়া নেই',
-    );
+    return _t('Not provided', 'जानकारी उपलब्ध नहीं', 'তথ্য দেওয়া নেই');
   }
 
   const months = [
@@ -159,7 +155,7 @@ String _formatTime(DateTime date) {
   final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
   final minute = date.minute.toString().padLeft(2, '0');
 
-  return '$hour:$minute ${date.hour >= 12 ? 'PM' : 'AM'}';
+  return '$hour:$minute ${date.hour >= 12 ? _t('PM', 'PM', 'PM') : _t('AM', 'AM', 'AM')}';
 }
 
 String _duration(Map<String, dynamic> data) {
@@ -194,26 +190,14 @@ String _plan(Map<String, dynamic> data) {
   ).toLowerCase();
 
   if (plan == 'regular' || service == 'regular_walk') {
-    return _t(
-      'Regular Walk',
-      'रेगुलर वॉक',
-      'নিয়মিত ওয়াক',
-    );
+    return _t('Regular Walk', 'रेगুলर वॉक', 'নিয়মিত ওয়াক');
   }
 
   if (plan == 'customize' || service == 'custom_walk') {
-    return _t(
-      'Customized Walk',
-      'कस्टम वॉक',
-      'কাস্টম ওয়াক',
-    );
+    return _t('Customized Walk', 'कस्टম वॉक', 'কাস্টম ওয়াক');
   }
 
-  return _t(
-    'One-Time Walk',
-    'एक बार की वॉक',
-    'একবারের ওয়াক',
-  );
+  return _t('One-Time Walk', 'एक बार की वॉक', 'একবারের ওয়াক');
 }
 
 String _address(dynamic value) {
@@ -242,11 +226,7 @@ String _address(dynamic value) {
 
 String _money(dynamic value) {
   if (value is! num || !value.isFinite || value < 0) {
-    return _t(
-      'Price to be confirmed',
-      'कीमत की पुष्टि बाकी है',
-      'দাম নিশ্চিত করা বাকি',
-    );
+    return _t('Price to be confirmed', 'कीमत की पुष्टि बाकी है', 'দাম নিশ্চিত করা বাকি');
   }
 
   return '₹${value.toStringAsFixed(
@@ -402,11 +382,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                       if (user == null) {
                         return _message(
                           Icons.person_outline,
-                          _t(
-                            'Login Required',
-                            'लॉगिन ज़रूरी है',
-                            'লগইন প্রয়োজন',
-                          ),
+                          AppLocalizations.of(context).bookingsLoginRequired,
                           AppLocalizations.of(context).bookingsLoginPrompt,
                         );
                       }
@@ -425,19 +401,11 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                             return _message(
                               Icons.error_outline,
                               AppLocalizations.of(context).bookingsLoadErrorTitle,
-                              _t(
-                                'Please check your connection and Firebase permissions.',
-                                'इंटरनेट कनेक्शन और Firebase permissions जाँचें।',
-                                'ইন্টারনেট সংযোগ ও Firebase অনুমতি পরীক্ষা করুন।',
-                              ),
+                              AppLocalizations.of(context).bookingsConnectionPermissionError,
                               action: TextButton(
                                 onPressed: () => setState(() {}),
                                 child: Text(
-                                  _t(
-                                    'Refresh',
-                                    'रिफ्रेश',
-                                    'রিফ্রেশ',
-                                  ),
+                                  AppLocalizations.of(context).bookingsRefresh,
                                 ),
                               ),
                             );
@@ -760,11 +728,7 @@ class _BookingCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _t(
-                              'TOTAL AMOUNT',
-                              'कुल राशि',
-                              'মোট পরিমাণ',
-                            ),
+                            AppLocalizations.of(context).bookingTotalAmountUpper,
                             style: const TextStyle(
                               fontSize: 11,
                               letterSpacing: 0.6,
@@ -808,11 +772,7 @@ class _BookingCard extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    _t(
-                      'View Booking Details',
-                      'बुकिंग की जानकारी देखें',
-                      'বুকিংয়ের বিবরণ দেখুন',
-                    ),
+                    AppLocalizations.of(context).bookingViewDetails,
                     style: const TextStyle(
                       fontWeight: FontWeight.w800,
                     ),
@@ -927,11 +887,7 @@ class BookingDetailsScreen extends StatelessWidget {
       return Scaffold(
         body: Center(
           child: Text(
-            _t(
-              'Please log in to view this booking.',
-              'बुकिंग देखने के लिए लॉगिन करें।',
-              'এই বুকিং দেখতে লগইন করুন।',
-            ),
+            AppLocalizations.of(context).bookingLoginToView,
           ),
         ),
       );
@@ -957,11 +913,7 @@ class BookingDetailsScreen extends StatelessWidget {
                 ),
                 body: Center(
                   child: Text(
-                    _t(
-                      'Unable to load booking details.',
-                      'बुकिंग की जानकारी लोड नहीं हुई।',
-                      'বুকিংয়ের বিবরণ লোড করা যায়নি।',
-                    ),
+                    AppLocalizations.of(context).bookingDetailsLoadFailure,
                   ),
                 ),
               );
@@ -973,11 +925,7 @@ class BookingDetailsScreen extends StatelessWidget {
               return Scaffold(
                 appBar: AppBar(
                   title: Text(
-                    _t(
-                      'Booking Details',
-                      'बुकिंग की जानकारी',
-                      'বুকিংয়ের বিবরণ',
-                    ),
+                    AppLocalizations.of(context).bookingsDetailsTitle,
                   ),
                 ),
                 body: Center(
@@ -1183,11 +1131,7 @@ class BookingDetailsScreen extends StatelessWidget {
                         AppLocalizations.of(context).bookingWalkerId,
                         _text(
                           data['walkerId'],
-                          fallback: _t(
-                            'Not assigned',
-                            'अभी नियुक्त नहीं',
-                            'এখনও নিযুক্ত নয়',
-                          ),
+                          fallback: AppLocalizations.of(context).bookingNotAssigned,
                         ),
                       ),
                       Text(
@@ -1579,7 +1523,7 @@ String _age(dynamic value) {
 
   final age = _text(value);
 
-  if (age == 'Not provided') return age;
+  if (age == _t('Not provided', 'जानकारी उपलब्ध नहीं', 'তথ্য দেওয়া নেই')) return age;
 
   if (RegExp(r'^\d+$').hasMatch(age)) {
     return '$age ${_t('years', 'साल', 'বছর')}';
