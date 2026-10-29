@@ -1,0 +1,21 @@
+{
+  "@@locale": "hi",
+  "bookWalk": "वॉक बुक करें",
+  "selectDog": "कुत्ता चुनें",
+  "selectDate": "तारीख चुनें",
+  "myBookings": "मेरी बुकिंग",
+  "myProfile": "मेरी प्रोफ़ाइल",
+  "settings": "सेटिंग्स",
+  "appLanguage": "ऐप की भाषा",
+  "chooseAppLanguage": "ऐप की भाषा चुनें",
+  "languageSaved": "भाषा की पसंद सेव हो गई।",
+  "languageSaveFailed": "भाषा सेव नहीं हो सकी।",
+  "notifications": "सूचनाएँ",
+  "helpAndSupport": "मदद और सहायता",
+  "continueLabel": "आगे बढ़ें",
+  "cancel": "रद्द करें",
+  "save": "सेव करें",
+  "retry": "फिर कोशिश करें",
+  "loading": "लोड हो रहा है…",
+  "errorGeneric": "कुछ गलत हुआ। कृपया फिर कोशिश करें।"
+}
