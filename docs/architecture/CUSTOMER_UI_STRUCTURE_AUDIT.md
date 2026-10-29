@@ -36,6 +36,14 @@
 | Addresses | `lib/features/addresses/screens/my_addresses_screen.dart`, `lib/features/addresses/screens/address_form_screen.dart` | Empty/error/validation states, clear default address and pickup labels |
 | Settings / support / policies | `lib/features/settings/screens/settings_screen.dart`, support and privacy/terms screens | Language choice persists, settings statuses are accurate, policy text is readable and not overstated |
 
+## Localization progress checkpoint (2026-10-30)
+
+- Settings now displays all 23 registry entries; languages without complete catalogs are visible but disabled with a translated “Translation in progress” label. Only reviewed available locales remain selectable.
+- English, Hindi and Bengali ARB catalogs have matching non-metadata keys (181 each at the last catalog parity check).
+- My Bookings now uses generated localization getters for the page title, login prompt, load-error title, empty-state body, filter labels, and booking-detail title/unavailable state where matched.
+- Registry coverage test verifies the exact 23 locale codes and duplicate-code absence.
+- Translation completeness for the other 20 languages is not achieved. Build/device visual QA has not been performed. The latest CI run for code commit `65ddd0121463fe87bc7caf758dd3b21eb60bdb3f` was in progress at the time of this note.
+
 ## Booking UI rules before backend phase
 
 - Do not add multi-dog booking fields or alter the booking payload until the Admin, Partner and backend data contracts have been audited. The current customer UI writes one `dogId`.
