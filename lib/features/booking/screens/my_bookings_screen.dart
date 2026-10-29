@@ -80,64 +80,29 @@ bool _isUpcoming(String status) {
   ].contains(status);
 }
 
-String _statusText(String status) {
+String _statusText(BuildContext context, String status) {
+  final l10n = AppLocalizations.of(context);
   switch (status.toLowerCase()) {
     case 'pending':
-      return _t('Pending', 'लंबित', 'অপেক্ষমাণ');
-
+      return l10n.bookingStatusPending;
     case 'finding_walker':
-      return _t(
-        'Finding Walker',
-        'वॉकर खोज रहे हैं',
-        'ওয়াকার খোঁজা হচ্ছে',
-      );
-
+      return l10n.bookingStatusFindingWalker;
     case 'walker_assigned':
     case 'assigned':
-      return _t(
-        'Walker Assigned',
-        'वॉकर नियुक्त',
-        'ওয়াকার নিযুক্ত',
-      );
-
+      return l10n.bookingStatusWalkerAssigned;
     case 'walker_arriving':
-      return _t(
-        'Walker Arriving',
-        'वॉकर आ रहे हैं',
-        'ওয়াকার আসছেন',
-      );
-
+      return l10n.bookingStatusWalkerArriving;
     case 'confirmed':
     case 'accepted':
-      return _t(
-        'Confirmed',
-        'पुष्टि हो गई',
-        'নিশ্চিত',
-      );
-
+      return l10n.bookingStatusConfirmed;
     case 'in_progress':
     case 'in progress':
-      return _t(
-        'In Progress',
-        'जारी है',
-        'চলছে',
-      );
-
+      return l10n.bookingStatusInProgress;
     case 'completed':
-      return _t(
-        'Completed',
-        'पूरा हुआ',
-        'সম্পন্ন',
-      );
-
+      return l10n.bookingStatusCompleted;
     case 'cancelled':
     case 'canceled':
-      return _t(
-        'Cancelled',
-        'रद्द',
-        'বাতিল',
-      );
-
+      return l10n.bookingStatusCancelled;
     default:
       return status.replaceAll('_', ' ');
   }
@@ -775,7 +740,7 @@ class _BookingCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  _statusBadge(status),
+                  _statusBadge(context, status),
                 ],
               ),
               const Divider(height: 28),
@@ -944,7 +909,7 @@ class _BookingCard extends StatelessWidget {
   }
 }
 
-Widget _statusBadge(String status) {
+Widget _statusBadge(BuildContext context, String status) {
   final color = status == 'completed'
       ? Colors.green
       : _isCancelled(status)
@@ -961,7 +926,7 @@ Widget _statusBadge(String status) {
       borderRadius: BorderRadius.circular(9),
     ),
     child: Text(
-      _statusText(status).toUpperCase(),
+      _statusText(context, status).toUpperCase(),
       textAlign: TextAlign.center,
       style: TextStyle(
         color: color,
@@ -1144,7 +1109,7 @@ class BookingDetailsScreen extends StatelessWidget {
                       ),
                       _detail(
                         _t('Status', 'स्थिति', 'অবস্থা'),
-                        _statusText(_status(data)),
+                        _statusText(context, _status(data)),
                       ),
                       _detail(
                         _t(
@@ -1412,7 +1377,7 @@ class BookingDetailsScreen extends StatelessWidget {
                           'अनुरोध की स्थिति',
                           'অনুরোধের অবস্থা',
                         ),
-                        _cancelStatusText(cancelStatus),
+                        _cancelStatusText(context, cancelStatus),
                       ),
                       if (_isCancelled(_status(data)))
                         Text(
@@ -1549,24 +1514,17 @@ Widget _priceDetail(String label, String value) {
 // CANCELLATION
 // ============================================================
 
-String _cancelStatusText(String status) {
+String _cancelStatusText(BuildContext context, String status) {
+  final l10n = AppLocalizations.of(context);
   switch (status) {
     case 'none':
-      return _t(
-        'Not Requested',
-        'अनुरोध नहीं किया',
-        'অনুরোধ করা হয়নি',
-      );
-
+      return l10n.bookingStatusNotRequested;
     case 'pending':
-      return _t('Pending', 'लंबित', 'অপেক্ষমাণ');
-
+      return l10n.bookingStatusPending;
     case 'approved':
-      return _t('Approved', 'स्वीकृत', 'অনুমোদিত');
-
+      return l10n.bookingStatusApproved;
     case 'rejected':
-      return _t('Rejected', 'अस्वीकृत', 'প্রত্যাখ্যাত');
-
+      return l10n.bookingStatusRejected;
     default:
       return status;
   }
