@@ -51,5 +51,17 @@
   "supportPaymentCategory": "भुगतान",
   "supportDogsCategory": "मेरे कुत्ते",
   "supportSafetyCategory": "सुरक्षा",
-  "supportOtherCategory": "अन्य"
+  "supportOtherCategory": "अन्य",
+  "supportFaqBookQuestion": "डॉग वॉक कैसे बुक करें?",
+  "supportFaqBookAnswer": "होम खोलें, “वॉक बुक करें” चुनें, वॉक का प्रकार और अपना कुत्ता चुनें, पिकअप पता जोड़ें और समय तय करें।",
+  "supportFaqRegularQuestion": "रेगुलर वॉक प्लान क्या है?",
+  "supportFaqRegularAnswer": "रेगुलर वॉक प्लान पसंदीदा समय पर नियमित वॉक के लिए है। अंतिम शेड्यूल और वॉकर की पुष्टि DOJO WALK करेगा।",
+  "supportFaqDogQuestion": "अपने कुत्ते की जानकारी कैसे संभालें?",
+  "supportFaqDogAnswer": "कुत्ता जोड़ने, जानकारी बदलने या सूची से हटाने के लिए “मेरे कुत्ते” खोलें।",
+  "supportFaqCancelQuestion": "क्या बुकिंग रद्द कर सकता हूँ?",
+  "supportFaqCancelAnswer": "“मेरी बुकिंग” खोलें और बुकिंग विवरण में उपलब्ध रद्द करने या अनुरोध करने का विकल्प देखें।",
+  "supportFaqWalkerQuestion": "अगर असाइन किया गया वॉकर उपलब्ध न हो तो?",
+  "supportFaqWalkerAnswer": "बुकिंग विवरण के साथ सपोर्ट से संपर्क करें, ताकि टीम स्थिति देखकर अगले कदम बता सके।",
+  "supportFaqPaymentQuestion": "भुगतान कब करना होगा?",
+  "supportFaqPaymentAnswer": "बुकिंग के दौरान दिखाए गए भुगतान विवरण देखें। ऐप द्वारा भुगतान की पुष्टि होने से पहले बुकिंग को भुगतान किया हुआ न मानें।"
 }
