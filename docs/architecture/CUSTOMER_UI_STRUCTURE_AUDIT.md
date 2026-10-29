@@ -53,6 +53,17 @@
 - Recurring booking copy no longer promises Sunday coverage; days, pauses, cancellation terms and billing require confirmation.
 - Home screen now listens for app-language changes and removes its listener on dispose.
 
+## Recent in-progress screen work (2026-10-29)
+
+The following edits are committed on the current draft branch. These are source-level changes, not visual-QA or runtime verification:
+
+- `lib/features/addresses/screens/my_addresses_screen.dart`: English/Hindi/Bangla labels for saved-address empty state, address actions, delete confirmation, retry and feedback; listens to `appLocale` and removes its listener on dispose.
+- `lib/features/addresses/screens/address_form_screen.dart`: localized form labels/hints, PIN validation, map/search/current-location feedback and save/update states; listens to `appLocale` and removes its listener on dispose.
+- `lib/features/booking/screens/pickup_address_selection_screen.dart`: corrected dynamic localized widgets so they are not incorrectly declared `const`.
+- `lib/features/booking/screens/booking_confirmation_screen.dart`: localized booking summary labels, pending-price disclosure, schedule/plan labels, validation feedback and request-received dialog; booking plan identifiers written to the data model remain canonical.
+- Static source sanity checks performed: balanced braces/parentheses and a scan for direct `const Text` calls containing dynamic locale helpers in the four reviewed screens. These checks do not replace Dart analysis or Flutter tests.
+- GitHub Actions workflow runs were not returned for the latest commits. Flutter format/analyze/test/build and visual QA remain unverified.
+
 ## Remaining UI work — keep backend separate
 
 1. Finish screen-by-screen UI and localization audit (English, Hindi, Bangla); fix strings and state behavior where required.
