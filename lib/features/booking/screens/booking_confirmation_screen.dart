@@ -706,7 +706,7 @@ class _BookingConfirmationScreenState
                         ),
                       ),
                     Text(
-                      '${_text(_text('Daily total', 'प्रतिदिन कुल', 'প্রতিদিনের মোট'), 'प्रतिदिन कुल', 'প্রতিদিনের মোট')}: '
+                      '${_text('Daily total', 'प्रतिदिन कुल', 'প্রতিদিনের মোট')}: '
                       '${_money(_totalForWalks(_walksForDay(day)))}',
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
