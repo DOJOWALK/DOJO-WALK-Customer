@@ -131,5 +131,8 @@
   "monthOct": "Oct",
   "monthNov": "Nov",
   "monthDec": "Dec",
-  "loginSessionMissing": "Login session is missing. Please verify the OTP again."
+  "loginSessionMissing": "Login session is missing. Please verify the OTP again.",
+  "automaticVerificationFailed": "Automatic verification failed. Please try with OTP.",
+  "automaticLoginFailed": "Login failed. Please try again with OTP.",
+  "otpSendFallback": "Could not send OTP. Please try again."
 }
