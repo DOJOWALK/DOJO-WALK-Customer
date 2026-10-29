@@ -78,17 +78,17 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
         .trim();
   }
 
-  String _dogBreed(Map<String, dynamic> dog) {
+  String _dogBreed(BuildContext context, Map<String, dynamic> dog) {
     final breed = (dog['breed'] ?? '').toString().trim();
-    return breed.isEmpty ? _text('Breed not provided', 'नस्ल की जानकारी नहीं दी गई', 'জাতের তথ্য দেওয়া হয়নি') : breed;
+    return breed.isEmpty ? AppLocalizations.of(context).dogBreedNotProvided : breed;
   }
 
-  String _dogGender(Map<String, dynamic> dog) {
+  String _dogGender(BuildContext context, Map<String, dynamic> dog) {
     final gender = (dog['gender'] ?? '').toString().trim();
-    return gender.isEmpty ? _text('Not specified', 'नहीं बताया गया', 'উল্লেখ করা হয়নি') : gender;
+    return gender.isEmpty ? AppLocalizations.of(context).dogNotSpecified : gender;
   }
 
-  String _dogAge(Map<String, dynamic> dog) {
+  String _dogAge(BuildContext context, Map<String, dynamic> dog) {
     final age = dog['age'];
 
     if (age != null && age.toString().trim().isNotEmpty) {
@@ -110,11 +110,11 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
       }
 
       if (years >= 0) {
-        return _text('$years years', '$years साल', '$years বছর');
+        return '$years ${AppLocalizations.of(context).dogAgeYears}';
       }
     }
 
-    return _text('Age not provided', 'उम्र की जानकारी नहीं दी गई', 'বয়সের তথ্য দেওয়া হয়নি');
+    return AppLocalizations.of(context).dogAgeNotProvided;
   }
 
   void _showMessage(String message) {
@@ -142,7 +142,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
       // Refresh the screen after returning from My Dogs.
       setState(() {});
     } catch (e) {
-      _showMessage(_text('Could not open dog details. Please try again.', 'डॉग की जानकारी नहीं खुल सकी। दोबारा कोशिश करें।', 'কুকুরের তথ্য খোলা যায়নি। আবার চেষ্টা করুন।'));
+      _showMessage(AppLocalizations.of(context).dogOpenDetailsFailed);
     } finally {
       if (mounted) {
         setState(() => _isOpeningDogs = false);
@@ -156,7 +156,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
     final user = _user;
 
     if (user == null) {
-      _showMessage(_text('Please log in first.', 'पहले लॉग इन करें।', 'আগে লগ ইন করুন।'));
+      _showMessage(AppLocalizations.of(context).dogLoginFirst);
       return;
     }
 
@@ -164,7 +164,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
     final selectedDog = _selectedDog;
 
     if (dogId == null || selectedDog == null) {
-      _showMessage(_text('Please select a dog.', 'कृपया अपना डॉग चुनें।', 'একটি কুকুর বেছে নিন।'));
+      _showMessage(AppLocalizations.of(context).dogSelectOne);
       return;
     }
 
@@ -188,7 +188,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
         }
 
         throw StateError(
-          _text('This dog is no longer in your saved list. Please select again.', 'यह डॉग अब आपकी सेव की गई सूची में नहीं है। दोबारा चुनें।', 'এই কুকুরটি আর সংরক্ষিত তালিকায় নেই। আবার বেছে নিন.'),
+          AppLocalizations.of(context).dogNoLongerSaved,
         );
       }
 
@@ -198,7 +198,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
 
       if (name.isEmpty || name == 'Unnamed Dog') {
         throw StateError(
-          _text('This dog has no name. Update its details first.', 'इस डॉग का नाम उपलब्ध नहीं है। पहले उसकी जानकारी अपडेट करें।', 'এই কুকুরের নাম নেই। আগে তথ্য আপডেট করুন.'),
+          AppLocalizations.of(context).dogNameMissing,
         );
       }
 
@@ -222,8 +222,8 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
     } on FirebaseException catch (e) {
       _showMessage(
         e.code == 'permission-denied'
-            ? _text('Could not access dog details. Please try again.', 'डॉग की जानकारी नहीं खुल सकी। दोबारा कोशिश करें।', 'কুকুরের তথ্য খোলা যায়নি। আবার চেষ্টা করুন।')
-            : _text('Could not load dog details. Please try again.', 'डॉग की जानकारी लोड नहीं हुई। दोबारा कोशिश करें।', 'কুকুরের তথ্য লোড হয়নি। আবার চেষ্টা করুন.'),
+            ? AppLocalizations.of(context).dogAccessFailed
+            : AppLocalizations.of(context).dogLoadFailed,
       );
     } catch (e) {
       _showMessage(_text('Could not continue. Please try again.', 'आगे नहीं बढ़ सके। दोबारा कोशिश करें।', 'এগোনো যায়নি। আবার চেষ্টা করুন।'));
@@ -248,7 +248,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Text(
-              _text('Please log in to select a dog.', 'डॉग चुनने के लिए पहले लॉग इन करें।', 'কুকুর বেছে নিতে আগে লগ ইন করুন.'),
+              AppLocalizations.of(context).dogLoginToSelect,
               textAlign: TextAlign.center,
             ),
           ),
@@ -289,7 +289,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                             ),
                             const SizedBox(height: 12),
                             Text(
-                              _text('Could not load dog details.', 'डॉग की जानकारी लोड नहीं हो सकी।', 'কুকুরের তথ্য লোড করা যায়নি.'),
+                              AppLocalizations.of(context).dogLoadFailed,
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -388,7 +388,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                     padding: const EdgeInsets.all(16),
                     children: [
                       Text(
-                        _text('Which dog is going for a walk?', 'किस डॉग को वॉक पर जाना है?', 'কোন কুকুরটি হাঁটতে যাবে?'),
+                        AppLocalizations.of(context).dogWhichForWalk,
                         style: TextStyle(
                           fontSize: 21,
                           fontWeight: FontWeight.bold,
@@ -397,7 +397,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        _text('Select one dog for this booking. You can choose another dog for a separate booking later.', 'इस बुकिंग के लिए एक डॉग चुनें। अलग बुकिंग में बाद में दूसरा डॉग चुन सकते हैं।', 'এই বুকিংয়ের জন্য একটি কুকুর বেছে নিন। পরে আলাদা বুকিংয়ে অন্য কুকুর বেছে নিতে পারবেন.'),
+                        AppLocalizations.of(context).dogOnePerBooking,
                         style: TextStyle(
                           color: dogSelectionMuted,
                           height: 1.4,
@@ -472,15 +472,15 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                                         ),
                                         const SizedBox(height: 5),
                                         Text(
-                                          _dogBreed(dog),
+                                          _dogBreed(context, dog),
                                           style: const TextStyle(
                                             color: dogSelectionMuted,
                                           ),
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          '${_dogGender(dog)} · '
-                                          '${_dogAge(dog)}',
+                                          '${_dogGender(context, dog)} · '
+                                          '${_dogAge(context, dog)}',
                                           style: const TextStyle(
                                             fontSize: 12,
                                             color: dogSelectionMuted,
@@ -514,7 +514,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                           minimumSize: const Size.fromHeight(48),
                         ),
                         icon: const Icon(Icons.add),
-                        label: Text(_text('Add Another Dog', 'एक और डॉग जोड़ें', 'আরেকটি কুকুর যোগ করুন')),
+                        label: Text(AppLocalizations.of(context).dogAddAnother),
                       ),
                     ],
                   );
@@ -551,7 +551,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                           ),
                         )
                       : Text(
-                          _text('Continue to Pickup Address', 'पिकअप पते पर आगे बढ़ें', 'পিকআপ ঠিকানায় এগিয়ে যান'),
+                          AppLocalizations.of(context).dogContinuePickup,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                           ),
