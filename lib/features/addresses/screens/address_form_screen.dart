@@ -646,7 +646,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                     color: const Color(0xFFFFF0E3),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Row(
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(
