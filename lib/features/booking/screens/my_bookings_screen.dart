@@ -158,21 +158,18 @@ String _formatTime(DateTime date) {
   return '$hour:$minute ${date.hour >= 12 ? _t('PM', 'PM', 'PM') : _t('AM', 'AM', 'AM')}';
 }
 
-String _duration(Map<String, dynamic> data) {
+String _duration(BuildContext context, Map<String, dynamic> data) {
+  final l10n = AppLocalizations.of(context);
   final value = data['duration'];
 
   if (value == null || value.toString().trim().isEmpty) {
-    return _t(
-      'Not provided',
-      'जानकारी उपलब्ध नहीं',
-      'তথ্য দেওয়া নেই',
-    );
+    return l10n.bookingNotProvided;
   }
 
   final duration = value.toString().trim();
 
   if (RegExp(r'^\d+$').hasMatch(duration)) {
-    return '$duration ${_t('minutes', 'मिनट', 'মিনিট')}';
+    return '$duration ${l10n.bookingMinutes}';
   }
 
   return duration;
@@ -672,7 +669,7 @@ class _BookingCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 3),
                         Text(
-                          '${_plan(context, data)} · ${_duration(data)}',
+                          '${_plan(context, data)} · ${_duration(context, data)}',
                           style: const TextStyle(
                             fontSize: 12,
                             color: bookingsMuted,
@@ -990,7 +987,7 @@ class BookingDetailsScreen extends StatelessWidget {
                       ),
                       _detail(
                         AppLocalizations.of(context).bookingDurationLabel,
-                        _duration(data),
+                        _duration(context, data),
                       ),
                       _detail(
                         AppLocalizations.of(context).bookingDateLabel,
