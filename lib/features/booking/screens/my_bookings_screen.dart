@@ -1475,30 +1475,22 @@ Future<void> _requestCancellation(
     context: context,
     builder: (dialogContext) => AlertDialog(
       title: Text(
-        _t(
-          'Request Cancellation?',
-          'बुकिंग रद्द करने का अनुरोध?',
-          'বুকিং বাতিলের অনুরোধ করবেন?',
-        ),
+        AppLocalizations.of(context).bookingCancelConfirmTitle,
       ),
       content: Text(
-        _t(
-          'Your request will be reviewed. This does not cancel the booking automatically.',
-          'आपके अनुरोध की जाँच होगी। इससे बुकिंग अपने-आप रद्द नहीं होगी।',
-          'আপনার অনুরোধ পর্যালোচনা করা হবে। এতে বুকিং স্বয়ংক্রিয়ভাবে বাতিল হবে না।',
-        ),
+        AppLocalizations.of(context).bookingCancelConfirmBody,
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(dialogContext, false),
           child: Text(
-            _t('Go Back', 'वापस जाएँ', 'ফিরে যান'),
+            AppLocalizations.of(context).bookingGoBack,
           ),
         ),
         ElevatedButton(
           onPressed: () => Navigator.pop(dialogContext, true),
           child: Text(
-            _t('Confirm', 'पुष्टि करें', 'নিশ্চিত করুন'),
+            AppLocalizations.of(context).bookingConfirm,
           ),
         ),
       ],
@@ -1556,11 +1548,7 @@ Future<void> _requestCancellation(
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            _t(
-              'Cancellation request submitted.',
-              'रद्द करने का अनुरोध भेज दिया गया।',
-              'বাতিলের অনুরোধ পাঠানো হয়েছে।',
-            ),
+            AppLocalizations.of(context).bookingCancelSubmitted,
           ),
         ),
       );
@@ -1570,7 +1558,7 @@ Future<void> _requestCancellation(
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '${_t('Request failed', 'अनुरोध असफल', 'অনুরোধ ব্যর্থ')}: '
+            '${AppLocalizations.of(context).bookingRequestFailed}: '
             '${e.toString().replaceFirst('Exception: ', '')}',
           ),
         ),
