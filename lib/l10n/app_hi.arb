@@ -116,5 +116,18 @@
   "profileLoginRequired": "कृपया लॉगिन करके अपनी प्रोफ़ाइल पूरी करें।",
   "profileIncomplete": "पहले अपनी प्रोफ़ाइल पूरी करें।",
   "ageRequirement": "बुकिंग के लिए ग्राहक की उम्र 18 वर्ष या उससे अधिक होनी चाहिए।",
-  "continueFailed": "आगे नहीं बढ़ सके। कृपया फिर कोशिश करें।"
+  "continueFailed": "आगे नहीं बढ़ सके। कृपया फिर कोशिश करें।",
+  "editingDatePrefix": "संपादन",
+  "monthJan": "जनवरी",
+  "monthFeb": "फ़रवरी",
+  "monthMar": "मार्च",
+  "monthApr": "अप्रैल",
+  "monthMay": "मई",
+  "monthJun": "जून",
+  "monthJul": "जुलाई",
+  "monthAug": "अगस्त",
+  "monthSep": "सितंबर",
+  "monthOct": "अक्टूबर",
+  "monthNov": "नवंबर",
+  "monthDec": "दिसंबर"
 }
