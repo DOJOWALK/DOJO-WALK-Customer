@@ -120,9 +120,10 @@ DateTime _date(dynamic value) {
   return DateTime(2000);
 }
 
-String _formatDate(DateTime date) {
+String _formatDate(BuildContext context, DateTime date) {
+  final l10n = AppLocalizations.of(context);
   if (date.year <= 2000) {
-    return _t('Not provided', 'जानकारी उपलब्ध नहीं', 'তথ্য দেওয়া নেই');
+    return l10n.bookingNotProvided;
   }
 
   final months = switch (appLocale.value.languageCode) {
@@ -143,19 +144,16 @@ String _formatDate(DateTime date) {
   return '${date.day} ${months[date.month - 1]} ${date.year}';
 }
 
-String _formatTime(DateTime date) {
+String _formatTime(BuildContext context, DateTime date) {
+  final l10n = AppLocalizations.of(context);
   if (date.year <= 2000) {
-    return _t(
-      'Not provided',
-      'जानकारी उपलब्ध नहीं',
-      'তথ্য দেওয়া নেই',
-    );
+    return l10n.bookingNotProvided;
   }
 
   final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
   final minute = date.minute.toString().padLeft(2, '0');
 
-  return '$hour:$minute ${date.hour >= 12 ? _t('PM', 'PM', 'PM') : _t('AM', 'AM', 'AM')}';
+  return '$hour:$minute ${date.hour >= 12 ? l10n.bookingPm : l10n.bookingAm}';
 }
 
 String _duration(BuildContext context, Map<String, dynamic> data) {
@@ -686,10 +684,10 @@ class _BookingCard extends StatelessWidget {
               _row(
                 Icons.calendar_month_outlined,
                 AppLocalizations.of(context).bookingDateTime,
-                '${_formatDate(_date(data['scheduledAt']))} · '
+                '${_formatDate(context, _date(data['scheduledAt']))} · '
                 '${_text(
                   data['preferredTime'],
-                  fallback: _formatTime(_date(data['scheduledAt'])),
+                  fallback: _formatTime(context, _date(data['scheduledAt'])),
                 )}',
               ),
               const SizedBox(height: 12),
@@ -991,13 +989,14 @@ class BookingDetailsScreen extends StatelessWidget {
                       ),
                       _detail(
                         AppLocalizations.of(context).bookingDateLabel,
-                        _formatDate(_date(data['scheduledAt'])),
+                        _formatDate(context, _date(data['scheduledAt'])),
                       ),
                       _detail(
                         AppLocalizations.of(context).bookingPreferredTime,
                         _text(
                           data['preferredTime'],
                           fallback: _formatTime(
+                            context,
                             _date(data['scheduledAt']),
                           ),
                         ),
@@ -1021,7 +1020,7 @@ class BookingDetailsScreen extends StatelessWidget {
                     [
                       _detail(
                         AppLocalizations.of(context).bookingWalkCharges,
-                        _money(total),
+                        _money(context, total),
                       ),
                       if (extraCharges != null && extraCharges > 0)
                         _detail(
@@ -1064,7 +1063,7 @@ class BookingDetailsScreen extends StatelessWidget {
                       ),
                       _detail(
                         AppLocalizations.of(context).bookingAge,
-                        _age(pet['age'] ?? pet['dob']),
+                        _age(context, pet['age'] ?? pet['dob']),
                       ),
                       _detail(
                         AppLocalizations.of(context).bookingSize,
@@ -1458,7 +1457,7 @@ List<Widget> _dateScheduleDetails(BuildContext context, dynamic value) {
     result.add(
       _detail(
         AppLocalizations.of(context).bookingDate,
-        _formatDate(date),
+        _formatDate(context, date),
       ),
     );
 
@@ -1485,7 +1484,8 @@ List<Widget> _dateScheduleDetails(BuildContext context, dynamic value) {
 // AGE
 // ============================================================
 
-String _age(dynamic value) {
+String _age(BuildContext context, dynamic value) {
+  final l10n = AppLocalizations.of(context);
   if (value is Timestamp) {
     final dob = value.toDate();
     final now = DateTime.now();
@@ -1498,30 +1498,22 @@ String _age(dynamic value) {
     }
 
     if (years < 0) {
-      return _t(
-        'Not provided',
-        'जानकारी उपलब्ध नहीं',
-        'তথ্য দেওয়া নেই',
-      );
+      return l10n.bookingNotProvided;
     }
 
     if (years == 0) {
-      return _t(
-        'Less than 1 year',
-        '1 साल से कम',
-        '১ বছরের কম',
-      );
+      return l10n.bookingLessThanOneYear;
     }
 
-    return '$years ${_t('years', 'साल', 'বছর')}';
+    return '$years ${l10n.bookingYears}';
   }
 
   final age = _text(value);
 
-  if (age == _t('Not provided', 'जानकारी उपलब्ध नहीं', 'তথ্য দেওয়া নেই')) return age;
+  if (age == l10n.bookingNotProvided) return age;
 
   if (RegExp(r'^\d+$').hasMatch(age)) {
-    return '$age ${_t('years', 'साल', 'বছর')}';
+    return '$age ${l10n.bookingYears}';
   }
 
   return age;
