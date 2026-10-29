@@ -204,5 +204,8 @@
   "bookingBehaviour": "Behaviour",
   "bookingNotes": "Notes",
   "bookingPickup": "Pickup",
-  "bookingHelpSupport": "Help & Support"
+  "bookingHelpSupport": "Help & Support",
+  "bookingStatusLabel": "Status",
+  "bookingWalkerId": "Walker ID",
+  "bookingFrequency": "Frequency"
 }
