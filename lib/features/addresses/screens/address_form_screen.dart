@@ -182,7 +182,11 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
       );
     } catch (_) {
       _showMessage(
-        'Address search नहीं हुआ। दूसरा address लिखकर कोशिश करें।',
+        _text(
+          'Address search failed. Try another address.',
+          'पता खोजा नहीं जा सका। दूसरा पता लिखकर कोशिश करें।',
+          'ঠিকানা খোঁজা যায়নি। অন্য ঠিকানা দিয়ে চেষ্টা করুন।',
+        ),
       );
     } finally {
       if (mounted) {
@@ -218,7 +222,11 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
 
       if (permission == LocationPermission.deniedForever) {
         _showMessage(
-          'Phone Settings में जाकर Location permission चालू करें।',
+          _text(
+            'Enable location permission in phone settings.',
+            'फोन की सेटिंग्स में जाकर लोकेशन की अनुमति चालू करें।',
+            'ফোনের সেটিংসে গিয়ে লোকেশনের অনুমতি চালু করুন।',
+          ),
         );
         return;
       }
@@ -236,7 +244,11 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
       );
     } catch (_) {
       _showMessage(
-        'Current location नहीं मिल सकी। दोबारा कोशिश करें।',
+        _text(
+          'Could not get current location. Please try again.',
+          'वर्तमान लोकेशन नहीं मिली। दोबारा कोशिश करें।',
+          'বর্তমান অবস্থান পাওয়া যায়নি। আবার চেষ্টা করুন।',
+        ),
       );
     } finally {
       if (mounted) {
@@ -325,7 +337,11 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
 
     if (!_locationConfirmed) {
       _showMessage(
-        'पहले search, current location या map से pickup point चुनें।',
+        _text(
+          'Choose a pickup point using search, current location, or the map first.',
+          'पहले सर्च, वर्तमान लोकेशन या मैप से पिकअप पॉइंट चुनें।',
+          'প্রথমে সার্চ, বর্তমান অবস্থান বা মানচিত্র থেকে পিকআপের স্থান বেছে নিন।',
+        ),
       );
       return;
     }
@@ -359,7 +375,11 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
       Navigator.of(context).pop(savedAddressId);
     } catch (_) {
       _showMessage(
-        'Address save नहीं हुआ। Internet जाँचकर दोबारा कोशिश करें।',
+        _text(
+          'Address could not be saved. Check your internet and try again.',
+          'पता सेव नहीं हुआ। इंटरनेट जाँचकर दोबारा कोशिश करें।',
+          'ঠিকানা সংরক্ষণ করা যায়নি। ইন্টারনেট পরীক্ষা করে আবার চেষ্টা করুন।',
+        ),
       );
     } finally {
       if (mounted) setState(() => _saving = false);
