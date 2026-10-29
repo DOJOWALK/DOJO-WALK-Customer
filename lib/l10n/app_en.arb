@@ -154,5 +154,9 @@
   "locationPermission": "Location Permission",
   "appInformationSection": "APP INFORMATION",
   "appVersion": "App Version",
-  "customerAppFooter": "DOJO WALK • Customer App"
+  "customerAppFooter": "DOJO WALK • Customer App",
+  "bookingNotFound": "Booking not found.",
+  "cannotChangeBooking": "You cannot change this booking.",
+  "cancellationNotAvailable": "Cancellation is not available for this status.",
+  "cancellationAlreadyRequested": "A cancellation request already exists."
 }
