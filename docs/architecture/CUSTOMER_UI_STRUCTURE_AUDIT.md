@@ -263,3 +263,11 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 - Updated all inspected call sites to pass `BuildContext` into these helpers; money display call sites now consistently pass context for the unapproved-price fallback.
 - The preceding CI run for SHA `c453eb4b7c0e329a36721f96a383b5d2e93d1b58` failed during `flutter analyze` due to a missing `BuildContext` argument at the extra-charge `_money` call. That call was corrected in the subsequent code edit. The latest run must finish before this correction is considered verified.
 - Date formatting still uses manually maintained abbreviated month labels for English/Hindi/Bengali; full locale-aware formatting and non-EN/HI/BN catalogs remain future work. No backend/Firebase changes were made.
+
+
+### Booking schedule duration localization (2026-10-30)
+
+- Updated the My Bookings schedule-detail rows to use the shared localized duration formatter for each saved walk, including selected-date schedules. Numeric durations now display with the localized minutes label instead of showing a bare number.
+- No booking schema, price calculation, scheduling rules, or backend behavior changed.
+- CI run #40952258375 passed for the preceding helper/fallback localization commit. The new schedule-duration change has a fresh CI run pending; do not mark it verified until Analyze and Tests both pass.
+- Remaining localization work includes legacy generic fallback handling, full locale-aware date/time formatting, a screen-by-screen visible-string audit, and real translations/review for the other 20 Indian languages. Only EN/HI/BN catalogs are currently available; all 23 registry options are not yet fully supported.
