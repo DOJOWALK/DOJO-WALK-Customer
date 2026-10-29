@@ -735,13 +735,15 @@ class _BookingConfirmationScreenState
                 : _formatDate(_dateForSchedule()),
           ),
           if (_isRegular)
-            const Padding(
-              padding: EdgeInsets.only(bottom: 10),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
               child: Text(
-                'This is a recurring booking request. '
-                'Available days, pauses, cancellation terms and billing '
-                'must be confirmed before the service is finalized.',
-                style: TextStyle(
+                _text(
+                  'This is a recurring booking request. Available days, pauses, cancellation terms and billing must be confirmed before the service is finalized.',
+                  'यह नियमित बुकिंग का अनुरोध है। सेवा तय होने से पहले उपलब्ध दिन, विराम, रद्द करने की शर्तें और बिलिंग की पुष्टि होगी।',
+                  'এটি নিয়মিত বুকিংয়ের অনুরোধ। পরিষেবা চূড়ান্ত করার আগে উপলভ্য দিন, বিরতি, বাতিলের শর্ত ও বিলিং নিশ্চিত করতে হবে।',
+                ),
+                style: const TextStyle(
                   color: confirmationMuted,
                   fontSize: 12,
                   height: 1.4,
