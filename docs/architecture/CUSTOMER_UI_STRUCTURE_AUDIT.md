@@ -200,3 +200,4 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 - Preserved canonical schedule payload fields and values (for example One-Time, Daily, Custom, ASAP, frequency flags, date schedule shape), pricing service behavior, 20–60 minute duration validation, 1–3 walks/day constraint, profile age gate and navigation flow. No price was newly approved or hard-coded.
 - Remaining localization follow-up: review any residual user-visible literals and date-format presentation; test language switching on this screen, then continue remaining Customer UI screens.
 - GitHub Actions validation for the current branch head is pending/not yet confirmed. No device visual QA or local build is claimed.
+- Follow-up within this migration: localized month names and the date-editing prefix as generated keys so the custom date chips do not keep English month abbreviations in Hindi/Bengali UI.
