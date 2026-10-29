@@ -117,5 +117,18 @@
   "profileLoginRequired": "Please log in and complete your profile.",
   "profileIncomplete": "Please complete your profile first.",
   "ageRequirement": "Customers must be 18 or older to book.",
-  "continueFailed": "Could not continue. Please try again."
+  "continueFailed": "Could not continue. Please try again.",
+  "editingDatePrefix": "Editing",
+  "monthJan": "Jan",
+  "monthFeb": "Feb",
+  "monthMar": "Mar",
+  "monthApr": "Apr",
+  "monthMay": "May",
+  "monthJun": "Jun",
+  "monthJul": "Jul",
+  "monthAug": "Aug",
+  "monthSep": "Sep",
+  "monthOct": "Oct",
+  "monthNov": "Nov",
+  "monthDec": "Dec"
 }
