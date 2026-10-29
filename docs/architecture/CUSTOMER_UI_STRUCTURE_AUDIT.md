@@ -201,3 +201,11 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 - Remaining localization follow-up: review any residual user-visible literals and date-format presentation; test language switching on this screen, then continue remaining Customer UI screens.
 - GitHub Actions validation for the current branch head is pending/not yet confirmed. No device visual QA or local build is claimed.
 - Follow-up within this migration: localized month names and the date-editing prefix as generated keys so the custom date chips do not keep English month abbreviations in Hindi/Bengali UI.
+
+
+## Generated localization validation checkpoint (2026-10-30)
+
+- Verified GitHub Actions run [40936722739](https://github.com/DOJOWALK/DOJO-WALK-Customer/actions/runs/40936722739) for commit `d18f3c7e0f5ad50824a3a374b7ab63eac205bb90`: the `validate` job completed successfully.
+- Re-checked all three ARB catalogs: English 158 keys, Hindi 158 keys, Bengali 158 keys; no missing or extra non-metadata keys across the three catalogs.
+- Updated My Bookings cancellation transaction errors to use generated localization keys (`bookingNotFound`, `cannotChangeBooking`, `cancellationNotAvailable`, `cancellationAlreadyRequested`). The transaction still verifies document existence, customer ownership, and eligible booking status before writing a cancellation request.
+- Remaining work: My Bookings still contains legacy inline translations across its status labels, empty/loading/error states, booking details, and cancellation dialog. Continue migrating display copy to generated localization keys without changing canonical backend status values or booking payload fields. The UI audit is not complete; PR #29 remains Draft.
