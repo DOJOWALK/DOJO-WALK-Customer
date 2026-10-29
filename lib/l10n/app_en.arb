@@ -260,5 +260,11 @@
   "bookingLessThanOneYear": "Less than 1 year",
   "bookingYears": "years",
   "bookingAm": "AM",
-  "bookingPm": "PM"
+  "bookingPm": "PM",
+  "homeSelectLocation": "Select your location",
+  "homeSavedAddress": "Saved Address",
+  "homeLoginManageAddresses": "Please log in to manage saved addresses.",
+  "homeLoginSelectAddress": "Please log in to select a saved address.",
+  "homeChoosePickupAddress": "Choose Pickup Address",
+  "homeAddressesLoadError": "Unable to load addresses. Please try again."
 }
