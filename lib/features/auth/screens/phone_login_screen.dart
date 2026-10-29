@@ -78,7 +78,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
       final user = FirebaseAuth.instance.currentUser;
 
       if (user == null) {
-        throw Exception('Login session नहीं मिली। दोबारा OTP verify करें।');
+        throw Exception(AppLocalizations.of(context).loginSessionMissing);
       }
 
       final profile = await FirebaseFirestore.instance
