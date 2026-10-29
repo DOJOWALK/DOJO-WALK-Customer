@@ -52,5 +52,17 @@
   "supportPaymentCategory": "Payment",
   "supportDogsCategory": "My Dogs",
   "supportSafetyCategory": "Safety",
-  "supportOtherCategory": "Other"
+  "supportOtherCategory": "Other",
+  "supportFaqBookQuestion": "How do I book a dog walk?",
+  "supportFaqBookAnswer": "Open Home, tap Book a Walk, choose your walk type, select your dog, add the pickup address and choose your schedule.",
+  "supportFaqRegularQuestion": "What is a Regular Walk plan?",
+  "supportFaqRegularAnswer": "A Regular Walk plan is for continuing walks at your preferred time. Your final schedule and walker assignment should be confirmed by DOJO WALK.",
+  "supportFaqDogQuestion": "How can I manage my dog details?",
+  "supportFaqDogAnswer": "Open My Dogs to add a dog, update saved details or delete a dog you no longer need in your list.",
+  "supportFaqCancelQuestion": "Can I cancel a booking?",
+  "supportFaqCancelAnswer": "Open My Bookings and check the booking details for the available cancellation or cancellation-request option.",
+  "supportFaqWalkerQuestion": "What if my assigned walker is unavailable?",
+  "supportFaqWalkerAnswer": "Contact support with your booking details so the team can review the situation and advise you about next steps.",
+  "supportFaqPaymentQuestion": "When is payment required?",
+  "supportFaqPaymentAnswer": "Check the payment details shown during your booking. Do not assume a booking is paid until the app confirms the payment status."
 }
