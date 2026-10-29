@@ -32,18 +32,6 @@ class _HomeScreenState extends State<HomeScreen> {
   String _selectedAddress = 'Select your location';
   bool _loadingAddress = true;
 
-  String get _language => appLocale.value.languageCode;
-
-  String _t(String en, String hi, String bn) {
-    switch (_language) {
-      case 'hi':
-        return hi;
-      case 'bn':
-        return bn;
-      default:
-        return en;
-    }
-  }
 
   @override
   void initState() {
