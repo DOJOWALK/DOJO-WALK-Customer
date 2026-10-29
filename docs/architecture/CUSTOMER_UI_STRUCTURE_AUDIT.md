@@ -119,3 +119,25 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 
 - **CI result confirmed (2026-10-29):** GitHub Actions run [40927069975](https://github.com/DOJOWALK/DOJO-WALK-Customer/actions/runs/40927069975) for commit `3e166766d3d5ab6ddca84212f836c649d924e343` completed successfully. Steps confirmed: `flutter pub get`, `flutter analyze`, and `flutter test` all succeeded after the const-context fixes.
 - This confirms automated analysis and tests for that exact commit. It does **not** confirm Android/web build, responsive visual QA, screen-reader/accessibility review, or live Firebase/backend integration. Those remain pending.
+
+
+## CI confirmation and next screen-level audit (2026-10-29)
+
+- **Latest observed validation run:** GitHub Actions run [40927290951](https://github.com/DOJOWALK/DOJO-WALK-Customer/actions/runs/40927290951) completed successfully for commit `6f81680a79a69b1a87580493fea9e011fdce4cb8`. The job completed `flutter pub get`, `flutter analyze`, and `flutter test` successfully. This validates the latest recorded source + audit-doc commit for those checks only.
+- PR #29 remains open as Draft; it has not been merged. Do not mark the customer UI complete from analyzer/unit-test success alone.
+
+### Findings from the next source review
+
+- `lib/features/booking/screens/choose_walk_screen.dart`: core booking-selection UI still has substantial hard-coded English/Hinglish strings, including date-picker text, validation feedback, walk-type/schedule headings, duration labels and Continue action. This is a localization gap against the English/Hindi/Bangla requirement. Preserve booking payload field names and enum values while localizing visible labels; do not alter booking/availability semantics as part of a copy-only change.
+- `lib/features/auth/screens/phone_login_screen.dart` and `lib/features/auth/screens/otp_verification_screen.dart`: authentication screens still contain hard-coded English/Hindi messages and do not consistently use the shared locale controller. A localization pass is required without changing OTP, resend, account-session or navigation behavior.
+- `lib/features/settings/screens/settings_screen.dart`: language selection writes both SharedPreferences and `appLocale`; verify app-wide language persistence and cold-start behavior. Avoid introducing a second language source of truth.
+- `lib/features/profile/screens/privacy_terms_screen.dart`: visible legal copy is localized, but legal correctness/versioning is not established by UI review. Do not present this source review as legal approval; final privacy notice, service terms, cancellation/refund terms and consent flows require an owner/legal review before launch.
+- `lib/features/booking/screens/my_bookings_screen.dart`: localized status/plan/date fallback helpers exist. Continue auditing remaining visible strings and error/empty/loading states, including whether each displayed booking status reflects an authoritative backend state.
+
+### Scope and next actions
+
+1. Continue localization of the booking-selection and authentication screens in small commits; keep canonical payload keys/status values unchanged.
+2. Add focused widget/unit tests for locale-dependent labels and critical validation states where practical.
+3. Re-run the PR validation workflow after source edits; inspect the run for the latest head SHA.
+4. Build Android and web separately and perform visual/accessibility QA before calling the customer UI complete.
+5. Backend/Firebase integration remains deferred until the Notion-aligned customer UI audit is complete.
