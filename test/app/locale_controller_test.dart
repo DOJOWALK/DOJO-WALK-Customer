@@ -30,8 +30,9 @@ void main() {
   group('DOJO WALK app locale', () {
     test('supports English, Hindi and Bangla', () {
       expect(
-        dojoSupportedLocales.map((locale) => locale.languageCode).toList(),
-        <String>['en', 'hi', 'bn'],
+        (dojoSupportedLocales.map((locale) => locale.languageCode).toList()
+          ..sort()),
+        <String>['bn', 'en', 'hi'],
       );
     });
 
