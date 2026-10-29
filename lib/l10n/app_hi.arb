@@ -306,5 +306,22 @@
   "dogWhichForWalk": "किस डॉग को वॉक पर जाना है?",
   "dogOnePerBooking": "इस बुकिंग के लिए एक डॉग चुनें। अलग बुकिंग में बाद में दूसरा डॉग चुन सकते हैं।",
   "dogAddAnother": "एक और डॉग जोड़ें",
-  "dogContinuePickup": "पिकअप पते पर आगे बढ़ें"
+  "dogContinuePickup": "पिकअप पते पर आगे बढ़ें",
+  "pickupOpenAddressFailed": "पता जोड़ने वाला फ़ॉर्म नहीं खुला। दोबारा कोशिश करें।",
+  "pickupSelectAddress": "कृपया पिकअप का पता चुनें।",
+  "pickupAddressIncomplete": "यह पता अधूरा है। कृपया इसे अपडेट करें।",
+  "pickupOpenReviewFailed": "बुकिंग की समीक्षा नहीं खुली। दोबारा कोशिश करें।",
+  "pickupAddressTitle": "पिकअप का पता",
+  "pickupLoadAddressesFailed": "सेव किए गए पते लोड नहीं हो सके।",
+  "pickupRetry": "फिर कोशिश करें",
+  "pickupPrompt": "वॉकर आपके डॉग को कहाँ से पिकअप करे?",
+  "pickupIntro": "सेव किया गया पता चुनें। बुकिंग भेजने से पहले विवरण देख सकते हैं।",
+  "pickupSavedAddress": "सेव किया गया पता",
+  "pickupOpening": "खोल रहे हैं...",
+  "pickupAddAnotherAddress": "एक और पता जोड़ें",
+  "pickupContinueReview": "बुकिंग की समीक्षा पर जाएँ",
+  "pickupAddNewAddress": "नया पता जोड़ें",
+  "pickupEmptyTitle": "कोई पता सेव नहीं है",
+  "pickupEmptyBody": "बुकिंग जारी रखने से पहले पिकअप का पता जोड़ें।",
+  "pickupAddAddress": "पिकअप का पता जोड़ें"
 }
