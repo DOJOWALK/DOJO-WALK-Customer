@@ -176,3 +176,11 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 - Added English, Hindi and Bengali ARB entries for these labels and common mobile/OTP feedback.
 - Authentication flow, Firebase phone verification, navigation and canonical phone format were not intentionally changed.
 - Remaining hard-coded authentication messages and the Booking screen's large set of inline strings still require migration and review.
+
+
+## Generated-key migration: Help & Support (2026-10-30)
+
+- Migrated the Help & Support screen title, hero text, FAQ heading, issue form labels, topic categories, minimum-length validation, submit label, and not-connected disclosure to generated `AppLocalizations` keys.
+- Added matching English, Hindi and Bengali ARB entries. Category values stored by the form remain canonical English identifiers; only their displayed labels are translated.
+- FAQ question/answer content still uses the compatibility inline translation helper and remains a follow-up migration item.
+- Support submission remains intentionally non-functional until an actual support integration is implemented; UI copy continues to disclose this.
