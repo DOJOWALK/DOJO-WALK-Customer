@@ -248,3 +248,10 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 - Migrated the booking status badge, booking detail status row, and cancellation status row to use `AppLocalizations` getters. Canonical backend status values and cancellation state values remain unchanged.
 - Verified all three ARB files parse as JSON and contain 169 matching non-metadata keys each, with no missing Hindi or Bengali keys.
 - GitHub Actions for code commit `828b816d8089f33b6c6a6404bd1e68217886feac` was pending at the time of this note; wait for its result before claiming validation passed. My Bookings still has other inline translations to migrate and the full Customer UI audit remains open.
+
+
+### Booking helper localization checkpoint (2026-10-30)
+
+- My Bookings now uses generated localization getters for the “price to be confirmed” fallback and booking plan labels (Regular Walk, Customized Walk, One-Time Walk), instead of the older three-language inline helper strings for those fields.
+- No pricing policy or amount calculation was changed. Missing/invalid saved prices still display the unconfirmed-price message; no draft price was introduced.
+- CI must validate the latest commits before this checkpoint is considered verified. Date/time/duration/age helper labels and date formatting remain in the localization audit queue; do not claim full 23-language coverage. Only English, Hindi, and Bengali catalogs are currently available/selectable.
