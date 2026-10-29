@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../app/locale_controller.dart';
 import '../../../app/theme.dart';
+import '../../../l10n/app_localizations.dart';
 
 const Color bookingsOrange = DojoWalkTheme.primary;
 const Color bookingsBackground = DojoWalkTheme.background;
@@ -1622,26 +1623,26 @@ Future<void> _requestCancellation(
         final snapshot = await transaction.get(ref);
 
         if (!snapshot.exists) {
-          throw Exception('Booking not found.');
+          throw Exception(AppLocalizations.of(context).bookingNotFound);
         }
 
         final current = snapshot.data() ?? <String, dynamic>{};
 
         if (current['customerId'] != userId) {
-          throw Exception('You cannot change this booking.');
+          throw Exception(AppLocalizations.of(context).cannotChangeBooking);
         }
 
         final status = _status(current);
 
         if (!_isUpcoming(status)) {
           throw Exception(
-            'Cancellation is not available for this status.',
+            AppLocalizations.of(context).cancellationNotAvailable,
           );
         }
 
         if (current['cancelRequest'] != null) {
           throw Exception(
-            'A cancellation request already exists.',
+            AppLocalizations.of(context).cancellationAlreadyRequested,
           );
         }
 
