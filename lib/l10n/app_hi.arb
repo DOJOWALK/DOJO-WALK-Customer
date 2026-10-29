@@ -282,5 +282,12 @@
   "homeMyDogs": "मेरे डॉग्स",
   "homeManageDogsSubtitle": "अपने डॉग्स और उनकी सेव की गई जानकारी मैनेज करें।",
   "homeHelpSupport": "मदद और सपोर्ट",
-  "homeHelpSupportSubtitle": "बुकिंग और डॉग वॉक में मदद पाएँ।"
+  "homeHelpSupportSubtitle": "बुकिंग और डॉग वॉक में मदद पाएँ।",
+  "dogSelectionTitle": "अपना डॉग चुनें",
+  "dogSelectionRetry": "फिर कोशिश करें",
+  "dogSelectionEmptyTitle": "अभी कोई डॉग नहीं जोड़ा गया",
+  "dogSelectionEmptyBody": "बुकिंग जारी रखने से पहले अपने डॉग की जानकारी जोड़ें।",
+  "dogSelectionAddDog": "अपना डॉग जोड़ें",
+  "dogSelectionOpening": "खोल रहे हैं...",
+  "dogSelectionContinue": "आगे बढ़ें"
 }
