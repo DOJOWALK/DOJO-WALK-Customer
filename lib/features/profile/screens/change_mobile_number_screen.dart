@@ -449,7 +449,7 @@ class _ChangeMobileNumberScreenState
               ),
             ],
             const SizedBox(height: 24),
-            const Row(
+            Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
@@ -460,8 +460,7 @@ class _ChangeMobileNumberScreenState
                 SizedBox(width: 9),
                 Expanded(
                   child: Text(
-                    'Your existing account is updated only after OTP '
-                    'verification. This screen does not create a new account.',
+                    _tr('Your existing account is updated only after OTP verification. This screen does not create a new account.', 'आपका मौजूदा अकाउंट OTP पुष्टि के बाद ही अपडेट होता है। यह स्क्रीन नया अकाउंट नहीं बनाती।', 'OTP যাচাইয়ের পরই আপনার বর্তমান অ্যাকাউন্ট আপডেট হয়। এই স্ক্রিন নতুন অ্যাকাউন্ট তৈরি করে না.'),
                     style: TextStyle(
                       color: Color(0xFF777777),
                       fontSize: 12,
