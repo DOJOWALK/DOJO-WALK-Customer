@@ -963,11 +963,7 @@ class BookingDetailsScreen extends StatelessWidget {
                 foregroundColor: bookingsText,
                 elevation: 0,
                 title: Text(
-                  _t(
-                    'Booking Details',
-                    'बुकिंग की जानकारी',
-                    'বুকিংয়ের বিবরণ',
-                  ),
+                  AppLocalizations.of(context).bookingsDetailsTitle,
                   style: const TextStyle(
                     fontWeight: FontWeight.w900,
                   ),
@@ -1170,7 +1166,7 @@ class BookingDetailsScreen extends StatelessWidget {
                     const SizedBox(height: 14),
                     _section(
                       AppLocalizations.of(context).bookingWalkSchedule,
-                      _scheduleDetails(data['walkSchedules']),
+                      _scheduleDetails(context, data['walkSchedules']),
                     ),
                   ],
 
@@ -1178,7 +1174,7 @@ class BookingDetailsScreen extends StatelessWidget {
                     const SizedBox(height: 14),
                     _section(
                       AppLocalizations.of(context).bookingSelectedDates,
-                      _dateScheduleDetails(data['dateSchedules']),
+                      _dateScheduleDetails(context, data['dateSchedules']),
                     ),
                   ],
 
@@ -1415,11 +1411,11 @@ Future<void> _requestCancellation(
 // SCHEDULE DETAILS
 // ============================================================
 
-List<Widget> _scheduleDetails(dynamic value) {
+List<Widget> _scheduleDetails(BuildContext context, dynamic value) {
   if (value is! List || value.isEmpty) {
     return [
       _detail(
-        _t('Schedule', 'शेड्यूल', 'সময়সূচি'),
+        AppLocalizations.of(context).bookingSchedule,
         _t(
           'Not provided',
           'जानकारी उपलब्ध नहीं',
@@ -1433,17 +1429,17 @@ List<Widget> _scheduleDetails(dynamic value) {
     final walk = _map(value[index]);
 
     return _detail(
-      '${_t('Walk', 'वॉक', 'ওয়াক')} ${index + 1}',
+      '${AppLocalizations.of(context).bookingWalk} ${index + 1}',
       '${_text(walk['time'])} · ${_text(walk['duration'])}',
     );
   });
 }
 
-List<Widget> _dateScheduleDetails(dynamic value) {
+List<Widget> _dateScheduleDetails(BuildContext context, dynamic value) {
   if (value is! List || value.isEmpty) {
     return [
       _detail(
-        _t('Dates', 'तारीखें', 'তারিখ'),
+        AppLocalizations.of(context).bookingDates,
         _t(
           'Not provided',
           'जानकारी उपलब्ध नहीं',
@@ -1462,7 +1458,7 @@ List<Widget> _dateScheduleDetails(dynamic value) {
 
     result.add(
       _detail(
-        _t('Date', 'तारीख़', 'তারিখ'),
+        AppLocalizations.of(context).bookingDate,
         _formatDate(date),
       ),
     );
@@ -1473,7 +1469,7 @@ List<Widget> _dateScheduleDetails(dynamic value) {
 
         result.add(
           _detail(
-            '${_t('Walk', 'वॉक', 'ওয়াক')} ${j + 1}',
+            '${AppLocalizations.of(context).bookingWalk} ${j + 1}',
             '${_text(walk['time'])} · '
             '${_text(walk['duration'])} · '
             '${_money(_savedWalkPrice(walk))}',
