@@ -44,6 +44,14 @@
 - Registry coverage test verifies the exact 23 locale codes and duplicate-code absence.
 - Translation completeness for the other 20 languages is not achieved. Build/device visual QA has not been performed. The latest CI run for code commit `65ddd0121463fe87bc7caf758dd3b21eb60bdb3f` was in progress at the time of this note.
 
+## My Bookings localization and date-format checkpoint (2026-10-30)
+
+- Migrated additional My Bookings list/detail copy to generated localization getters: login-required state, Firestore connection/permission error, refresh, total amount label, view-details action, details login/load errors, and walker-not-assigned fallback.
+- Added localized abbreviated month names for Hindi and Bengali in the booking date display; English keeps English abbreviations. This is a targeted display improvement, not a full locale-aware date/number formatting implementation.
+- EN/HI/BN ARB catalogs currently have 260 matching non-metadata keys each; key-set parity checked.
+- Latest CI for the month-format change is queued. This checkpoint is not a PASS claim; wait for the workflow result and address any failures.
+- Remaining `_t(...)` calls exist in helpers and booking screen copy. Continue audit before declaring localization complete. No backend/Firebase changes were made.
+
 ## Booking details localization checkpoint (2026-10-30)
 
 - Booking Details now uses generated localization getters for summary/price/dog section labels, core booking fields, pricing disclosure, and cancellation confirmation/submission messages in English, Hindi and Bengali.
