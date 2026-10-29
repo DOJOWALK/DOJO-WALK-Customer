@@ -104,3 +104,5 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
   - Account Details had dynamic translated text inside `const` widgets/menu items. Removed the invalid const contexts so translated gender labels and section text can rebuild safely.
 - Re-fetched the three edited screens after fixes. Brace and parenthesis counts match, and a heuristic scan found no remaining dynamic translation calls in nearby const widget contexts. These checks cannot replace Dart analyzer/compiler output.
 - **Verification remains NOT VERIFIED:** this connected workflow interface has not shown a run for the latest commit. Flutter analyze, tests, builds and visual QA still need actual execution before the UI can be marked complete.
+
+- Added `test/app/locale_controller_test.dart` with unit cases for supported locale codes, English/Hindi/Bangla selection, and English fallback for unsupported locales. The test source is committed but **has not been executed**; CI/test success remains unverified.
