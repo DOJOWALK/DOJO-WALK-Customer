@@ -168,3 +168,11 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 - Added `notificationsTitle`, `noNotificationsYet` and `notificationsNotConnected` to the English, Hindi and Bengali ARB catalogs.
 - Updated the locale controller so its supported locale list comes from the generated catalog. The legacy `appText` helper remains temporarily for screens not yet migrated.
 - Next migration targets: Help & Support, authentication screens, then booking screens. Preserve booking payload values and backend statuses while changing display strings only.
+
+
+## Generated-key migration: Phone Login (2026-10-30)
+
+- Migrated primary Phone Login screen labels, title, mobile input hint, Send OTP action and security note to generated `AppLocalizations` keys.
+- Added English, Hindi and Bengali ARB entries for these labels and common mobile/OTP feedback.
+- Authentication flow, Firebase phone verification, navigation and canonical phone format were not intentionally changed.
+- Remaining hard-coded authentication messages and the Booking screen's large set of inline strings still require migration and review.
