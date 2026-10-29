@@ -168,5 +168,6 @@
   "bookingStatusCancelled": "বাতিল",
   "bookingStatusNotRequested": "অনুরোধ করা হয়নি",
   "bookingStatusApproved": "অনুমোদিত",
-  "bookingStatusRejected": "প্রত্যাখ্যাত"
+  "bookingStatusRejected": "প্রত্যাখ্যাত",
+  "languageTranslationInProgress": "অনুবাদ চলছে"
 }
