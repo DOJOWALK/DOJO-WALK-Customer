@@ -207,5 +207,11 @@
   "bookingHelpSupport": "Help & Support",
   "bookingStatusLabel": "Status",
   "bookingWalkerId": "Walker ID",
-  "bookingFrequency": "Frequency"
+  "bookingFrequency": "Frequency",
+  "bookingCancelConfirmTitle": "Request Cancellation?",
+  "bookingCancelConfirmBody": "Your request will be reviewed. This does not cancel the booking automatically.",
+  "bookingGoBack": "Go Back",
+  "bookingConfirm": "Confirm",
+  "bookingCancelSubmitted": "Cancellation request submitted.",
+  "bookingRequestFailed": "Request failed"
 }
