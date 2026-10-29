@@ -21,5 +21,16 @@
   "errorGeneric": "Something went wrong. Please try again.",
   "notificationsTitle": "Notifications",
   "noNotificationsYet": "No notifications yet",
-  "notificationsNotConnected": "Booking updates, walk reminders and important messages will appear here when notifications are connected."
+  "notificationsNotConnected": "Booking updates, walk reminders and important messages will appear here when notifications are connected.",
+  "phoneLoginTitle": "Phone Login",
+  "welcomeToDojoWalk": "Welcome to DOJO WALK",
+  "phoneLoginInstruction": "Enter your mobile number to continue in the app.",
+  "mobileNumber": "Mobile Number",
+  "mobileNumberHint": "10-digit mobile number",
+  "sendOtp": "Send OTP",
+  "secureLogin": "Secure login with DOJO WALK",
+  "invalidIndianMobile": "Enter a valid 10-digit Indian mobile number.",
+  "loginIncomplete": "Login was not completed.",
+  "otpSendFailed": "Could not send OTP. Please try again.",
+  "loginProblem": "There was a problem logging in. Check your internet connection and try again."
 }
