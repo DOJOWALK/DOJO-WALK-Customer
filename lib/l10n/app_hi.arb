@@ -168,5 +168,6 @@
   "bookingStatusCancelled": "रद्द",
   "bookingStatusNotRequested": "अनुरोध नहीं किया",
   "bookingStatusApproved": "स्वीकृत",
-  "bookingStatusRejected": "अस्वीकृत"
+  "bookingStatusRejected": "अस्वीकृत",
+  "languageTranslationInProgress": "अनुवाद जारी है"
 }
