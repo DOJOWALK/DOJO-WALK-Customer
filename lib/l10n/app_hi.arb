@@ -259,5 +259,11 @@
   "bookingLessThanOneYear": "1 साल से कम",
   "bookingYears": "साल",
   "bookingAm": "AM",
-  "bookingPm": "PM"
+  "bookingPm": "PM",
+  "homeSelectLocation": "अपनी लोकेशन चुनें",
+  "homeSavedAddress": "सेव किया गया पता",
+  "homeLoginManageAddresses": "सेव किए गए पते मैनेज करने के लिए लॉग इन करें।",
+  "homeLoginSelectAddress": "सेव किया गया पता चुनने के लिए लॉग इन करें।",
+  "homeChoosePickupAddress": "पिकअप का पता चुनें",
+  "homeAddressesLoadError": "पते लोड नहीं हुए। कृपया फिर कोशिश करें।"
 }
