@@ -255,3 +255,11 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 - My Bookings now uses generated localization getters for the “price to be confirmed” fallback and booking plan labels (Regular Walk, Customized Walk, One-Time Walk), instead of the older three-language inline helper strings for those fields.
 - No pricing policy or amount calculation was changed. Missing/invalid saved prices still display the unconfirmed-price message; no draft price was introduced.
 - CI must validate the latest commits before this checkpoint is considered verified. Date/time/duration/age helper labels and date formatting remain in the localization audit queue; do not claim full 23-language coverage. Only English, Hindi, and Bengali catalogs are currently available/selectable.
+
+
+### Booking date/time/duration/age helper localization checkpoint (2026-10-30)
+
+- Migrated My Bookings date fallback, time AM/PM labels, duration unit/fallback, and dog-age fallback/year labels to generated `AppLocalizations` getters.
+- Updated all inspected call sites to pass `BuildContext` into these helpers; money display call sites now consistently pass context for the unapproved-price fallback.
+- The preceding CI run for SHA `c453eb4b7c0e329a36721f96a383b5d2e93d1b58` failed during `flutter analyze` due to a missing `BuildContext` argument at the extra-charge `_money` call. That call was corrected in the subsequent code edit. The latest run must finish before this correction is considered verified.
+- Date formatting still uses manually maintained abbreviated month labels for English/Hindi/Bengali; full locale-aware formatting and non-EN/HI/BN catalogs remain future work. No backend/Firebase changes were made.
