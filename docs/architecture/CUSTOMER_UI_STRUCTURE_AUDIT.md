@@ -86,3 +86,11 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 - Static source scan found no obvious `const Text` / `const` parent widget containing dynamic locale helper calls in the four recently localized address/booking screens. This is a heuristic scan only, not Dart analysis.
 - **Verification status remains NOT VERIFIED:** no successful Flutter format/analyze/test/build or device/browser visual QA has been recorded for this branch. Do not treat the UI audit as complete and do not begin backend/Firebase alignment yet.
 - Added `.github/workflows/customer-ui-validation.yml` for pull requests targeting `main`; it runs `flutter analyze` and `flutter test` without requiring release secrets. The connected GitHub workflow lookup has not returned a run yet, so CI results are still pending.
+
+## Additional localization pass (2026-10-29, continued)
+
+- `lib/features/support/screens/help_support_screen.dart`: added shared `appLocale` listening via `ValueListenableBuilder`; localized the page heading, FAQ questions and answers, issue categories, validation copy, submit label and explicit not-connected notice in English/Hindi/Bangla. FAQ copy continues to avoid promising availability, assignment, cancellation outcomes or payment state.
+- `lib/features/profile/screens/account_details_screen.dart`: added app-locale listener lifecycle and localized account heading, profile labels, DOB picker prompt, gender choices, validation, save feedback and save action in English/Hindi/Bangla.
+- Source-level delimiter checks show matching brace/parenthesis counts in both edited screens. This is only a lightweight sanity check, not Dart parsing or compilation.
+- The support form remains deliberately UI-only: pressing submit validates input and explains that the request is not sent. No Firebase support collection or server workflow was added.
+- **Still NOT VERIFIED:** Flutter formatting, static analysis, automated tests, Android/web builds and visual QA have not been run successfully or recorded. The new pull-request validation workflow has not returned a run in the connected workflow lookup. Keep PR #29 in draft; backend/Firebase alignment remains deferred.
