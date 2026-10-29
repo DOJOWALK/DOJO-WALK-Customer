@@ -85,3 +85,4 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 - Account Details, Help & Support, and other remaining customer screens still need a broader copy/localization and interaction audit.
 - Static source scan found no obvious `const Text` / `const` parent widget containing dynamic locale helper calls in the four recently localized address/booking screens. This is a heuristic scan only, not Dart analysis.
 - **Verification status remains NOT VERIFIED:** no successful Flutter format/analyze/test/build or device/browser visual QA has been recorded for this branch. Do not treat the UI audit as complete and do not begin backend/Firebase alignment yet.
+- Added `.github/workflows/customer-ui-validation.yml` for pull requests targeting `main`; it runs `flutter analyze` and `flutter test` without requiring release secrets. The connected GitHub workflow lookup has not returned a run yet, so CI results are still pending.
