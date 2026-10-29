@@ -203,5 +203,8 @@
   "bookingBehaviour": "व्यवहार",
   "bookingNotes": "नोट्स",
   "bookingPickup": "पिकअप",
-  "bookingHelpSupport": "मदद और सहायता"
+  "bookingHelpSupport": "मदद और सहायता",
+  "bookingStatusLabel": "स्थिति",
+  "bookingWalkerId": "वॉकर ID",
+  "bookingFrequency": "आवृत्ति"
 }
