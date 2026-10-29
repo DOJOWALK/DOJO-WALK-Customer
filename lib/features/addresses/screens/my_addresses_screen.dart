@@ -1,4 +1,5 @@
 import '../../../app/theme.dart';
+import '../../../app/locale_controller.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -12,8 +13,32 @@ const Color addressBackground = DojoWalkTheme.background;
 const Color addressText = DojoWalkTheme.text;
 const Color addressMuted = DojoWalkTheme.mutedText;
 
-class MyAddressesScreen extends StatelessWidget {
+class MyAddressesScreen extends StatefulWidget {
   const MyAddressesScreen({super.key});
+
+  @override
+  State<MyAddressesScreen> createState() => _MyAddressesScreenState();
+}
+
+class _MyAddressesScreenState extends State<MyAddressesScreen> {
+  @override
+  void initState() {
+    super.initState();
+    appLocale.addListener(_onLocaleChanged);
+  }
+
+  @override
+  void dispose() {
+    appLocale.removeListener(_onLocaleChanged);
+    super.dispose();
+  }
+
+  void _onLocaleChanged() {
+    if (mounted) setState(() {});
+  }
+
+  String _text(String en, String hi, String bn) =>
+      appText(en: en, hi: hi, bn: bn);
 
   @override
   Widget build(BuildContext context) {
@@ -24,13 +49,13 @@ class MyAddressesScreen extends StatelessWidget {
         backgroundColor: addressBackground,
         appBar: AppBar(
           backgroundColor: addressBackground,
-          title: const Text('Saved Addresses'),
+          title: Text(_text('Saved Addresses', 'सेव किए गए पते', 'সংরক্ষিত ঠিকানা')),
         ),
         body: const Center(
           child: Padding(
             padding: EdgeInsets.all(24),
             child: Text(
-              'Please sign in to manage your saved addresses.',
+              _text('Please sign in to manage your saved addresses.', 'सेव किए गए पते देखने के लिए लॉग इन करें।', 'সংরক্ষিত ঠিকানা পরিচালনা করতে সাইন ইন করুন.'),
               textAlign: TextAlign.center,
             ),
           ),
@@ -45,8 +70,8 @@ class MyAddressesScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: addressBackground,
         elevation: 0,
-        title: const Text(
-          'Saved Addresses',
+        title: Text(
+          _text('Saved Addresses', 'सेव किए गए पते', 'সংরক্ষিত ঠিকানা'),
           style: TextStyle(
             color: addressText,
             fontWeight: FontWeight.w900,
@@ -58,8 +83,7 @@ class MyAddressesScreen extends StatelessWidget {
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return _centerMessage(
-              'Could not load addresses.\n'
-              'Please check your connection and try again.',
+              _text('Could not load addresses. Check your connection and try again.', 'पते लोड नहीं हो सके। इंटरनेट जाँचकर फिर कोशिश करें।', 'ঠিকানা লোড করা যায়নি। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন.'),
               retry: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute<void>(
@@ -100,8 +124,7 @@ class MyAddressesScreen extends StatelessWidget {
                     SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Save your pickup locations for faster '
-                        'dog-walk bookings.',
+                        _text('Save your pickup locations for faster dog-walk bookings.', 'तेज़ बुकिंग के लिए अपने पिकअप पते सेव करें।', 'দ্রুত বুকিংয়ের জন্য পিকআপের ঠিকানা সংরক্ষণ করুন.'),
                         style: TextStyle(
                           color: addressText,
                           height: 1.45,
@@ -129,7 +152,7 @@ class MyAddressesScreen extends StatelessWidget {
                       ),
                       SizedBox(height: 14),
                       Text(
-                        'No saved addresses yet',
+                        _text('No saved addresses yet', 'अभी कोई पता सेव नहीं है', 'এখনও কোনো ঠিকানা সংরক্ষিত নেই'),
                         style: TextStyle(
                           color: addressText,
                           fontWeight: FontWeight.w900,
@@ -138,7 +161,7 @@ class MyAddressesScreen extends StatelessWidget {
                       ),
                       SizedBox(height: 7),
                       Text(
-                        'Add your home or another pickup location.',
+                        _text('Add your home or another pickup location.', 'अपने घर या किसी अन्य पिकअप की जगह का पता जोड़ें।', 'বাড়ি বা অন্য পিকআপের ঠিকানা যোগ করুন.'),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: addressMuted,
@@ -175,7 +198,7 @@ class MyAddressesScreen extends StatelessWidget {
             onPressed: () => _openForm(context),
             icon: const Icon(Icons.add_location_alt_rounded),
             label: const Text(
-              'Add New Address',
+              _text('Add New Address', 'नया पता जोड़ें', 'নতুন ঠিকানা যোগ করুন'),
               style: TextStyle(fontWeight: FontWeight.w900),
             ),
           ),
@@ -252,7 +275,7 @@ class MyAddressesScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Text(
-                    'DEFAULT',
+                    _text('DEFAULT', 'डिफ़ॉल्ट', 'ডিফল্ট'),
                     style: TextStyle(
                       color: addressOrange,
                       fontSize: 9,
@@ -264,7 +287,7 @@ class MyAddressesScreen extends StatelessWidget {
           ),
           const SizedBox(height: 13),
           Text(
-            details.isEmpty ? 'Address details not available' : details,
+            details.isEmpty ? _text('Address details not available', 'पते का विवरण उपलब्ध नहीं है', 'ঠিকানার বিবরণ পাওয়া যায়নি') : details,
             style: const TextStyle(
               color: addressText,
               fontSize: 13,
@@ -274,7 +297,7 @@ class MyAddressesScreen extends StatelessWidget {
           if (address.pickupInstructions.trim().isNotEmpty) ...[
             const SizedBox(height: 7),
             Text(
-              'Pickup instructions: ${address.pickupInstructions}',
+              '${_text('Pickup instructions', 'पिकअप निर्देश', 'পিকআপের নির্দেশনা')}: ${address.pickupInstructions}',
               style: const TextStyle(
                 color: addressMuted,
                 fontSize: 12,
@@ -298,7 +321,7 @@ class MyAddressesScreen extends StatelessWidget {
                     Icons.check_circle_outline,
                     size: 18,
                   ),
-                  label: const Text('Set Default'),
+                  label: Text(_text('Set Default', 'डिफ़ॉल्ट बनाएँ', 'ডিফল্ট করুন')),
                 ),
               TextButton.icon(
                 onPressed: () => _openForm(
@@ -306,7 +329,7 @@ class MyAddressesScreen extends StatelessWidget {
                   address: address,
                 ),
                 icon: const Icon(Icons.edit_outlined, size: 18),
-                label: const Text('Edit'),
+                label: Text(_text('Edit', 'बदलें', 'সম্পাদনা')),
               ),
               TextButton.icon(
                 onPressed: () => _confirmDelete(
@@ -315,7 +338,7 @@ class MyAddressesScreen extends StatelessWidget {
                   address,
                 ),
                 icon: const Icon(Icons.delete_outline, size: 18),
-                label: const Text('Delete'),
+                label: Text(_text('Delete', 'हटाएँ', 'মুছুন')),
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.red,
                 ),
@@ -343,14 +366,14 @@ class MyAddressesScreen extends StatelessWidget {
       _showMessage(
         context,
         address == null
-            ? 'Address saved successfully.'
-            : 'Address updated successfully.',
+            ? _text('Address saved successfully.', 'पता सेव हो गया।', 'ঠিকানা সংরক্ষণ করা হয়েছে.')
+            : _text('Address updated successfully.', 'पता अपडेट हो गया।', 'ঠিকানা আপডেট করা হয়েছে.'),
       );
     } catch (error) {
       if (context.mounted) {
         _showMessage(
           context,
-          'Could not save address. Please try again.',
+          _text('Could not save address. Please try again.', 'पता सेव नहीं हो सका। दोबारा कोशिश करें।', 'ঠিকানা সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন.'),
         );
       }
     }
@@ -365,13 +388,13 @@ class MyAddressesScreen extends StatelessWidget {
       await service.setDefaultAddress(address.id);
 
       if (context.mounted) {
-        _showMessage(context, '${address.label} set as default.');
+        _showMessage(context, _text('${address.label} set as default.', '${address.label} डिफ़ॉल्ट पता बन गया।', '${address.label} ডিফল্ট ঠিকানা হয়েছে.'));
       }
     } catch (error) {
       if (context.mounted) {
         _showMessage(
           context,
-          'Could not update default address. Please try again.',
+          _text('Could not update default address. Please try again.', 'डिफ़ॉल्ट पता अपडेट नहीं हुआ। दोबारा कोशिश करें।', 'ডিফল্ট ঠিকানা আপডেট করা যায়নি। আবার চেষ্টা করুন.'),
         );
       }
     }
@@ -385,15 +408,14 @@ class MyAddressesScreen extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete address?'),
-        content: const Text(
-          'This saved address will be removed from your account. '
-          'Existing bookings will not be changed.',
+        title: Text(_text('Delete address?', 'पता हटाएँ?', 'ঠিকানা মুছবেন?')),
+        content: Text(
+          _text('This saved address will be removed from your account. Existing bookings will not be changed.', 'यह पता आपके खाते से हट जाएगा। मौजूदा बुकिंग पर इसका असर नहीं पड़ेगा।', 'এই ঠিকানাটি আপনার অ্যাকাউন্ট থেকে মুছে যাবে। আগের বুকিং বদলাবে না.'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Keep Address'),
+            child: Text(_text('Keep Address', 'पता रहने दें', 'ঠিকানা রাখুন')),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -401,7 +423,7 @@ class MyAddressesScreen extends StatelessWidget {
               foregroundColor: Colors.white,
             ),
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Delete'),
+            child: Text(_text('Delete', 'हटाएँ', 'মুছুন')),
           ),
         ],
       ),
@@ -413,13 +435,13 @@ class MyAddressesScreen extends StatelessWidget {
       await service.deleteAddress(address.id);
 
       if (context.mounted) {
-        _showMessage(context, 'Address deleted.');
+        _showMessage(context, _text('Address deleted.', 'पता हटा दिया गया।', 'ঠিকানা মুছে ফেলা হয়েছে.'));
       }
     } catch (error) {
       if (context.mounted) {
         _showMessage(
           context,
-          'Could not delete address. Please try again.',
+          _text('Could not delete address. Please try again.', 'पता हटाया नहीं जा सका। दोबारा कोशिश करें।', 'ঠিকানা মুছে ফেলা যায়নি। আবার চেষ্টা করুন.'),
         );
       }
     }
@@ -448,7 +470,7 @@ Widget _centerMessage(
             const SizedBox(height: 12),
             TextButton(
               onPressed: retry,
-              child: const Text('Retry'),
+              child: Text(_text('Retry', 'फिर कोशिश करें', 'আবার চেষ্টা করুন')),
             ),
           ],
         ],
