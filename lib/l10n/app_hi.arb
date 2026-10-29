@@ -169,5 +169,16 @@
   "bookingStatusNotRequested": "अनुरोध नहीं किया",
   "bookingStatusApproved": "स्वीकृत",
   "bookingStatusRejected": "अस्वीकृत",
-  "languageTranslationInProgress": "अनुवाद जारी है"
+  "languageTranslationInProgress": "अनुवाद जारी है",
+  "bookingsFilterAll": "सभी",
+  "bookingsFilterUpcoming": "आने वाली",
+  "bookingsFilterCompleted": "पूरी हुई",
+  "bookingsFilterCancelled": "रद्द",
+  "bookingsEmptyTitle": "अभी कोई बुकिंग नहीं",
+  "bookingsEmptyBody": "आपके डॉग वॉक की बुकिंग यहाँ दिखाई देंगी।",
+  "bookingsLoginPrompt": "अपनी बुकिंग देखने के लिए लॉग इन करें।",
+  "bookingsLoadErrorTitle": "बुकिंग लोड नहीं हो सकीं",
+  "bookingsDetailsTitle": "बुकिंग का विवरण",
+  "bookingDetailsUnavailable": "बुकिंग उपलब्ध नहीं है।",
+  "bookingDetailsLoadError": "बुकिंग का विवरण लोड नहीं हो सका।"
 }
