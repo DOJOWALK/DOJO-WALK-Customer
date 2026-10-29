@@ -266,5 +266,22 @@
   "homeLoginManageAddresses": "Please log in to manage saved addresses.",
   "homeLoginSelectAddress": "Please log in to select a saved address.",
   "homeChoosePickupAddress": "Choose Pickup Address",
-  "homeAddressesLoadError": "Unable to load addresses. Please try again."
+  "homeAddressesLoadError": "Unable to load addresses. Please try again.",
+  "homeNoSavedAddresses": "No saved addresses yet.",
+  "homeAddAddressForPickup": "Add an address to use it for pickup.",
+  "homeDefaultAddress": "DEFAULT",
+  "homeAddNewAddress": "Add New Address",
+  "homeTagline": "Happy walks. Happier dogs.",
+  "homeNotifications": "Notifications",
+  "homePickupLocationLabel": "YOUR PICKUP LOCATION",
+  "homeLoadingSavedAddress": "Loading saved address...",
+  "homeDogWalkingService": "DOG WALKING SERVICE",
+  "homeHeroTitle": "Every walk,\na happier dog.",
+  "homeHeroSubtitle": "Book a trusted dog walk that fits your routine.",
+  "homeBookWalk": "Book a Walk",
+  "homeYourDogs": "YOUR DOGS",
+  "homeMyDogs": "My Dogs",
+  "homeManageDogsSubtitle": "Manage your dogs and their saved details.",
+  "homeHelpSupport": "Help & Support",
+  "homeHelpSupportSubtitle": "Get help with bookings and dog walks."
 }
