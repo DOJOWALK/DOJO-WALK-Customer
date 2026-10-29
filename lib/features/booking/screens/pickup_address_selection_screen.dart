@@ -488,7 +488,7 @@ class _PickupAddressSelectionScreenState
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : const Text(
+                              : Text(
                                   _text('Continue to Booking Review', 'बुकिंग की समीक्षा पर जाएँ', 'বুকিং পর্যালোচনায় এগিয়ে যান'),
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
@@ -531,9 +531,9 @@ class _PickupAddressSelectionScreenState
               color: const Color(0xFFF0E2D5),
             ),
           ),
-          child: const Column(
+          child: Column(
             children: [
-              Icon(
+              const Icon(
                 Icons.location_on_outlined,
                 size: 64,
                 color: pickupOrange,
