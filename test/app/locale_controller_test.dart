@@ -16,6 +16,19 @@ void main() {
   group('DOJO WALK language registry', () {
     test('registers English and the 22 scheduled Indian languages', () {
       expect(dojoLanguages.length, 23);
+      expect(
+        dojoLanguages.map((language) => language.code).toSet(),
+        <String>{
+          'en', 'hi', 'bn', 'as', 'brx', 'doi', 'gu', 'kn', 'ks', 'kok',
+          'mai', 'ml', 'mni', 'mr', 'ne', 'or', 'pa', 'sa', 'sat', 'sd',
+          'ta', 'te', 'ur',
+        },
+      );
+      expect(
+        dojoLanguages.map((language) => language.code).toSet().length,
+        dojoLanguages.length,
+        reason: 'Language codes must be unique.',
+      );
       expect(dojoLanguages.first.code, 'en');
       expect(availableDojoLanguages.map((language) => language.code).toList(),
           <String>['en', 'hi', 'bn']);
