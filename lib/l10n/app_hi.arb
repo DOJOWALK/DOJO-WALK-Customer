@@ -289,5 +289,22 @@
   "dogSelectionEmptyBody": "बुकिंग जारी रखने से पहले अपने डॉग की जानकारी जोड़ें।",
   "dogSelectionAddDog": "अपना डॉग जोड़ें",
   "dogSelectionOpening": "खोल रहे हैं...",
-  "dogSelectionContinue": "आगे बढ़ें"
+  "dogSelectionContinue": "आगे बढ़ें",
+  "dogBreedNotProvided": "नस्ल की जानकारी नहीं दी गई",
+  "dogNotSpecified": "नहीं बताया गया",
+  "dogAgeYears": "साल",
+  "dogAgeNotProvided": "उम्र की जानकारी नहीं दी गई",
+  "dogOpenDetailsFailed": "डॉग की जानकारी नहीं खुल सकी। दोबारा कोशिश करें।",
+  "dogLoginFirst": "पहले लॉग इन करें।",
+  "dogSelectOne": "कृपया अपना डॉग चुनें।",
+  "dogNoLongerSaved": "यह डॉग अब आपकी सेव की गई सूची में नहीं है। दोबारा चुनें।",
+  "dogNameMissing": "इस डॉग का नाम उपलब्ध नहीं है। पहले उसकी जानकारी अपडेट करें।",
+  "dogAccessFailed": "डॉग की जानकारी नहीं खुल सकी। दोबारा कोशिश करें।",
+  "dogLoadFailed": "डॉग की जानकारी लोड नहीं हुई। दोबारा कोशिश करें।",
+  "dogContinueFailed": "आगे नहीं बढ़ सके। दोबारा कोशिश करें।",
+  "dogLoginToSelect": "डॉग चुनने के लिए पहले लॉग इन करें।",
+  "dogWhichForWalk": "किस डॉग को वॉक पर जाना है?",
+  "dogOnePerBooking": "इस बुकिंग के लिए एक डॉग चुनें। अलग बुकिंग में बाद में दूसरा डॉग चुन सकते हैं।",
+  "dogAddAnother": "एक और डॉग जोड़ें",
+  "dogContinuePickup": "पिकअप पते पर आगे बढ़ें"
 }
