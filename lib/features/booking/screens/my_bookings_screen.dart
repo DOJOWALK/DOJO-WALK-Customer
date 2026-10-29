@@ -740,7 +740,7 @@ class _BookingCard extends StatelessWidget {
               const SizedBox(height: 12),
               _row(
                 Icons.confirmation_number_outlined,
-                _t('Booking ID', 'बुकिंग ID', 'বুকিং ID'),
+                AppLocalizations.of(context).bookingIdLabel,
                 _text(
                   data['bookingId'],
                   fallback: documentId,
@@ -1055,23 +1055,19 @@ class BookingDetailsScreen extends StatelessWidget {
                         ),
                       ),
                       _detail(
-                        _t('Plan', 'प्लान', 'প্ল্যান'),
+                        AppLocalizations.of(context).bookingPlanLabel,
                         plan,
                       ),
                       _detail(
-                        _t('Duration', 'अवधि', 'সময়কাল'),
+                        AppLocalizations.of(context).bookingDurationLabel,
                         _duration(data),
                       ),
                       _detail(
-                        _t('Date', 'तारीख़', 'তারিখ'),
+                        AppLocalizations.of(context).bookingDateLabel,
                         _formatDate(_date(data['scheduledAt'])),
                       ),
                       _detail(
-                        _t(
-                          'Preferred Time',
-                          'पसंदीदा समय',
-                          'পছন্দের সময়',
-                        ),
+                        AppLocalizations.of(context).bookingPreferredTime,
                         _text(
                           data['preferredTime'],
                           fallback: _formatTime(
@@ -1084,11 +1080,7 @@ class BookingDetailsScreen extends StatelessWidget {
                         _statusText(context, _status(data)),
                       ),
                       _detail(
-                        _t(
-                          'Number of Walks',
-                          'वॉक की संख्या',
-                          'ওয়াকের সংখ্যা',
-                        ),
+                        AppLocalizations.of(context).bookingNumberOfWalks,
                         _text(data['walkCount']),
                       ),
                     ],
@@ -1105,38 +1097,22 @@ class BookingDetailsScreen extends StatelessWidget {
                     ),
                     [
                       _detail(
-                        _t(
-                          'Walk Charges',
-                          'वॉक चार्ज',
-                          'ওয়াক চার্জ',
-                        ),
+                        AppLocalizations.of(context).bookingWalkCharges,
                         _money(total),
                       ),
                       if (extraCharges != null && extraCharges > 0)
                         _detail(
-                          _t(
-                            'Additional Charges',
-                            'अतिरिक्त चार्ज',
-                            'অতিরিক্ত চার্জ',
-                          ),
+                          AppLocalizations.of(context).bookingAdditionalCharges,
                           _money(extraCharges),
                         ),
                       const Divider(height: 24),
                       _priceDetail(
-                        _t(
-                          'Total Amount',
-                          'कुल राशि',
-                          'মোট পরিমাণ',
-                        ),
+                        AppLocalizations.of(context).bookingTotalAmount,
                         _money(grandTotal),
                       ),
                       const SizedBox(height: 7),
                       Text(
-                        _t(
-                          'The final amount is based on the prices saved in your booking. Any additional charges must be confirmed by DOJO WALK.',
-                          'अंतिम राशि बुकिंग में सेव की गई कीमतों के अनुसार है। अतिरिक्त चार्ज की पुष्टि DOJO WALK टीम करेगी।',
-                          'চূড়ান্ত পরিমাণ বুকিংয়ে সংরক্ষিত দামের ওপর নির্ভর করে। অতিরিক্ত চার্জ DOJO WALK নিশ্চিত করবে।',
-                        ),
+                        AppLocalizations.of(context).bookingPriceDisclosure,
                         style: const TextStyle(
                           color: bookingsMuted,
                           fontSize: 12,
@@ -1156,31 +1132,31 @@ class BookingDetailsScreen extends StatelessWidget {
                     ),
                     [
                       _detail(
-                        _t('Dog Name', 'डॉग का नाम', 'কুকুরের নাম'),
+                        AppLocalizations.of(context).bookingDogName,
                         _text(pet['name'] ?? data['petName']),
                       ),
                       _detail(
-                        _t('Dog ID', 'डॉग ID', 'কুকুরের ID'),
+                        AppLocalizations.of(context).bookingDogId,
                         _text(data['dogId']),
                       ),
                       _detail(
-                        _t('Breed', 'नस्ल', 'জাত'),
+                        AppLocalizations.of(context).bookingBreed,
                         _text(pet['breed']),
                       ),
                       _detail(
-                        _t('Age', 'उम्र', 'বয়স'),
+                        AppLocalizations.of(context).bookingAge,
                         _age(pet['age'] ?? pet['dob']),
                       ),
                       _detail(
-                        _t('Size', 'आकार', 'আকার'),
+                        AppLocalizations.of(context).bookingSize,
                         _text(pet['size']),
                       ),
                       _detail(
-                        _t('Gender', 'लिंग', 'লিঙ্গ'),
+                        AppLocalizations.of(context).bookingGender,
                         _text(pet['gender']),
                       ),
                       _detail(
-                        _t('Behaviour', 'व्यवहार', 'আচরণ'),
+                        AppLocalizations.of(context).bookingBehaviour,
                         _text(pet['behaviour']),
                       ),
                       _detail(
@@ -1192,7 +1168,7 @@ class BookingDetailsScreen extends StatelessWidget {
                         _text(pet['specialCare']),
                       ),
                       _detail(
-                        _t('Notes', 'नोट्स', 'নোট'),
+                        AppLocalizations.of(context).bookingNotes,
                         _text(pet['notes']),
                       ),
                     ],
