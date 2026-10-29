@@ -265,5 +265,22 @@
   "homeLoginManageAddresses": "सेव किए गए पते मैनेज करने के लिए लॉग इन करें।",
   "homeLoginSelectAddress": "सेव किया गया पता चुनने के लिए लॉग इन करें।",
   "homeChoosePickupAddress": "पिकअप का पता चुनें",
-  "homeAddressesLoadError": "पते लोड नहीं हुए। कृपया फिर कोशिश करें।"
+  "homeAddressesLoadError": "पते लोड नहीं हुए। कृपया फिर कोशिश करें।",
+  "homeNoSavedAddresses": "अभी कोई पता सेव नहीं है।",
+  "homeAddAddressForPickup": "पिकअप के लिए एक पता जोड़ें।",
+  "homeDefaultAddress": "डिफ़ॉल्ट",
+  "homeAddNewAddress": "नया पता जोड़ें",
+  "homeTagline": "खुशहाल वॉक, खुशहाल डॉग्स।",
+  "homeNotifications": "नोटिफिकेशन",
+  "homePickupLocationLabel": "आपकी पिकअप लोकेशन",
+  "homeLoadingSavedAddress": "सेव किया गया पता लोड हो रहा है...",
+  "homeDogWalkingService": "डॉग वॉकिंग सर्विस",
+  "homeHeroTitle": "हर वॉक,\nएक खुशहाल डॉग।",
+  "homeHeroSubtitle": "अपनी दिनचर्या के अनुसार भरोसेमंद डॉग वॉक बुक करें।",
+  "homeBookWalk": "वॉक बुक करें",
+  "homeYourDogs": "आपके डॉग्स",
+  "homeMyDogs": "मेरे डॉग्स",
+  "homeManageDogsSubtitle": "अपने डॉग्स और उनकी सेव की गई जानकारी मैनेज करें।",
+  "homeHelpSupport": "मदद और सपोर्ट",
+  "homeHelpSupportSubtitle": "बुकिंग और डॉग वॉक में मदद पाएँ।"
 }
