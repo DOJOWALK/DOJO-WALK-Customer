@@ -301,3 +301,10 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 - Migrated remaining dog-selection user-facing inline English/Hindi/Bengali strings to generated `AppLocalizations` getters, including login/selection/load errors, dog breed/gender/age fallbacks, stale/missing dog validation, list heading and one-dog-per-booking guidance, add-another-dog, and continue-to-pickup actions.
 - Removed the screen's legacy three-language `_text` helper. Dog selection still stores and verifies the selected dog document and continues to the pickup-address screen; no backend, Firestore contract, or multi-dog booking behavior was changed.
 - EN/HI/BN ARB JSON and key parity are being checked after this change. CI for the latest code must pass before the change is considered verified. The other 20 scheduled Indian-language catalogs and full locale-aware formatting remain pending.
+
+
+### Pickup-address selection localization checkpoint (2026-10-30)
+
+- Migrated the pickup-address selection screen's inline English/Hindi/Bengali labels and user-facing errors to generated `AppLocalizations` getters, including address selection/validation, saved-address loading, empty state, add-address actions, and continuation to booking review.
+- Removed the screen's legacy `_text` helper. Existing saved-address selection and navigation to booking review are unchanged; no service-area validation, pricing, payment, or backend behavior was added or implied.
+- EN/HI/BN catalog parity and JSON validity are being checked. The latest Customer UI CI run must pass before treating the changes as verified. Only these three catalogs are currently available; the remaining 20 Indian-language translations are not yet complete.
