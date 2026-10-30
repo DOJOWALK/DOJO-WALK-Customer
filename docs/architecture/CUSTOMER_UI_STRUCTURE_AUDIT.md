@@ -308,3 +308,15 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 - Migrated the pickup-address selection screen's inline English/Hindi/Bengali labels and user-facing errors to generated `AppLocalizations` getters, including address selection/validation, saved-address loading, empty state, add-address actions, and continuation to booking review.
 - Removed the screen's legacy `_text` helper. Existing saved-address selection and navigation to booking review are unchanged; no service-area validation, pricing, payment, or backend behavior was added or implied.
 - EN/HI/BN catalog parity and JSON validity are being checked. The latest Customer UI CI run must pass before treating the changes as verified. Only these three catalogs are currently available; the remaining 20 Indian-language translations are not yet complete.
+
+
+
+### Booking review pricing safety + premium disclosure update (2026-10-30)
+
+- Updated `lib/features/booking/screens/booking_confirmation_screen.dart` to stop deriving customer prices locally through `WalkPricingService`. Removed estimated/per-walk/daily/total price figures from the review UI and removed client-calculated `price` values from the walk schedule payload.
+- Replaced the price breakdown with a visually grouped, localized disclosure: price is confirmed only after service availability and approved pricing are checked; the current action is a booking request, not a payment.
+- Preserved the existing dog, pickup address, schedule, duration, walk-count validation, booking identifiers, and pending-request submission structure. No Firebase configuration or payment integration was changed.
+- Policy basis: POL-011 requires one authoritative server-side price calculation, approved/versioned prices, final customer quote before confirmation, and no use of unapproved candidate prices. POL-006 requires availability/eligibility and server quote checks before payment.
+- Important implementation gap remains: this screen still writes a pending booking document directly to Firestore and does not yet obtain a server-side availability result or authoritative quote. This UI change removes misleading client-side pricing; it does **not** implement the required quote/availability/payment workflow and must not be treated as production-ready.
+- The booking review screen still uses the legacy inline `_text` helper rather than generated `AppLocalizations` keys. Continue its localization migration after this policy/UI correction.
+- GitHub Actions validation for the resulting source commit must be checked before marking this checkpoint verified. Android/web builds and visual QA have not been run.
