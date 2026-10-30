@@ -389,7 +389,7 @@ class _PickupAddressSelectionScreenState
                                               const SizedBox(height: 7),
                                               Text(
                                                 fullAddress.isEmpty
-                                                    ? 'Address details missing'
+                                                    ? AppLocalizations.of(context).pickupAddressDetailsMissing
                                                     : fullAddress,
                                                 style: const TextStyle(
                                                   color: pickupMuted,
