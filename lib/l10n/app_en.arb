@@ -367,5 +367,13 @@
   "bookingConfirmationGenderLabel": "Gender",
   "bookingConfirmationPickupLocation": "Pickup Location",
   "bookingConfirmationSubmitRequest": "Submit Booking Request",
-  "@bookingConfirmationSelectedDates": {"placeholders":{"count":{"type":"int"}}}
+  "@bookingConfirmationSelectedDates": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pickupDefaultBadge": "Default",
+  "pickupAddressDetailsMissing": "Address details missing"
 }
