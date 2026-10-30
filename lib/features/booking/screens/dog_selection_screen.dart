@@ -6,7 +6,6 @@ import '../../profile/screens/my_dogs_screen.dart';
 import 'choose_walk_screen.dart';
 import 'pickup_address_selection_screen.dart';
 import '../../../app/theme.dart';
-import '../../../app/locale_controller.dart';
 import '../../../l10n/app_localizations.dart';
 
 const Color dogSelectionOrange = DojoWalkTheme.primary;
@@ -37,22 +36,6 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
   bool _isOpeningDogs = false;
 
   User? get _user => FirebaseAuth.instance.currentUser;
-
-  @override
-  void initState() {
-    super.initState();
-    appLocale.addListener(_onLocaleChanged);
-  }
-
-  @override
-  void dispose() {
-    appLocale.removeListener(_onLocaleChanged);
-    super.dispose();
-  }
-
-  void _onLocaleChanged() {
-    if (mounted) setState(() {});
-  }
 
   Stream<QuerySnapshot<Map<String, dynamic>>> _watchDogs() {
     final user = _user;
