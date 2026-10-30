@@ -365,5 +365,7 @@
   "bookingConfirmationNotSpecified": "उल्लेख नहीं किया गया",
   "bookingConfirmationGenderLabel": "लिंग",
   "bookingConfirmationPickupLocation": "पिकअप की जगह",
-  "bookingConfirmationSubmitRequest": "बुकिंग अनुरोध भेजें"
+  "bookingConfirmationSubmitRequest": "बुकिंग अनुरोध भेजें",
+  "pickupDefaultBadge": "डिफ़ॉल्ट",
+  "pickupAddressDetailsMissing": "पते की जानकारी उपलब्ध नहीं है"
 }
