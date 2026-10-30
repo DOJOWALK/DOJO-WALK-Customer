@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../services/walk_pricing_service.dart';
 import 'choose_walk_screen.dart';
 import '../../../app/theme.dart';
 import '../../../app/locale_controller.dart';
@@ -151,60 +150,6 @@ class _BookingConfirmationScreenState
     final match = RegExp(r'\d+').firstMatch(value?.toString() ?? '');
 
     return match == null ? 30 : int.parse(match.group(0)!);
-  }
-
-  double? _price(Map<String, dynamic> walk) {
-    return WalkPricingService.priceForDuration(_duration(walk))
-        ?.toDouble();
-  }
-
-  double? _totalForWalks(List<Map<String, dynamic>> walks) {
-    if (walks.isEmpty) return null;
-
-    double total = 0;
-
-    for (final walk in walks) {
-      final price = _price(walk);
-
-      if (price == null) return null;
-
-      total += price;
-    }
-
-    return total;
-  }
-
-  List<Map<String, dynamic>> _walksForDay(
-    Map<String, dynamic> day,
-  ) {
-    final raw = day['walks'];
-
-    if (raw is! List) return [];
-
-    return raw
-        .whereType<Map>()
-        .map((item) => Map<String, dynamic>.from(item))
-        .toList();
-  }
-
-  double? get _bookingTotal {
-    if (_isChooseDates) {
-      return _totalForWalks(
-        _dateSchedules
-            .expand((day) => _walksForDay(day))
-            .toList(),
-      );
-    }
-
-    return _totalForWalks(_walks);
-  }
-
-  String _money(double? amount) {
-    if (amount == null) return _text('Price to be confirmed', 'कीमत की पुष्टि बाकी है', 'মূল্য নিশ্চিত করা বাকি');
-
-    return '₹${amount.toStringAsFixed(
-      amount == amount.roundToDouble() ? 0 : 2,
-    )}';
   }
 
   DateTime? _parseDate(dynamic value) {
@@ -383,54 +328,7 @@ class _BookingConfirmationScreenState
     );
   }
 
-  Widget _priceLine(
-    String label,
-    String value, {
-    bool emphasize = false,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: emphasize ? 15 : 13,
-                color: emphasize
-                    ? confirmationText
-                    : confirmationMuted,
-                fontWeight:
-                    emphasize ? FontWeight.w700 : FontWeight.w400,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Flexible(
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: TextStyle(
-                fontSize: emphasize ? 21 : 13,
-                color: emphasize
-                    ? confirmationOrange
-                    : confirmationText,
-                fontWeight:
-                    emphasize ? FontWeight.w800 : FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildSummaryCard() {
-    final total = _bookingTotal;
-    final walk = _summaryWalk;
-    final durationPrice = walk == null ? null : _price(walk);
-
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -485,48 +383,25 @@ class _BookingConfirmationScreenState
             padding: EdgeInsets.symmetric(vertical: 7),
             child: Divider(height: 1, color: confirmationBorder),
           ),
-          Text(
-            _text('PRICE DETAILS', 'कीमत का विवरण', 'মূল্যের বিবরণ'),
-            style: TextStyle(
-              color: confirmationText,
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.3,
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: confirmationBackground,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: confirmationBorder),
             ),
-          ),
-          const SizedBox(height: 7),
-          _priceLine(
-            _isChooseDates
-                ? _text('Walk charges · all dates', 'सभी तारीखों की वॉक फीस', 'সব তারিখের ওয়াক চার্জ')
-                : _isRegular
-                    ? _text('Walk charges · per day', 'प्रतिदिन वॉक फीस', 'প্রতিদিনের ওয়াক চার্জ')
-                    : _text('Walk charges', 'वॉक फीस', 'ওয়াক চার্জ'),
-            _money(
-              _isChooseDates || _isRegular
-                  ? total
-                  : durationPrice,
-            ),
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 7),
-            child: Divider(height: 1, color: confirmationBorder),
-          ),
-          _priceLine(
-            _isChooseDates
-                ? _text('TOTAL FOR SELECTED DATES', 'चुनी गई तारीखों का कुल', 'নির্বাচিত তারিখের মোট')
-                : _isRegular
-                    ? _text('TOTAL PER DAY', 'प्रतिदिन कुल', 'প্রতিদিনের মোট')
-                    : _text('TOTAL AMOUNT', 'कुल राशि', 'মোট পরিমাণ'),
-            _money(total),
-            emphasize: true,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            _text('Pricing is not yet approved. The amount will be confirmed after service availability and the approved price are checked. This is a booking request, not a payment.', 'कीमत अभी स्वीकृत नहीं है। सेवा की उपलब्धता और स्वीकृत कीमत जाँचने के बाद राशि की पुष्टि होगी। यह बुकिंग अनुरोध है, भुगतान नहीं।', 'মূল্য এখনও অনুমোদিত নয়। পরিষেবার উপলভ্যতা ও অনুমোদিত মূল্য যাচাইয়ের পর পরিমাণ নিশ্চিত করা হবে। এটি বুকিংয়ের অনুরোধ, পেমেন্ট নয়.'),
-            style: TextStyle(
-              fontSize: 11,
-              height: 1.45,
-              color: confirmationMuted,
+            child: Text(
+              _text(
+                'Price will be confirmed after service availability and the approved price are checked. This is a booking request, not a payment.',
+                'सेवा की उपलब्धता और स्वीकृत कीमत की जाँच के बाद कीमत की पुष्टि होगी। यह बुकिंग अनुरोध है, भुगतान नहीं।',
+                'পরিষেবার উপলভ্যতা ও অনুমোদিত মূল্য যাচাইয়ের পর দাম নিশ্চিত হবে। এটি বুকিংয়ের অনুরোধ, পেমেন্ট নয়।',
+              ),
+              style: const TextStyle(
+                fontSize: 12,
+                height: 1.45,
+                color: confirmationMuted,
+              ),
             ),
           ),
         ],
@@ -652,18 +527,6 @@ class _BookingConfirmationScreenState
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Text(
-              _money(_price(walk)),
-              textAlign: TextAlign.end,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                color: confirmationText,
-                fontSize: 13,
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -703,22 +566,13 @@ class _BookingConfirmationScreenState
                         padding: const EdgeInsets.only(bottom: 7),
                         child: Text(
                           '• ${_formatTime(walk['time'])}  ·  '
-                          '${_duration(walk)} ${_text('min', 'मिनट', 'মিনিট')}  ·  '
-                          '${_money(_price(walk))}',
+                          '${_duration(walk)} ${_text('min', 'मिनट', 'মিনিট')}',
                           style: const TextStyle(
                             fontSize: 13,
                             color: confirmationText,
                           ),
                         ),
                       ),
-                    Text(
-                      '${_text('Daily total', 'प्रतिदिन कुल', 'প্রতিদিনের মোট')}: '
-                      '${_money(_totalForWalks(_walksForDay(day)))}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: confirmationOrange,
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -758,11 +612,6 @@ class _BookingConfirmationScreenState
             ),
           for (var i = 0; i < _walks.length; i++)
             _walkCard(_walks[i], i),
-          if (_isRegular)
-            _infoLine(
-              'Daily total',
-              _money(_totalForWalks(_walks)),
-            ),
         ],
       ),
     );
@@ -797,12 +646,6 @@ class _BookingConfirmationScreenState
 
     if (walk['startMinute'] is num) {
       result['startMinute'] = (walk['startMinute'] as num).toInt();
-    }
-
-    final price = _price(walk);
-
-    if (price != null) {
-      result['price'] = price;
     }
 
     return result;
