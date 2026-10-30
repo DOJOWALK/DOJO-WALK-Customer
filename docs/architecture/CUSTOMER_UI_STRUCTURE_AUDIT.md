@@ -320,3 +320,15 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 - Important implementation gap remains: this screen still writes a pending booking document directly to Firestore and does not yet obtain a server-side availability result or authoritative quote. This UI change removes misleading client-side pricing; it does **not** implement the required quote/availability/payment workflow and must not be treated as production-ready.
 - The booking review screen still uses the legacy inline `_text` helper rather than generated `AppLocalizations` keys. Continue its localization migration after this policy/UI correction.
 - GitHub Actions validation for the resulting source commit must be checked before marking this checkpoint verified. Android/web builds and visual QA have not been run.
+
+
+
+### Walk-schedule screen pricing safety checkpoint (2026-10-30)
+
+- Updated `lib/features/booking/screens/choose_walk_screen.dart` to remove the local `WalkPricingService` dependency, estimated per-walk/daily price UI, and client-calculated `price` / `dailyPrice` values from the schedule object.
+- Replaced the immediate-walk price line with the existing localized availability/pricing disclosure. The scheduled-walk screen retains the same disclosure and now presents duration/schedule information without an invented or unapproved amount.
+- Preserved the existing `WalkBookingType` enum and the current one-time/regular/choose-dates scheduling behavior. No backend, Firestore, payment, or Firebase configuration changes were made.
+- **Booking-type alignment is still blocked pending a coordinated contract update:** the current customer UI exposes three legacy types (`oneTime`, `regular`, `chooseDates`), while POL-006's 2026-10-30 decision defines four primary types: Single Walk, Temporary Booking, Monthly Package, and Daily Continuous. The current enum and downstream schedule payload are also consumed by login/profile/dog selection/booking review. Do not simply relabel the three cards or change enum values in isolation; first map all consumers and confirm canonical payload values with Admin/Partner/backend.
+- Morning/Afternoon/Evening/Night remain time-slot periods, not booking types. Extra Walk/Reschedule remain features, not top-level types.
+- The booking-type screen still requires a generated-localization migration and a full premium UI/empty/error/loading/accessibility/visual audit.
+- GitHub source write succeeded; Flutter format/analyze/tests/build, generated-code validation, and visual QA have not been run. Do not mark this checkpoint as CI-verified.
