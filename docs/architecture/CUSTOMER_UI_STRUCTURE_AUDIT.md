@@ -379,3 +379,30 @@ Safe implementation sequence: (A) freeze cross-app schema and legacy compatibili
 - Added unit tests for 28-day inclusive calculations, year rollover, leap-year February, both month-end candidate policies, negative cycle index, date-only normalization and Temporary Booking range validation.
 - These files have been committed, but tests have **not** been executed in this environment. No test PASS, Flutter analyze/build or visual QA claim is made.
 - Before connecting Daily Continuous cycle calculations to UI/API, Founder/Product must select the month-end policy and the cross-app API contract must define date-only representation and cycle boundaries.
+
+
+## Legacy booking contract compatibility audit (2026-10-30)
+
+Source files reviewed: `choose_walk_screen.dart`, `dog_selection_screen.dart`, `pickup_address_selection_screen.dart`, and `booking_confirmation_screen.dart`.
+
+### Current screen-to-screen contract
+
+- Booking type is still the legacy enum: `oneTime`, `regular`, `chooseDates`.
+- Dog Selection forwards the enum and schedule map unchanged; it currently selects one saved dog and passes its `dogId`/details onward.
+- Pickup Address Selection forwards the same enum/schedule and a saved-address map containing `addressId`, address text fields, city and PIN. It does not currently provide GPS coordinates or a verified service-zone result.
+- Booking Confirmation consumes legacy schedule flags and keys: `isImmediate`, `isRegular`, `isChooseDates`, `frequency`, `walksPerWeek`, `walkCount`, `walks`, `selectedDates`, and `dateSchedules`.
+
+### Current Firestore write observed
+
+- Customer screen creates a client-generated document ID in `bookings` and writes the booking document directly.
+- Current identifiers include `bookingId`, `customerId`, `dogId`, `pickupAddressId`, `bookingPlan`, and `serviceType`.
+- Current status begins as `pending`; `walkerId` is null. This write does not prove availability, payment, server quote or Walker assignment.
+- Legacy mapping currently writes `bookingPlan`: `one_time`, `regular`, or `customize`; `serviceType`: `temporary_walk`, `regular_walk`, or `custom_walk`.
+- Regular mode writes `frequency: daily`, `walksPerWeek: 7`, `walksPerDay`, and `dailyWalkTemplate`. Choose Dates writes `selectedDates` and `dateSchedules`. No explicit Temporary Booking start/end range or Monthly Package 28-day term is currently represented by the legacy flow.
+
+### Compatibility decision
+
+- Do not rename enum values, rewrite Firestore fields, or add four new booking types in this UI-only pass.
+- The four-type UI cannot safely be connected by label changes alone. Before implementation, define a versioned shared contract for Customer, Admin, Partner and backend covering booking type IDs, date-only values, schedule arrays, booking lifecycle, quote/payment state, and backward-read behavior for existing documents.
+- GPS/map pickup coordinates and server-derived zone eligibility are not yet supplied by the current saved-address handoff; keep zone validation and availability server-authoritative in the later backend phase.
+- This is a source inspection, not a backend contract approval or runtime test. No Firebase/backend changes were made.
