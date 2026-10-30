@@ -332,3 +332,18 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 - Morning/Afternoon/Evening/Night remain time-slot periods, not booking types. Extra Walk/Reschedule remain features, not top-level types.
 - The booking-type screen still requires a generated-localization migration and a full premium UI/empty/error/loading/accessibility/visual audit.
 - GitHub source write succeeded; Flutter format/analyze/tests/build, generated-code validation, and visual QA have not been run. Do not mark this checkpoint as CI-verified.
+
+
+
+### Four-type booking contract audit (2026-10-30)
+
+- Audited current Customer path: `ChooseWalkScreen` enum `oneTime/regular/chooseDates` → `DogSelectionScreen` → pickup address → booking review.
+- Legacy UI labels are Walk Now / Daily Walk / Choose Dates. Schedule payload includes `isImmediate`, `isRegular`, `isChooseDates`, `frequency: One-Time/Daily/Custom`, and `walksPerWeek: 7`.
+- Booking review maps these to Firestore `bookingPlan: one_time/regular/customize` and `serviceType: temporary_walk/regular_walk/custom_walk`. The Regular path writes `frequency: daily` and `walksPerWeek: 7`; this does not distinguish 28-day Monthly Package from calendar-anchored Daily Continuous.
+- Temporary Booking currently uses a list of selected dates rather than an explicit finite start/end date range. Monthly Package's exact 28-day term, Daily Continuous cycle anchor, and manual weekly/monthly billing preference are not represented as distinct booking types.
+- The review screen directly writes a pending Firestore booking document. This audit found no proof of server-side availability/quote/payment/idempotency integration.
+- Searched GitHub code for the legacy booking fields in the known Admin, Partner and Firebase repositories; no matching code results were returned, so cross-app compatibility could not be verified. This is not proof that no consumers exist.
+- Proposed canonical values for cross-app contract discussion: `single_walk`, `temporary_booking`, `monthly_package`, `daily_continuous`. These are proposals only and must not be emitted to production until Admin/Partner/backend owners approve the shared schema and compatibility reader.
+- No booking-type enum or Firestore field was renamed in this checkpoint; avoid a breaking change until the shared contract is frozen.
+- Detailed audit and proposed migration sequence appended to Notion POL-006. Founder approval remains required. No backend/Firebase change made.
+- Validation: source was read and call sites traced; Flutter format/analyze/tests/build, backend contract tests and visual QA have not been run. CI is not marked passed.
