@@ -1,0 +1,645 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.dojowalk.invalid/booking/v1/booking.schema.json",
+  "title": "DOJO WALK Canonical Booking v1 (Draft)",
+  "description": "Review-only proposal. Not approved for production writes or Firestore Rules.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "bookingId",
+    "bookingType",
+    "customerId",
+    "dogId",
+    "pickup",
+    "schedule",
+    "lifecycle",
+    "createdAt",
+    "updatedAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "bookingId": {
+      "$ref": "#/$defs/id"
+    },
+    "bookingType": {
+      "enum": [
+        "single_walk",
+        "temporary_booking",
+        "monthly_package",
+        "daily_continuous"
+      ]
+    },
+    "customerId": {
+      "$ref": "#/$defs/id"
+    },
+    "dogId": {
+      "$ref": "#/$defs/id"
+    },
+    "pickup": {
+      "$ref": "#/$defs/pickup"
+    },
+    "serviceZone": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/serviceZone"
+        }
+      ],
+      "description": "Server-owned resolution only. Client must not submit an authoritative zone."
+    },
+    "schedule": {
+      "$ref": "#/$defs/schedule"
+    },
+    "lifecycle": {
+      "$ref": "#/$defs/lifecycle"
+    },
+    "quote": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/quote"
+        }
+      ],
+      "description": "Server-generated authoritative quote only."
+    },
+    "payment": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/payment"
+        }
+      ],
+      "description": "Server/provider-verified payment state only; manual collection, no auto-pay."
+    },
+    "assignment": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/assignment"
+        }
+      ],
+      "description": "Server-owned assignment evidence only."
+    },
+    "createdAt": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "updatedAt": {
+      "$ref": "#/$defs/timestamp"
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "time": {
+      "type": "string",
+      "pattern": "^(?:[01]\\d|2[0-3]):[0-5]\\d$"
+    },
+    "timestamp": {
+      "description": "Firestore timestamp or equivalent server timestamp in the eventual storage/API binding.",
+      "type": [
+        "string",
+        "object"
+      ]
+    },
+    "pickup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "formattedAddress"
+      ],
+      "properties": {
+        "addressId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 128
+        },
+        "formattedAddress": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "latitude": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": -90,
+          "maximum": 90
+        },
+        "longitude": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": -180,
+          "maximum": 180
+        },
+        "locationAccuracyMeters": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "capturedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "source": {
+          "enum": [
+            "gps",
+            "address_search",
+            "map_pin",
+            "saved_address",
+            "unknown"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "latitude": {
+                "type": "number"
+              },
+              "longitude": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "latitude",
+              "longitude"
+            ]
+          },
+          "then": {
+            "properties": {
+              "locationAccuracyMeters": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "locationAccuracyMeters"
+            ]
+          }
+        }
+      ]
+    },
+    "serviceZone": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "zoneId",
+        "resolutionStatus",
+        "catalogueVersion",
+        "resolvedAt"
+      ],
+      "properties": {
+        "zoneId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 128
+        },
+        "resolutionStatus": {
+          "enum": [
+            "resolved",
+            "outside_service_area",
+            "pending",
+            "failed"
+          ]
+        },
+        "catalogueVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "resolvedAt": {
+          "$ref": "#/$defs/timestamp"
+        }
+      }
+    },
+    "walk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "slot",
+        "preferredTime",
+        "durationMinutes"
+      ],
+      "properties": {
+        "slot": {
+          "enum": [
+            "morning",
+            "afternoon",
+            "evening",
+            "night"
+          ]
+        },
+        "preferredTime": {
+          "$ref": "#/$defs/time"
+        },
+        "durationMinutes": {
+          "type": "integer",
+          "minimum": 20,
+          "maximum": 60
+        }
+      }
+    },
+    "schedule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "timeZone",
+        "startDate",
+        "walksPerDay",
+        "walks"
+      ],
+      "properties": {
+        "timeZone": {
+          "const": "Asia/Kolkata"
+        },
+        "startDate": {
+          "$ref": "#/$defs/date"
+        },
+        "endDate": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/date"
+            }
+          ]
+        },
+        "selectedDates": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/date"
+          }
+        },
+        "walksPerDay": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4
+        },
+        "walks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/walk"
+          }
+        },
+        "cyclePolicyId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "Must reference an approved policy; D-04 is currently unresolved."
+        },
+        "paymentCadence": {
+          "enum": [
+            "weekly_manual",
+            "monthly_manual"
+          ],
+          "description": "Only where enabled by approved policy; no auto-pay."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "bookingType": {
+                "const": "single_walk"
+              }
+            }
+          },
+          "then": {}
+        }
+      ]
+    },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bookingStatus",
+        "paymentStatus",
+        "assignmentStatus",
+        "walkStatus"
+      ],
+      "properties": {
+        "bookingStatus": {
+          "enum": [
+            "request_received",
+            "validating",
+            "availability_confirmed",
+            "quote_ready",
+            "awaiting_payment",
+            "confirmed",
+            "in_service",
+            "completed",
+            "cancelled",
+            "needs_review",
+            "unknown"
+          ]
+        },
+        "paymentStatus": {
+          "enum": [
+            "not_started",
+            "quote_pending",
+            "awaiting_payment",
+            "payment_pending_verification",
+            "paid",
+            "failed",
+            "refunded",
+            "partially_refunded",
+            "unknown"
+          ]
+        },
+        "assignmentStatus": {
+          "enum": [
+            "not_started",
+            "searching",
+            "offered",
+            "accepted",
+            "assigned",
+            "reassignment_required",
+            "unassigned",
+            "unknown"
+          ]
+        },
+        "walkStatus": {
+          "enum": [
+            "not_started",
+            "scheduled",
+            "walker_en_route",
+            "in_progress",
+            "handover_pending",
+            "completed",
+            "interrupted",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "quote": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "quoteId",
+        "amountMinor",
+        "currency",
+        "pricingPolicyVersion",
+        "expiresAt",
+        "status"
+      ],
+      "properties": {
+        "quoteId": {
+          "$ref": "#/$defs/id"
+        },
+        "amountMinor": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "currency": {
+          "const": "INR"
+        },
+        "pricingPolicyVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "expiresAt": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "status": {
+          "enum": [
+            "ready",
+            "expired",
+            "withdrawn"
+          ]
+        }
+      }
+    },
+    "payment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "paymentStatus",
+        "collectionMode"
+      ],
+      "properties": {
+        "paymentStatus": {
+          "enum": [
+            "awaiting_payment",
+            "pending_verification",
+            "paid",
+            "failed",
+            "refunded",
+            "partially_refunded"
+          ]
+        },
+        "collectionMode": {
+          "enum": [
+            "manual"
+          ]
+        },
+        "provider": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 128
+        },
+        "providerReference": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 256
+        },
+        "verifiedAt": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/timestamp"
+            }
+          ]
+        }
+      }
+    },
+    "assignment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "walkerId",
+        "assignmentStatus",
+        "acceptedAt"
+      ],
+      "properties": {
+        "walkerId": {
+          "$ref": "#/$defs/id"
+        },
+        "assignmentStatus": {
+          "enum": [
+            "offered",
+            "accepted",
+            "assigned",
+            "reassigned"
+          ]
+        },
+        "acceptedAt": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/timestamp"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "bookingType": {
+            "const": "single_walk"
+          }
+        },
+        "required": [
+          "bookingType"
+        ]
+      },
+      "then": {
+        "properties": {
+          "schedule": {
+            "properties": {
+              "walksPerDay": {
+                "const": 1
+              },
+              "walks": {
+                "minItems": 1,
+                "maxItems": 1
+              },
+              "selectedDates": {
+                "maxItems": 1
+              },
+              "endDate": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "bookingType": {
+            "const": "temporary_booking"
+          }
+        },
+        "required": [
+          "bookingType"
+        ]
+      },
+      "then": {
+        "properties": {
+          "schedule": {
+            "required": [
+              "startDate",
+              "endDate",
+              "selectedDates"
+            ],
+            "properties": {
+              "endDate": {
+                "$ref": "#/$defs/date"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "bookingType": {
+            "const": "monthly_package"
+          }
+        },
+        "required": [
+          "bookingType"
+        ]
+      },
+      "then": {
+        "properties": {
+          "schedule": {
+            "required": [
+              "startDate",
+              "endDate"
+            ],
+            "properties": {
+              "endDate": {
+                "$ref": "#/$defs/date"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "bookingType": {
+            "const": "daily_continuous"
+          }
+        },
+        "required": [
+          "bookingType"
+        ]
+      },
+      "then": {
+        "properties": {
+          "schedule": {
+            "required": [
+              "startDate",
+              "cyclePolicyId",
+              "paymentCadence"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
