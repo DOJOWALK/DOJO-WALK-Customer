@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 import '../../auth/screens/phone_login_screen.dart';
 import '../../profile/screens/name_setup_screen.dart';
-import '../services/walk_pricing_service.dart';
 import 'dog_selection_screen.dart';
 import '../../../app/theme.dart';
 import '../../../l10n/app_localizations.dart';
@@ -48,7 +47,6 @@ class _WalkSlot {
               : hour < 21
                   ? 'Evening'
                   : 'Night',
-      'price': WalkPricingService.priceForDuration(durationMinutes),
     };
   }
 }
@@ -151,26 +149,6 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
     final period = time.period == DayPeriod.am ? 'AM' : 'PM';
 
     return '$hour:$minute $period';
-  }
-
-  int? _slotPrice(_WalkSlot slot) {
-    return WalkPricingService.priceForDuration(
-      slot.durationMinutes,
-    );
-  }
-
-  int? _priceForSlots(List<_WalkSlot> slots) {
-    var total = 0;
-
-    for (final slot in slots) {
-      final price = _slotPrice(slot);
-
-      if (price == null) return null;
-
-      total += price;
-    }
-
-    return total;
   }
 
   int get _totalDurationMinutes {
@@ -686,10 +664,8 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
           {
             'time': 'ASAP',
             'duration': slot.durationMinutes,
-            'price': _slotPrice(slot),
           },
         ],
-        'dailyPrice': _slotPrice(slot),
       };
     }
 
@@ -721,7 +697,6 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
         'time': _formatTime(firstSlot.time),
         'duration': firstSlot.durationMinutes,
         'walks': _serializeSlots(slots),
-        'dailyPrice': _priceForSlots(slots),
       };
     }
 
@@ -738,7 +713,6 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
         'dateFormatted': _formatDate(date),
         'walkCount': slots.length,
         'walks': _serializeSlots(slots),
-        'dailyPrice': _priceForSlots(slots),
       });
     }
 
@@ -758,7 +732,6 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
       'walkCount': firstDaySlots.length,
       'walks': _serializeSlots(firstDaySlots),
       'dateSchedules': dateSchedules,
-      'dailyPrice': _priceForSlots(firstDaySlots),
     };
   }
 
@@ -952,7 +925,13 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
           const SizedBox(height: 14),
           _durationSelector(slot),
           const SizedBox(height: 10),
-          _priceLine(_slotPrice(slot)),
+          Text(
+            AppLocalizations.of(context).priceAvailabilityDisclosure,
+            style: TextStyle(
+              color: bookingMuted,
+              height: 1.4,
+            ),
+          ),
         ],
       );
     }
@@ -1045,12 +1024,6 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
           '$_totalDurationMinutes ${AppLocalizations.of(context).minutesUnit}',
         ),
         const SizedBox(height: 8),
-        _detailLine(
-          _isRegular ? AppLocalizations.of(context).estimatedDailyTotal : AppLocalizations.of(context).estimatedDateTotal,
-          _priceForSlots(_currentSlots) == null
-              ? AppLocalizations.of(context).priceToBeConfirmed
-              : '₹${_priceForSlots(_currentSlots)}',
-        ),
         if (_isRegular) ...[
           const SizedBox(height: 12),
           _detailLine(
@@ -1170,28 +1143,8 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
           ),
           const SizedBox(height: 8),
           _durationSelector(slot),
-          _priceLine(_slotPrice(slot)),
         ],
       ),
-    );
-  }
-
-  Widget _priceLine(int? price) {
-    return Row(
-      children: [
-        Text(
-          AppLocalizations.of(context).estimatedPrice,
-          style: TextStyle(color: bookingMuted),
-        ),
-        const Spacer(),
-        Text(
-          price == null ? AppLocalizations.of(context).toBeConfirmed : '₹$price',
-          style: const TextStyle(
-            color: bookingOrange,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
     );
   }
 
