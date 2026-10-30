@@ -7,7 +7,6 @@ import '../../addresses/screens/address_form_screen.dart';
 import 'choose_walk_screen.dart';
 import 'booking_confirmation_screen.dart';
 import '../../../app/theme.dart';
-import '../../../app/locale_controller.dart';
 import '../../../l10n/app_localizations.dart';
 
 const Color pickupOrange = DojoWalkTheme.primary;
@@ -41,22 +40,6 @@ class _PickupAddressSelectionScreenState
 
   bool _isContinuing = false;
   bool _isOpeningForm = false;
-
-  @override
-  void initState() {
-    super.initState();
-    appLocale.addListener(_onLocaleChanged);
-  }
-
-  @override
-  void dispose() {
-    appLocale.removeListener(_onLocaleChanged);
-    super.dispose();
-  }
-
-  void _onLocaleChanged() {
-    if (mounted) setState(() {});
-  }
 
   String _addressText(SavedAddress address) {
     final parts = <String>[
@@ -389,8 +372,8 @@ class _PickupAddressSelectionScreenState
                                                             BorderRadius
                                                                 .circular(8),
                                                       ),
-                                                      child: const Text(
-                                                        'Default',
+                                                      child: Text(
+                                                        AppLocalizations.of(context).pickupDefaultBadge,
                                                         style: TextStyle(
                                                           fontSize: 10,
                                                           color: Color(
