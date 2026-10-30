@@ -142,6 +142,30 @@ class _BookingConfirmationScreenState
     return [];
   }
 
+  List<Map<String, dynamic>> _walksForDay(Map<String, dynamic> day) {
+    final raw = day['walks'];
+
+    if (raw is List) {
+      return raw
+          .whereType<Map>()
+          .map((item) => Map<String, dynamic>.from(item))
+          .toList();
+    }
+
+    // Compatibility fallback for older date-schedule payloads.
+    final time = day['time'];
+    if (time != null && time.toString().trim().isNotEmpty) {
+      return [
+        {
+          'time': time,
+          'duration': day['duration'] ?? widget.schedule['duration'] ?? 30,
+        },
+      ];
+    }
+
+    return [];
+  }
+
   int _duration(Map<String, dynamic> walk) {
     final value = walk['duration'];
 
