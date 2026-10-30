@@ -366,3 +366,16 @@ Shared premium UI: accessible selected booking cards, responsive schedule editor
 Localization: add generated ARB keys in EN/HI/BN for titles, descriptions, term/billing explanations, date/cycle labels, validation and status messages; regenerate localization and verify key parity. Locale-aware date formatting required. Other 20 Indian languages remain pending.
 
 Safe implementation sequence: (A) freeze cross-app schema and legacy compatibility, (B) implement/test pure date-cycle calculations including leap years and month-end cases, (C) build four-card UI and forms without changing Firestore writes, (D) migrate localization, (E) connect approved server APIs, (F) run Flutter analyze/build, widget/integration/security/E2E and visual QA, (G) record evidence. Blueprint only; no four-type UI/date-cycle code changed in this checkpoint. Legacy enum/payload remain unchanged.
+
+
+## Booking date calculation foundation (2026-10-30)
+
+- Added isolated pure-Dart date rules at `lib/features/booking/models/booking_date_calculator.dart`; no booking screen, Firestore payload, API contract or payment flow is wired to it.
+- Monthly Package end date is calculated inclusively as start date + 27 calendar days (28 days total); date-only normalization removes time-of-day from comparisons.
+- Temporary Booking validation requires an end date on/after the start date, at least one selected date, and every selected date within the inclusive range.
+- Daily Continuous month-end behavior is deliberately parameterized and remains a product decision, not a production default:
+  - `preserveOriginalAnchorDay`: Jan 31 → Feb 28/29 → Mar 31.
+  - `rollForwardFromPreviousCycle`: Jan 31 → Feb 28/29 → Mar 28/29.
+- Added unit tests for 28-day inclusive calculations, year rollover, leap-year February, both month-end candidate policies, negative cycle index, date-only normalization and Temporary Booking range validation.
+- These files have been committed, but tests have **not** been executed in this environment. No test PASS, Flutter analyze/build or visual QA claim is made.
+- Before connecting Daily Continuous cycle calculations to UI/API, Founder/Product must select the month-end policy and the cross-app API contract must define date-only representation and cycle boundaries.
