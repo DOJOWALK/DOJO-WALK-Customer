@@ -365,5 +365,7 @@
   "bookingConfirmationNotSpecified": "উল্লেখ করা হয়নি",
   "bookingConfirmationGenderLabel": "লিঙ্গ",
   "bookingConfirmationPickupLocation": "পিকআপের স্থান",
-  "bookingConfirmationSubmitRequest": "বুকিংয়ের অনুরোধ জমা দিন"
+  "bookingConfirmationSubmitRequest": "বুকিংয়ের অনুরোধ জমা দিন",
+  "pickupDefaultBadge": "ডিফল্ট",
+  "pickupAddressDetailsMissing": "ঠিকানার বিবরণ পাওয়া যায়নি"
 }
