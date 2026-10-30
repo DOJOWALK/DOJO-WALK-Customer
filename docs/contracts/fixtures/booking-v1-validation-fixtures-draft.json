@@ -1,0 +1,315 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DOJO WALK Canonical Booking v1 Validation Fixtures (Draft)",
+  "status": "DRAFT_NOT_EXECUTED",
+  "syntheticOnly": true,
+  "notes": [
+    "Examples are synthetic and for contract review only.",
+    "These fixtures have not been run through a JSON Schema validator or Firebase Emulator.",
+    "JSON Schema structural acceptance does not imply business eligibility, availability, payment, assignment or authorization.",
+    "Timestamp strings are illustrative serialization; Firestore storage binding remains unresolved."
+  ],
+  "positive": {
+    "single_walk": {
+      "schemaVersion": 1,
+      "bookingId": "fixture_single_001",
+      "bookingType": "single_walk",
+      "customerId": "customer_001",
+      "dogId": "dog_001",
+      "pickup": {
+        "addressId": "address_001",
+        "formattedAddress": "Synthetic Test Address, India",
+        "latitude": 28.6,
+        "longitude": 77.4,
+        "locationAccuracyMeters": 12,
+        "capturedAt": "2026-10-30T06:00:00+05:30",
+        "source": "gps"
+      },
+      "schedule": {
+        "timeZone": "Asia/Kolkata",
+        "startDate": "2026-11-02",
+        "walksPerDay": 1,
+        "walks": [
+          {
+            "slot": "morning",
+            "preferredTime": "06:30",
+            "durationMinutes": 30
+          }
+        ]
+      },
+      "lifecycle": {
+        "bookingStatus": "request_received",
+        "paymentStatus": "not_started",
+        "assignmentStatus": "not_started",
+        "walkStatus": "not_started"
+      },
+      "quote": null,
+      "payment": null,
+      "assignment": null,
+      "createdAt": "2026-10-30T00:00:00Z",
+      "updatedAt": "2026-10-30T00:00:00Z"
+    },
+    "temporary_booking": {
+      "schemaVersion": 1,
+      "bookingId": "fixture_temporary_001",
+      "bookingType": "temporary_booking",
+      "customerId": "customer_001",
+      "dogId": "dog_001",
+      "pickup": {
+        "addressId": "address_001",
+        "formattedAddress": "Synthetic Test Address, India",
+        "source": "saved_address"
+      },
+      "schedule": {
+        "timeZone": "Asia/Kolkata",
+        "startDate": "2026-11-02",
+        "endDate": "2026-11-06",
+        "selectedDates": [
+          "2026-11-02",
+          "2026-11-04",
+          "2026-11-06"
+        ],
+        "walksPerDay": 1,
+        "walks": [
+          {
+            "slot": "evening",
+            "preferredTime": "18:00",
+            "durationMinutes": 30
+          }
+        ]
+      },
+      "lifecycle": {
+        "bookingStatus": "request_received",
+        "paymentStatus": "not_started",
+        "assignmentStatus": "not_started",
+        "walkStatus": "not_started"
+      },
+      "quote": null,
+      "payment": null,
+      "assignment": null,
+      "createdAt": "2026-10-30T00:00:00Z",
+      "updatedAt": "2026-10-30T00:00:00Z"
+    },
+    "monthly_package": {
+      "schemaVersion": 1,
+      "bookingId": "fixture_monthly_001",
+      "bookingType": "monthly_package",
+      "customerId": "customer_001",
+      "dogId": "dog_001",
+      "pickup": {
+        "formattedAddress": "Synthetic Test Address, India",
+        "latitude": 28.6,
+        "longitude": 77.4,
+        "locationAccuracyMeters": 18,
+        "source": "map_pin"
+      },
+      "schedule": {
+        "timeZone": "Asia/Kolkata",
+        "startDate": "2026-11-02",
+        "endDate": "2026-11-29",
+        "walksPerDay": 1,
+        "walks": [
+          {
+            "slot": "morning",
+            "preferredTime": "07:00",
+            "durationMinutes": 30
+          }
+        ]
+      },
+      "lifecycle": {
+        "bookingStatus": "request_received",
+        "paymentStatus": "not_started",
+        "assignmentStatus": "not_started",
+        "walkStatus": "not_started"
+      },
+      "quote": null,
+      "payment": null,
+      "assignment": null,
+      "createdAt": "2026-10-30T00:00:00Z",
+      "updatedAt": "2026-10-30T00:00:00Z"
+    },
+    "daily_continuous": {
+      "schemaVersion": 1,
+      "bookingId": "fixture_daily_001",
+      "bookingType": "daily_continuous",
+      "customerId": "customer_001",
+      "dogId": "dog_001",
+      "pickup": {
+        "addressId": "address_001",
+        "formattedAddress": "Synthetic Test Address, India",
+        "source": "address_search"
+      },
+      "schedule": {
+        "timeZone": "Asia/Kolkata",
+        "startDate": "2026-11-02",
+        "walksPerDay": 1,
+        "walks": [
+          {
+            "slot": "morning",
+            "preferredTime": "06:30",
+            "durationMinutes": 30
+          }
+        ],
+        "cyclePolicyId": "PENDING_APPROVAL",
+        "paymentCadence": "monthly_manual"
+      },
+      "lifecycle": {
+        "bookingStatus": "request_received",
+        "paymentStatus": "not_started",
+        "assignmentStatus": "not_started",
+        "walkStatus": "not_started"
+      },
+      "quote": null,
+      "payment": null,
+      "assignment": null,
+      "createdAt": "2026-10-30T00:00:00Z",
+      "updatedAt": "2026-10-30T00:00:00Z"
+    }
+  },
+  "negative": [
+    {
+      "id": "N01",
+      "name": "Unsupported schema version",
+      "mutation": "Set schemaVersion to 2",
+      "expected": "Reject: schemaVersion const mismatch",
+      "layer": "JSON Schema"
+    },
+    {
+      "id": "N02",
+      "name": "Unknown booking type",
+      "mutation": "Set bookingType to weekly_plan",
+      "expected": "Reject: enum mismatch",
+      "layer": "JSON Schema"
+    },
+    {
+      "id": "N03",
+      "name": "Missing customer ID",
+      "mutation": "Remove customerId",
+      "expected": "Reject: required property missing",
+      "layer": "JSON Schema"
+    },
+    {
+      "id": "N04",
+      "name": "Invalid latitude",
+      "mutation": "Set pickup.latitude to 190",
+      "expected": "Reject: numeric range",
+      "layer": "JSON Schema"
+    },
+    {
+      "id": "N05",
+      "name": "Coordinates without accuracy",
+      "mutation": "Include latitude and longitude but omit locationAccuracyMeters",
+      "expected": "Reject: conditional pickup requirement",
+      "layer": "JSON Schema"
+    },
+    {
+      "id": "N06",
+      "name": "Invalid time format",
+      "mutation": "Set preferredTime to 6:30 AM",
+      "expected": "Reject: HH:mm pattern",
+      "layer": "JSON Schema"
+    },
+    {
+      "id": "N07",
+      "name": "Duration below minimum",
+      "mutation": "Set durationMinutes to 15",
+      "expected": "Reject: duration minimum",
+      "layer": "JSON Schema"
+    },
+    {
+      "id": "N08",
+      "name": "Extra unknown top-level field",
+      "mutation": "Add clientCalculatedPrice",
+      "expected": "Reject: additionalProperties false",
+      "layer": "JSON Schema"
+    },
+    {
+      "id": "N09",
+      "name": "Temporary booking missing end date",
+      "mutation": "Remove schedule.endDate",
+      "expected": "Reject: type-specific required property",
+      "layer": "JSON Schema"
+    },
+    {
+      "id": "N10",
+      "name": "Monthly booking missing end date",
+      "mutation": "Remove schedule.endDate",
+      "expected": "Reject: type-specific required property",
+      "layer": "JSON Schema"
+    },
+    {
+      "id": "N11",
+      "name": "Daily continuous missing cycle policy",
+      "mutation": "Remove schedule.cyclePolicyId",
+      "expected": "Reject: type-specific required property",
+      "layer": "JSON Schema"
+    },
+    {
+      "id": "N12",
+      "name": "Daily continuous auto-pay",
+      "mutation": "Set paymentCadence to auto_pay",
+      "expected": "Reject: paymentCadence enum; no auto-pay",
+      "layer": "JSON Schema"
+    },
+    {
+      "id": "N13",
+      "name": "Temporary selected date outside range",
+      "mutation": "Set one selectedDates value before startDate or after endDate",
+      "expected": "Reject by semantic validator; JSON Schema alone does not compare dates",
+      "layer": "Domain validation"
+    },
+    {
+      "id": "N14",
+      "name": "Monthly package wrong term",
+      "mutation": "Set endDate to startDate + 28 days",
+      "expected": "Reject by semantic validator: inclusive 28-day term is start + 27 days",
+      "layer": "Domain validation"
+    },
+    {
+      "id": "N15",
+      "name": "Duplicate selected date",
+      "mutation": "Duplicate a selectedDates value",
+      "expected": "Reject by uniqueItems where selectedDates is present",
+      "layer": "JSON Schema"
+    },
+    {
+      "id": "N16",
+      "name": "Client forges paid state",
+      "mutation": "Client submits lifecycle.paymentStatus=paid",
+      "expected": "Reject at authorization/write boundary; schema enum alone cannot establish trusted payment",
+      "layer": "Security/backend"
+    },
+    {
+      "id": "N17",
+      "name": "Client forges Walker assignment",
+      "mutation": "Client submits assignment with arbitrary walkerId",
+      "expected": "Reject at authorization/write boundary; backend assignment evidence required",
+      "layer": "Security/backend"
+    },
+    {
+      "id": "N18",
+      "name": "Client supplies service zone",
+      "mutation": "Client submits serviceZoneId or a fabricated resolved zone",
+      "expected": "Reject client write; backend alone resolves active verified polygon",
+      "layer": "Security/backend"
+    },
+    {
+      "id": "N19",
+      "name": "Dog belongs to another customer",
+      "mutation": "Use a dogId not owned by authenticated customer",
+      "expected": "Reject ownership check",
+      "layer": "Security/backend"
+    },
+    {
+      "id": "N20",
+      "name": "GPS accuracy too poor or stale",
+      "mutation": "Submit coordinate evidence outside approved freshness/accuracy threshold",
+      "expected": "Reject or request recapture according to approved policy; thresholds unresolved",
+      "layer": "Domain/security policy"
+    }
+  ],
+  "legacyCompatibility": {
+    "rule": "Do not validate legacy records against this canonical schema.",
+    "expectedAdapterBehavior": "Preserve raw record, classify conservatively, retain unknown fields and never infer canonical type/payment/zone/assignment without trusted evidence."
+  }
+}
