@@ -210,16 +210,36 @@
         {
           "anyOf": [
             {
+              "properties": {
+                "addressId": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
               "required": [
                 "addressId"
               ]
             },
             {
+              "properties": {
+                "formattedAddress": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
               "required": [
                 "formattedAddress"
               ]
             },
             {
+              "properties": {
+                "latitude": {
+                  "type": "number"
+                },
+                "longitude": {
+                  "type": "number"
+                }
+              },
               "required": [
                 "latitude",
                 "longitude"
