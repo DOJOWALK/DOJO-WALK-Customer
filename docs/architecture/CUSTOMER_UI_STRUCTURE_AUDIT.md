@@ -347,3 +347,22 @@ Automated tests, Flutter analyze/build and visual QA are not confirmed by this d
 - No booking-type enum or Firestore field was renamed in this checkpoint; avoid a breaking change until the shared contract is frozen.
 - Detailed audit and proposed migration sequence appended to Notion POL-006. Founder approval remains required. No backend/Firebase change made.
 - Validation: source was read and call sites traced; Flutter format/analyze/tests/build, backend contract tests and visual QA have not been run. CI is not marked passed.
+
+
+
+### Four booking types — Customer UI blueprint (2026-10-30)
+
+Blueprint recorded in Notion POL-006. Shared flow: four booking cards → dog → pickup location (GPS/search/map/saved; no customer zone selector) → type-specific schedule → trusted availability → server quote → manual payment → server confirmation/assignment. Do not show price/payment as functional until a trusted server quote and availability response exist.
+
+Type-specific form:
+- Single Walk: one service date or immediate request, one time/ASAP choice, one duration; exactly one walk.
+- Temporary Booking: explicit start/end date range, selected service days, time slots and walks/day; validate selected dates/days within range.
+- Monthly Package: start date and calculated inclusive 28-day term (end = start + 27 days); weekly schedule and payment choice only where approved/enabled.
+- Daily Continuous: start-date-anchored calendar cycle preview, recurring schedule and Weekly Manual or Monthly Manual payment; no Auto-Pay. Month-end anchoring rule (29th–31st) requires explicit contract decision.
+- Time-of-day periods remain schedule slots, not booking types.
+
+Shared premium UI: accessible selected booking cards, responsive schedule editor, date-range/28-day/cycle preview, inline validation, sticky mobile Continue action, and loading/unavailable/location-uncertain/quote-expired/network-retry/submission-pending states. Keep visual styling aligned with DOJO WALK theme.
+
+Localization: add generated ARB keys in EN/HI/BN for titles, descriptions, term/billing explanations, date/cycle labels, validation and status messages; regenerate localization and verify key parity. Locale-aware date formatting required. Other 20 Indian languages remain pending.
+
+Safe implementation sequence: (A) freeze cross-app schema and legacy compatibility, (B) implement/test pure date-cycle calculations including leap years and month-end cases, (C) build four-card UI and forms without changing Firestore writes, (D) migrate localization, (E) connect approved server APIs, (F) run Flutter analyze/build, widget/integration/security/E2E and visual QA, (G) record evidence. Blueprint only; no four-type UI/date-cycle code changed in this checkpoint. Legacy enum/payload remain unchanged.
