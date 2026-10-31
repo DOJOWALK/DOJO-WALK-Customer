@@ -19,7 +19,15 @@ const Color dojoText = DojoWalkTheme.text;
 const Color dojoMuted = DojoWalkTheme.mutedText;
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({
+    super.key,
+    this.isSignedIn,
+    this.loadAddresses,
+  });
+
+  /// Optional seams for deterministic retry tests; production uses Firebase.
+  final bool Function()? isSignedIn;
+  final Future<List<SavedAddress>> Function()? loadAddresses;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -27,6 +35,12 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final AddressService _addressService = AddressService();
+
+  bool get _isSignedIn =>
+      widget.isSignedIn?.call() ?? FirebaseAuth.instance.currentUser != null;
+
+  Future<List<SavedAddress>> _loadAddresses() =>
+      widget.loadAddresses?.call() ?? _addressService.getAddresses();
 
   SavedAddress? _selectedSavedAddress;
   String _selectedAddress = 'Select your location';
@@ -82,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     }
 
-    if (FirebaseAuth.instance.currentUser == null) {
+    if (!_isSignedIn) {
       if (mounted) {
         setState(() {
           _loadingAddress = false;
@@ -93,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     try {
-      final addresses = await _addressService.getAddresses();
+      final addresses = await _loadAddresses();
 
       if (!mounted) return;
 
@@ -138,7 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openAddressForm() async {
-    if (FirebaseAuth.instance.currentUser == null) {
+    if (!_isSignedIn) {
       _showMessage(
         AppLocalizations.of(context).homeLoginManageAddresses,
       );
@@ -166,7 +180,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openAddressSelector() async {
-    if (FirebaseAuth.instance.currentUser == null) {
+    if (!_isSignedIn) {
       _showMessage(
         AppLocalizations.of(context).homeLoginSelectAddress,
       );
