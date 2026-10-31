@@ -67,7 +67,7 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
 
   WalkBookingType? _selectedType;
 
-  DateTime _selectedDate = DateUtils.dateOnly(_now());
+  late DateTime _selectedDate = DateUtils.dateOnly(_now());
 
   final Set<DateTime> _selectedDates = {};
 
