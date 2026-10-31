@@ -266,6 +266,13 @@
       "layer": "Domain validation"
     },
     {
+      "id": "N21",
+      "name": "Monthly package starts on a month-end day with no matching day next month",
+      "mutation": "Set startDate to 2027-01-31 and endDate to 2027-02-27",
+      "expected": "Block with monthly_month_end_policy_required until Founder chooses month-end behavior",
+      "layer": "Founder policy decision"
+    },
+    {
       "id": "N15",
       "name": "Duplicate selected date",
       "mutation": "Duplicate a selectedDates value",
