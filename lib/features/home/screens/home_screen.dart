@@ -556,7 +556,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
-                                  _loadingAddress
+                                  _loadingAddress && _selectedSavedAddress == null
                                       ? AppLocalizations.of(context).homeLoadingSavedAddress
                                       : _selectedAddress,
                                   maxLines: 2,
@@ -595,7 +595,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         TextButton.icon(
                           onPressed: _loadDefaultAddress,
                           icon: const Icon(Icons.refresh_rounded, size: 17),
-                          label: Text(AppLocalizations.of(context).homeRetry),
+                          label: Text(AppLocalizations.of(context).retry),
                           style: TextButton.styleFrom(foregroundColor: dojoOrange),
                         ),
                       ],
