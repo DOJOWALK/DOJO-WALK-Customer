@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class DojoWalkTheme {
-  static const Color primary = Color(0xFFFF6A00);
-  static const Color background = Color(0xFFF8F8F8);
-  static const Color text = Color(0xFF171717);
+  static const Color primary = Color(0xFFFF7900);
+  static const Color background = Color(0xFFFFFAF5);
+  static const Color text = Color(0xFF252525);
   static const Color mutedText = Color(0xFF737373);
 
   static ThemeData light() {

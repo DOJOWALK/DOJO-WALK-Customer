@@ -6,11 +6,13 @@ import '../../addresses/screens/address_form_screen.dart';
 
 import 'choose_walk_screen.dart';
 import 'booking_confirmation_screen.dart';
+import '../../../app/theme.dart';
+import '../../../l10n/app_localizations.dart';
 
-const Color pickupOrange = Color(0xFFFF7900);
-const Color pickupBackground = Color(0xFFFFFAF5);
-const Color pickupText = Color(0xFF202020);
-const Color pickupMuted = Color(0xFF777777);
+const Color pickupOrange = DojoWalkTheme.primary;
+const Color pickupBackground = DojoWalkTheme.background;
+const Color pickupText = DojoWalkTheme.text;
+const Color pickupMuted = DojoWalkTheme.mutedText;
 
 class PickupAddressSelectionScreen extends StatefulWidget {
   final WalkBookingType walkType;
@@ -95,7 +97,7 @@ class _PickupAddressSelectionScreenState
       // Address list will refresh through the service stream.
       setState(() {});
     } catch (e) {
-      _showMessage('Address form open nahi hua: $e');
+      _showMessage(AppLocalizations.of(context).pickupOpenAddressFailed);
     } finally {
       if (mounted) {
         setState(() => _isOpeningForm = false);
@@ -109,14 +111,14 @@ class _PickupAddressSelectionScreenState
     final address = _selectedAddress;
 
     if (address == null || _selectedAddressId == null) {
-      _showMessage('Please pickup address select karein.');
+      _showMessage(AppLocalizations.of(context).pickupSelectAddress);
       return;
     }
 
     final fullAddress = _addressText(address);
 
     if (fullAddress.isEmpty) {
-      _showMessage('Selected address incomplete hai. Address update karein.');
+      _showMessage(AppLocalizations.of(context).pickupAddressIncomplete);
       return;
     }
 
@@ -156,7 +158,7 @@ class _PickupAddressSelectionScreenState
         ),
       );
     } catch (e) {
-      _showMessage('Confirmation screen open nahi hui: $e');
+      _showMessage(AppLocalizations.of(context).pickupOpenReviewFailed);
     } finally {
       if (mounted) {
         setState(() => _isContinuing = false);
@@ -172,8 +174,8 @@ class _PickupAddressSelectionScreenState
         backgroundColor: pickupOrange,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
-          'Pickup Address',
+        title: Text(
+          AppLocalizations.of(context).pickupAddressTitle,
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
@@ -194,24 +196,16 @@ class _PickupAddressSelectionScreenState
                         color: pickupOrange,
                       ),
                       const SizedBox(height: 12),
-                      const Text(
-                        'Saved addresses load nahi ho paaye.',
+                      Text(
+                        AppLocalizations.of(context).pickupLoadAddressesFailed,
                         style: TextStyle(fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        '${snapshot.error}',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: pickupMuted,
-                          fontSize: 12,
-                        ),
-                      ),
                       const SizedBox(height: 12),
                       OutlinedButton(
                         onPressed: () => setState(() {}),
-                        child: const Text('Retry'),
+                        child: Text(AppLocalizations.of(context).pickupRetry),
                       ),
                     ],
                   ),
@@ -265,8 +259,8 @@ class _PickupAddressSelectionScreenState
                       : ListView(
                           padding: const EdgeInsets.all(16),
                           children: [
-                            const Text(
-                              'Where should the walker pick up your dog?',
+                            Text(
+                              AppLocalizations.of(context).pickupPrompt,
                               style: TextStyle(
                                 fontSize: 21,
                                 fontWeight: FontWeight.bold,
@@ -274,9 +268,8 @@ class _PickupAddressSelectionScreenState
                               ),
                             ),
                             const SizedBox(height: 6),
-                            const Text(
-                              'Apna saved address select karein. '
-                              'Booking submit karne se pehle details review kar sakte hain.',
+                            Text(
+                              AppLocalizations.of(context).pickupIntro,
                               style: TextStyle(
                                 color: pickupMuted,
                                 height: 1.4,
@@ -344,7 +337,7 @@ class _PickupAddressSelectionScreenState
                                                       address.label
                                                               .trim()
                                                               .isEmpty
-                                                          ? 'Saved Address'
+                                                          ? AppLocalizations.of(context).pickupSavedAddress
                                                           : address.label,
                                                       style: const TextStyle(
                                                         fontSize: 16,
@@ -371,8 +364,8 @@ class _PickupAddressSelectionScreenState
                                                             BorderRadius
                                                                 .circular(8),
                                                       ),
-                                                      child: const Text(
-                                                        'Default',
+                                                      child: Text(
+                                                        AppLocalizations.of(context).pickupDefaultBadge,
                                                         style: TextStyle(
                                                           fontSize: 10,
                                                           color: Color(
@@ -388,7 +381,7 @@ class _PickupAddressSelectionScreenState
                                               const SizedBox(height: 7),
                                               Text(
                                                 fullAddress.isEmpty
-                                                    ? 'Address details missing'
+                                                    ? AppLocalizations.of(context).pickupAddressDetailsMissing
                                                     : fullAddress,
                                                 style: const TextStyle(
                                                   color: pickupMuted,
@@ -427,8 +420,8 @@ class _PickupAddressSelectionScreenState
                               icon: const Icon(Icons.add),
                               label: Text(
                                 _isOpeningForm
-                                    ? 'Opening...'
-                                    : 'Add Another Address',
+                                    ? AppLocalizations.of(context).pickupOpening
+                                    : AppLocalizations.of(context).pickupAddAnotherAddress,
                               ),
                             ),
                           ],
@@ -468,8 +461,8 @@ class _PickupAddressSelectionScreenState
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : const Text(
-                                  'Continue to Booking Review',
+                              : Text(
+                                  AppLocalizations.of(context).pickupContinueReview,
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -481,7 +474,7 @@ class _PickupAddressSelectionScreenState
                         onPressed:
                             _isOpeningForm ? null : _addAddress,
                         icon: const Icon(Icons.add_location_alt_outlined),
-                        label: const Text('Add New Address'),
+                        label: Text(AppLocalizations.of(context).pickupAddNewAddress),
                         style: TextButton.styleFrom(
                           foregroundColor: pickupOrange,
                         ),
@@ -511,16 +504,16 @@ class _PickupAddressSelectionScreenState
               color: const Color(0xFFF0E2D5),
             ),
           ),
-          child: const Column(
+          child: Column(
             children: [
-              Icon(
+              const Icon(
                 Icons.location_on_outlined,
                 size: 64,
                 color: pickupOrange,
               ),
               SizedBox(height: 16),
               Text(
-                'No Saved Address',
+                AppLocalizations.of(context).pickupEmptyTitle,
                 style: TextStyle(
                   fontSize: 19,
                   fontWeight: FontWeight.bold,
@@ -529,8 +522,7 @@ class _PickupAddressSelectionScreenState
               ),
               SizedBox(height: 8),
               Text(
-                'Booking continue karne ke liye '
-                'pehle pickup address add karein.',
+                AppLocalizations.of(context).pickupEmptyBody,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: pickupMuted,
@@ -549,7 +541,7 @@ class _PickupAddressSelectionScreenState
           ),
           icon: const Icon(Icons.add_location_alt_outlined),
           label: Text(
-            _isOpeningForm ? 'Opening...' : 'Add Pickup Address',
+            _isOpeningForm ? AppLocalizations.of(context).pickupOpening : AppLocalizations.of(context).pickupAddAddress,
           ),
         ),
       ],

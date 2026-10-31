@@ -2,13 +2,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../services/walk_pricing_service.dart';
 import 'choose_walk_screen.dart';
+import '../../../app/theme.dart';
+import '../../../l10n/app_localizations.dart';
 
-const Color confirmationOrange = Color(0xFFFF7900);
-const Color confirmationBackground = Color(0xFFFFFAF5);
-const Color confirmationText = Color(0xFF242424);
-const Color confirmationMuted = Color(0xFF777777);
+const Color confirmationOrange = DojoWalkTheme.primary;
+const Color confirmationBackground = DojoWalkTheme.background;
+const Color confirmationText = DojoWalkTheme.text;
+const Color confirmationMuted = DojoWalkTheme.mutedText;
 const Color confirmationBorder = Color(0xFFEFE5DC);
 
 class BookingConfirmationScreen extends StatefulWidget {
@@ -35,6 +36,8 @@ class _BookingConfirmationScreenState
   bool _isSubmitting = false;
   bool _submitted = false;
 
+  AppLocalizations get _l10n => AppLocalizations.of(context);
+
   bool get _isRegular =>
       widget.walkType == WalkBookingType.regular ||
       widget.schedule['isRegular'] == true;
@@ -49,6 +52,12 @@ class _BookingConfirmationScreenState
     if (_isRegular) return 'Regular Daily Walk';
     if (_isChooseDates) return 'Choose Dates';
     return 'One-Time Walk';
+  }
+
+  String get _displayPlanName {
+    if (_isRegular) return _l10n.bookingConfirmationRegularDailyWalk;
+    if (_isChooseDates) return _l10n.bookingConfirmationChooseDates;
+    return _l10n.bookingConfirmationOneTimeWalk;
   }
 
   String get _bookingPlan {
@@ -116,6 +125,30 @@ class _BookingConfirmationScreenState
     return [];
   }
 
+  List<Map<String, dynamic>> _walksForDay(Map<String, dynamic> day) {
+    final raw = day['walks'];
+
+    if (raw is List) {
+      return raw
+          .whereType<Map>()
+          .map((item) => Map<String, dynamic>.from(item))
+          .toList();
+    }
+
+    // Compatibility fallback for older date-schedule payloads.
+    final time = day['time'];
+    if (time != null && time.toString().trim().isNotEmpty) {
+      return [
+        {
+          'time': time,
+          'duration': day['duration'] ?? widget.schedule['duration'] ?? 30,
+        },
+      ];
+    }
+
+    return [];
+  }
+
   int _duration(Map<String, dynamic> walk) {
     final value = walk['duration'];
 
@@ -124,60 +157,6 @@ class _BookingConfirmationScreenState
     final match = RegExp(r'\d+').firstMatch(value?.toString() ?? '');
 
     return match == null ? 30 : int.parse(match.group(0)!);
-  }
-
-  double? _price(Map<String, dynamic> walk) {
-    return WalkPricingService.priceForDuration(_duration(walk))
-        ?.toDouble();
-  }
-
-  double? _totalForWalks(List<Map<String, dynamic>> walks) {
-    if (walks.isEmpty) return null;
-
-    double total = 0;
-
-    for (final walk in walks) {
-      final price = _price(walk);
-
-      if (price == null) return null;
-
-      total += price;
-    }
-
-    return total;
-  }
-
-  List<Map<String, dynamic>> _walksForDay(
-    Map<String, dynamic> day,
-  ) {
-    final raw = day['walks'];
-
-    if (raw is! List) return [];
-
-    return raw
-        .whereType<Map>()
-        .map((item) => Map<String, dynamic>.from(item))
-        .toList();
-  }
-
-  double? get _bookingTotal {
-    if (_isChooseDates) {
-      return _totalForWalks(
-        _dateSchedules
-            .expand((day) => _walksForDay(day))
-            .toList(),
-      );
-    }
-
-    return _totalForWalks(_walks);
-  }
-
-  String _money(double? amount) {
-    if (amount == null) return 'Price to be confirmed';
-
-    return '₹${amount.toStringAsFixed(
-      amount == amount.roundToDouble() ? 0 : 2,
-    )}';
   }
 
   DateTime? _parseDate(dynamic value) {
@@ -209,24 +188,9 @@ class _BookingConfirmationScreenState
   String _formatDate(dynamic value) {
     final date = _parseDate(value);
 
-    if (date == null) return 'Date to be confirmed';
+    if (date == null) return _l10n.bookingConfirmationDateToBeConfirmed;
 
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
+    return MaterialLocalizations.of(context).formatMediumDate(date);
   }
 
   DateTime? _dateForSchedule() {
@@ -256,17 +220,17 @@ class _BookingConfirmationScreenState
         .toList();
 
     return parts.isEmpty
-        ? 'Pickup address not available'
+        ? _l10n.bookingConfirmationPickupAddressUnavailable
         : parts.join(', ');
   }
 
   String _formatTime(dynamic value) {
     final time = (value ?? '').toString().trim();
 
-    if (time.isEmpty) return 'Time to be confirmed';
+    if (time.isEmpty) return _l10n.bookingConfirmationTimeToBeConfirmed;
 
     if (time.toUpperCase() == 'ASAP') {
-      return 'As soon as possible';
+      return _l10n.bookingConfirmationAsSoonAsPossible;
     }
 
     return time;
@@ -297,21 +261,21 @@ class _BookingConfirmationScreenState
   }
 
   String get _summaryDateText {
-    if (_isImmediate) return 'As soon as possible';
+    if (_isImmediate) return _l10n.bookingConfirmationAsSoonAsPossible;
 
     if (_isChooseDates && _dateSchedules.length > 1) {
-      return '${_dateSchedules.length} selected dates';
+      return _l10n.bookingConfirmationSelectedDates(_dateSchedules.length);
     }
 
     return _formatDate(_summaryDate);
   }
 
   String get _summaryTime {
-    if (_isImmediate) return 'As soon as possible';
+    if (_isImmediate) return _l10n.bookingConfirmationAsSoonAsPossible;
 
     final walk = _summaryWalk;
 
-    if (walk == null) return 'Time to be confirmed';
+    if (walk == null) return _l10n.bookingConfirmationTimeToBeConfirmed;
 
     return _formatTime(walk['time']);
   }
@@ -319,9 +283,9 @@ class _BookingConfirmationScreenState
   String get _summaryDuration {
     final walk = _summaryWalk;
 
-    if (walk == null) return 'To be confirmed';
+    if (walk == null) return _l10n.bookingConfirmationToBeConfirmed;
 
-    return '${_duration(walk)} minutes';
+    return '${_duration(walk)} ${_l10n.bookingConfirmationMinutes}';
   }
 
   Widget _summaryLine(String label, String value) {
@@ -356,54 +320,7 @@ class _BookingConfirmationScreenState
     );
   }
 
-  Widget _priceLine(
-    String label,
-    String value, {
-    bool emphasize = false,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: emphasize ? 15 : 13,
-                color: emphasize
-                    ? confirmationText
-                    : confirmationMuted,
-                fontWeight:
-                    emphasize ? FontWeight.w700 : FontWeight.w400,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Flexible(
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: TextStyle(
-                fontSize: emphasize ? 21 : 13,
-                color: emphasize
-                    ? confirmationOrange
-                    : confirmationText,
-                fontWeight:
-                    emphasize ? FontWeight.w800 : FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildSummaryCard() {
-    final total = _bookingTotal;
-    final walk = _summaryWalk;
-    final durationPrice = walk == null ? null : _price(walk);
-
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -423,8 +340,8 @@ class _BookingConfirmationScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'BOOKING SUMMARY',
+          Text(
+            _l10n.bookingConfirmationSummaryHeading,
             style: TextStyle(
               color: confirmationMuted,
               fontSize: 11,
@@ -443,7 +360,7 @@ class _BookingConfirmationScreenState
           ),
           const SizedBox(height: 3),
           Text(
-            _planName,
+            _displayPlanName,
             style: const TextStyle(
               color: confirmationOrange,
               fontSize: 13,
@@ -451,57 +368,28 @@ class _BookingConfirmationScreenState
             ),
           ),
           const SizedBox(height: 18),
-          _summaryLine('Date', _summaryDateText),
-          _summaryLine('Time', _summaryTime),
-          _summaryLine('Duration', _summaryDuration),
+          _summaryLine(_l10n.bookingConfirmationDateLabel, _summaryDateText),
+          _summaryLine(_l10n.bookingConfirmationTimeLabel, _summaryTime),
+          _summaryLine(_l10n.bookingConfirmationDurationLabel, _summaryDuration),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 7),
             child: Divider(height: 1, color: confirmationBorder),
           ),
-          const Text(
-            'PRICE DETAILS',
-            style: TextStyle(
-              color: confirmationText,
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.3,
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: confirmationBackground,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: confirmationBorder),
             ),
-          ),
-          const SizedBox(height: 7),
-          _priceLine(
-            _isChooseDates
-                ? 'Walk charges · all dates'
-                : _isRegular
-                    ? 'Walk charges · per day'
-                    : 'Walk charges',
-            _money(
-              _isChooseDates || _isRegular
-                  ? total
-                  : durationPrice,
-            ),
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 7),
-            child: Divider(height: 1, color: confirmationBorder),
-          ),
-          _priceLine(
-            _isChooseDates
-                ? 'TOTAL FOR SELECTED DATES'
-                : _isRegular
-                    ? 'TOTAL PER DAY'
-                    : 'TOTAL AMOUNT',
-            _money(total),
-            emphasize: true,
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            '₹149 applies to a 30-minute walk only. '
-            'Other durations and final charges require confirmation. '
-            'No unapproved additional charge is included.',
-            style: TextStyle(
-              fontSize: 11,
-              height: 1.45,
-              color: confirmationMuted,
+            child: Text(
+              _l10n.bookingConfirmationPriceDisclosure,
+              style: const TextStyle(
+                fontSize: 12,
+                height: 1.45,
+                color: confirmationMuted,
+              ),
             ),
           ),
         ],
@@ -618,25 +506,13 @@ class _BookingConfirmationScreenState
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  '${_duration(walk)} minutes',
+                  '${_duration(walk)} ${_l10n.bookingConfirmationMinutes}',
                   style: const TextStyle(
                     color: confirmationMuted,
                     fontSize: 12,
                   ),
                 ),
               ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Text(
-              _money(_price(walk)),
-              textAlign: TextAlign.end,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                color: confirmationText,
-                fontSize: 13,
-              ),
             ),
           ),
         ],
@@ -647,7 +523,7 @@ class _BookingConfirmationScreenState
   Widget _buildScheduleSection() {
     if (_isChooseDates && _dateSchedules.isNotEmpty) {
       return _section(
-        title: 'Selected Dates & Walks',
+        title: _l10n.bookingConfirmationSelectedDatesAndWalks,
         icon: Icons.calendar_month_outlined,
         child: Column(
           children: [
@@ -678,22 +554,13 @@ class _BookingConfirmationScreenState
                         padding: const EdgeInsets.only(bottom: 7),
                         child: Text(
                           '• ${_formatTime(walk['time'])}  ·  '
-                          '${_duration(walk)} min  ·  '
-                          '${_money(_price(walk))}',
+                          '${_duration(walk)} ${_l10n.bookingConfirmationMinutesShort}',
                           style: const TextStyle(
                             fontSize: 13,
                             color: confirmationText,
                           ),
                         ),
                       ),
-                    Text(
-                      'Daily total: '
-                      '${_money(_totalForWalks(_walksForDay(day)))}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: confirmationOrange,
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -703,25 +570,24 @@ class _BookingConfirmationScreenState
     }
 
     return _section(
-      title: 'Walk Schedule',
+      title: _l10n.bookingConfirmationWalkSchedule,
       icon: Icons.schedule,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _infoLine('Plan', _planName),
+          _infoLine(_l10n.bookingConfirmationPlanLabel, _displayPlanName),
           _infoLine(
-            'Start date',
+            _l10n.bookingConfirmationStartDateLabel,
             _isImmediate
                 ? 'As soon as possible'
                 : _formatDate(_dateForSchedule()),
           ),
           if (_isRegular)
-            const Padding(
-              padding: EdgeInsets.only(bottom: 10),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
               child: Text(
-                'This plan repeats daily, including Sundays. '
-                'Any days off will be coordinated later with support.',
-                style: TextStyle(
+                _l10n.bookingConfirmationRecurringNotice,
+                style: const TextStyle(
                   color: confirmationMuted,
                   fontSize: 12,
                   height: 1.4,
@@ -730,11 +596,6 @@ class _BookingConfirmationScreenState
             ),
           for (var i = 0; i < _walks.length; i++)
             _walkCard(_walks[i], i),
-          if (_isRegular)
-            _infoLine(
-              'Daily total',
-              _money(_totalForWalks(_walks)),
-            ),
         ],
       ),
     );
@@ -744,7 +605,7 @@ class _BookingConfirmationScreenState
     final duration = _duration(walk);
     final time = (walk['time'] ?? '').toString().trim();
 
-    if (![20, 30, 45, 60].contains(duration)) {
+    if (duration < 20 || duration > 60) {
       return false;
     }
 
@@ -771,12 +632,6 @@ class _BookingConfirmationScreenState
       result['startMinute'] = (walk['startMinute'] as num).toInt();
     }
 
-    final price = _price(walk);
-
-    if (price != null) {
-      result['price'] = price;
-    }
-
     return result;
   }
 
@@ -792,34 +647,34 @@ class _BookingConfirmationScreenState
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
-      _showMessage('Please log in before submitting your booking.');
+      _showMessage(_l10n.bookingConfirmationLoginRequired);
       return;
     }
 
     if (_dogId.isEmpty || _addressId.isEmpty) {
-      _showMessage('Dog details or pickup address are missing.');
+      _showMessage(_l10n.bookingConfirmationMissingDogOrPickup);
       return;
     }
 
     if (_isChooseDates && _dateSchedules.isEmpty) {
-      _showMessage('Please select at least one booking date.');
+      _showMessage(_l10n.bookingConfirmationSelectAtLeastOneDate);
       return;
     }
 
     final walks = _walks;
 
     if (walks.isEmpty) {
-      _showMessage('Please add at least one walk.');
+      _showMessage(_l10n.bookingConfirmationAddAtLeastOneWalk);
       return;
     }
 
     if (!_isChooseDates && walks.length > 3) {
-      _showMessage('A maximum of three walks per day is supported.');
+      _showMessage(_l10n.bookingConfirmationMaxThreeWalksPerDay);
       return;
     }
 
     if (!_isChooseDates && walks.any((walk) => !_validWalk(walk))) {
-      _showMessage('Please check every walk time and duration.');
+      _showMessage(_l10n.bookingConfirmationCheckWalkTimeDuration);
       return;
     }
 
@@ -835,7 +690,7 @@ class _BookingConfirmationScreenState
             dayWalks.length > 3 ||
             dayWalks.any((walk) => !_validWalk(walk))) {
           _showMessage(
-            'Please check each selected date and its walk schedule.',
+            _l10n.bookingConfirmationCheckDateSchedules,
           );
           return;
         }
@@ -847,7 +702,7 @@ class _BookingConfirmationScreenState
     if (!_isImmediate &&
         !_isChooseDates &&
         selectedDate == null) {
-      _showMessage('Please select a valid walk date.');
+      _showMessage(_l10n.bookingConfirmationValidWalkDate);
       return;
     }
 
@@ -1005,12 +860,11 @@ class _BookingConfirmationScreenState
             color: Colors.green,
             size: 48,
           ),
-          title: const Text('Request Received!'),
+          title: Text(_l10n.bookingConfirmationRequestReceived),
           content: Text(
-            'Your $_planName request has been saved.\n\n'
-            'Booking ID:\n${bookingRef.id}\n\n'
-            'The DOJO WALK team will confirm walker availability '
-            'and any unfinalized pricing.',
+            '${_l10n.bookingConfirmationRequestSaved}\n\n'
+            '${_l10n.bookingConfirmationBookingId}:\n${bookingRef.id}\n\n'
+            '${_l10n.bookingConfirmationTeamWillConfirm}',
           ),
           actions: [
             FilledButton(
@@ -1023,7 +877,7 @@ class _BookingConfirmationScreenState
                   (route) => route.isFirst,
                 );
               },
-              child: const Text('Done'),
+              child: Text(_l10n.bookingConfirmationDone),
             ),
           ],
         ),
@@ -1037,9 +891,7 @@ class _BookingConfirmationScreenState
 
       setState(() => _isSubmitting = false);
 
-      _showMessage(
-        'Booking failed at: $currentStage\n$error',
-      );
+      _showMessage(_l10n.continueFailed);
     }
   }
 
@@ -1059,7 +911,7 @@ class _BookingConfirmationScreenState
     return Scaffold(
       backgroundColor: confirmationBackground,
       appBar: AppBar(
-        title: const Text('Review Your Booking'),
+        title: Text(_l10n.bookingConfirmationReviewTitle),
         backgroundColor: confirmationBackground,
         foregroundColor: confirmationText,
         elevation: 0,
@@ -1073,22 +925,22 @@ class _BookingConfirmationScreenState
                 children: [
                   _buildSummaryCard(),
                   _section(
-                    title: 'Dog Details',
+                    title: _l10n.bookingConfirmationDogDetails,
                     icon: Icons.pets,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _infoLine('Name', _dogName),
+                        _infoLine(_l10n.bookingConfirmationNameLabel, _dogName),
                         _infoLine(
-                          'Breed',
+                          _l10n.bookingConfirmationBreedLabel,
                           (widget.dogDetails['breed'] ??
-                                  'Not specified')
+                                  _l10n.bookingConfirmationNotSpecified)
                               .toString(),
                         ),
                         _infoLine(
-                          'Gender',
+                          _l10n.bookingConfirmationGenderLabel,
                           (widget.dogDetails['gender'] ??
-                                  'Not specified')
+                                  _l10n.bookingConfirmationNotSpecified)
                               .toString(),
                         ),
                       ],
@@ -1096,7 +948,7 @@ class _BookingConfirmationScreenState
                   ),
                   _buildScheduleSection(),
                   _section(
-                    title: 'Pickup Location',
+                    title: _l10n.bookingConfirmationPickupLocation,
                     icon: Icons.location_on_outlined,
                     child: Text(
                       _addressText(),
@@ -1141,8 +993,8 @@ class _BookingConfirmationScreenState
                             strokeWidth: 2.5,
                           ),
                         )
-                      : const Text(
-                          'Submit Booking Request',
+                      : Text(
+                          _l10n.bookingConfirmationSubmitRequest,
                           style: TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 15,

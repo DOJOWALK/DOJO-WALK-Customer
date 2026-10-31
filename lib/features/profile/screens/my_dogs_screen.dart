@@ -2,12 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../../app/app_language.dart';
+import '../../../app/locale_controller.dart';
+import '../../../app/theme.dart';
 
-const Color dogsOrange = Color(0xFFFF7900);
-const Color dogsBackground = Color(0xFFFFFAF5);
-const Color dogsText = Color(0xFF202020);
-const Color dogsMuted = Color(0xFF777777);
+const Color dogsOrange = DojoWalkTheme.primary;
+const Color dogsBackground = DojoWalkTheme.background;
+const Color dogsText = DojoWalkTheme.text;
+const Color dogsMuted = DojoWalkTheme.mutedText;
 
 String _dogTr(String en, String hi, String bn) {
   switch (appLocale.value.languageCode) {
@@ -210,8 +211,50 @@ String _dogOption(String value) {
   }
 }
 
-class MyDogsScreen extends StatelessWidget {
-  const MyDogsScreen({super.key});
+/// Minimal read model used by the My Dogs list and its isolated widget tests.
+class DogListRecord {
+  const DogListRecord({required this.id, required this.data});
+
+  final String id;
+  final Map<String, dynamic> data;
+}
+
+class MyDogsScreen extends StatefulWidget {
+  const MyDogsScreen({
+    super.key,
+    this.currentUserId,
+    this.watchDogs,
+  });
+
+  /// Optional read seams; all production mutations continue using Firestore.
+  final String? Function()? currentUserId;
+  final Stream<List<DogListRecord>> Function(String uid)? watchDogs;
+
+  @override
+  State<MyDogsScreen> createState() => _MyDogsScreenState();
+}
+
+class _MyDogsScreenState extends State<MyDogsScreen> {
+  int _retryAttempt = 0;
+
+  String? get _currentUserId => widget.currentUserId != null
+      ? widget.currentUserId!.call()
+      : FirebaseAuth.instance.currentUser?.uid;
+
+  Stream<List<DogListRecord>> _watchDogs(String uid) {
+    final injected = widget.watchDogs;
+    if (injected != null) return injected(uid);
+    return _pets(uid)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => DogListRecord(id: doc.id, data: doc.data()),
+              )
+              .toList(growable: false),
+        );
+  }
 
   CollectionReference<Map<String, dynamic>> _pets(String uid) {
     return FirebaseFirestore.instance
@@ -225,7 +268,7 @@ class MyDogsScreen extends StatelessWidget {
     return ValueListenableBuilder<Locale>(
       valueListenable: appLocale,
       builder: (context, locale, child) {
-        final user = FirebaseAuth.instance.currentUser;
+        final uid = _currentUserId;
 
         return Scaffold(
           backgroundColor: dogsBackground,
@@ -242,7 +285,7 @@ class MyDogsScreen extends StatelessWidget {
               ),
             ),
           ),
-          body: user == null
+          body: uid == null
               ? _emptyState(
                   icon: Icons.lock_outline_rounded,
                   title: _dogTr(
@@ -256,10 +299,9 @@ class MyDogsScreen extends StatelessWidget {
                     'আপনার কুকুর পরিচালনা করতে লগইন করুন।',
                   ),
                 )
-              : StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                  stream: _pets(user.uid)
-                      .orderBy('createdAt', descending: true)
-                      .snapshots(),
+              : StreamBuilder<List<DogListRecord>>(
+                  key: ValueKey<int>(_retryAttempt),
+                  stream: _watchDogs(uid),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
                       return _emptyState(
@@ -270,10 +312,13 @@ class MyDogsScreen extends StatelessWidget {
                           'কুকুরের তথ্য লোড করা যায়নি',
                         ),
                         subtitle: _dogTr(
-                          'Please check your connection and Firestore permissions.',
-                          'इंटरनेट कनेक्शन और Firestore permissions जाँचें।',
-                          'ইন্টারনেট সংযোগ এবং Firestore permissions পরীক্ষা করুন।',
+                          'Please check your connection and try again.',
+                          'इंटरनेट कनेक्शन जाँचकर फिर कोशिश करें।',
+                          'ইন্টারনেট সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।',
                         ),
+                        onRetry: () {
+                          setState(() => _retryAttempt++);
+                        },
                       );
                     }
 
@@ -286,7 +331,7 @@ class MyDogsScreen extends StatelessWidget {
                       );
                     }
 
-                    final docs = snapshot.data?.docs ?? [];
+                    final docs = snapshot.data ?? <DogListRecord>[];
 
                     if (docs.isEmpty) {
                       return _emptyState(
@@ -316,7 +361,7 @@ class MyDogsScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 14),
                         ...docs.map((doc) {
-                          final data = doc.data();
+                          final data = doc.data;
                           final name =
                               (data['name'] ?? 'My Dog').toString();
                           final breed =
@@ -414,14 +459,14 @@ class MyDogsScreen extends StatelessWidget {
                                         if (action == 'edit') {
                                           _openDogForm(
                                             context,
-                                            _pets(user.uid),
+                                            _pets(uid),
                                             dogId: doc.id,
                                             existingData: data,
                                           );
                                         } else if (action == 'delete') {
                                           _deleteDog(
                                             context,
-                                            _pets(user.uid),
+                                            _pets(uid),
                                             doc.id,
                                             name,
                                           );
@@ -519,12 +564,12 @@ class MyDogsScreen extends StatelessWidget {
                     );
                   },
                 ),
-          floatingActionButton: user == null
+          floatingActionButton: uid == null
               ? null
               : FloatingActionButton.extended(
                   onPressed: () => _openDogForm(
                     context,
-                    _pets(user.uid),
+                    _pets(uid),
                   ),
                   backgroundColor: dogsOrange,
                   foregroundColor: Colors.white,
@@ -572,6 +617,7 @@ class MyDogsScreen extends StatelessWidget {
     required IconData icon,
     required String title,
     required String subtitle,
+    VoidCallback? onRetry,
   }) {
     return Center(
       child: Padding(
@@ -599,6 +645,18 @@ class MyDogsScreen extends StatelessWidget {
                 height: 1.5,
               ),
             ),
+            if (onRetry != null) ...[
+              const SizedBox(height: 18),
+              OutlinedButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh_rounded),
+                label: Text(_dogTr('Retry', 'फिर कोशिश करें', 'আবার চেষ্টা করুন')),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: dogsOrange,
+                  side: const BorderSide(color: dogsOrange),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -708,7 +766,11 @@ class MyDogsScreen extends StatelessWidget {
                       ScaffoldMessenger.of(pageContext).showSnackBar(
                         SnackBar(
                           content: Text(
-                            '${_dogTr('Could not save dog', 'कुत्ते की जानकारी सेव नहीं हुई', 'কুকুরের তথ্য সংরক্ষণ করা যায়নি')}: $error',
+                            _dogTr(
+                              'Could not save dog details. Please try again.',
+                              'कुत्ते की जानकारी सेव नहीं हुई। दोबारा कोशिश करें।',
+                              'কুকুরের তথ্য সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।',
+                            ),
                           ),
                         ),
                       );
@@ -1130,6 +1192,45 @@ class MyDogsScreen extends StatelessWidget {
     if (confirmed != true || !context.mounted) return;
 
     try {
+      // Check the signed-in customer's booking history before deleting a dog.
+      // Firestore rules allow customers to list only their own bookings.
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw StateError('Authentication is required to verify booking history.');
+      }
+
+      final bookingSnapshot = await FirebaseFirestore.instance
+          .collection('bookings')
+          .where('customerId', isEqualTo: user.uid)
+          .get();
+
+      final hasBookingReference = bookingSnapshot.docs.any((booking) {
+        final data = booking.data();
+        final petDetails = data['petDetails'];
+        final nestedDogId = petDetails is Map
+            ? petDetails['dogId']?.toString()
+            : null;
+        return data['dogId']?.toString() == dogId ||
+            nestedDogId == dogId;
+      });
+
+      if (!context.mounted) return;
+
+      if (hasBookingReference) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _dogTr(
+                'This dog is linked to booking history and cannot be deleted.',
+                'यह कुत्ता बुकिंग हिस्ट्री से जुड़ा है, इसलिए इसे हटाया नहीं जा सकता।',
+                'এই কুকুরটির বুকিং ইতিহাস রয়েছে, তাই এটি মুছে ফেলা যাবে না।',
+              ),
+            ),
+          ),
+        );
+        return;
+      }
+
       await collection.doc(dogId).delete();
 
       if (!context.mounted) return;
@@ -1152,7 +1253,11 @@ class MyDogsScreen extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '${_dogTr('Could not delete dog', 'कुत्ता हटाया नहीं जा सका', 'কুকুর মুছে ফেলা যায়নি')}: $error',
+            _dogTr(
+            'Could not delete dog. Please try again.',
+            'कुत्ता हटाया नहीं जा सका। दोबारा कोशिश करें।',
+            'কুকুর মুছে ফেলা যায়নি। আবার চেষ্টা করুন।',
+          ),
           ),
         ),
       );

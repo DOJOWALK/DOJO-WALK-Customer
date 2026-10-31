@@ -2,21 +2,21 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../../app/app_language.dart';
+import '../../../app/locale_controller.dart';
+import '../../../app/theme.dart';
 import '../../addresses/screens/my_addresses_screen.dart';
 import '../../auth/screens/phone_login_screen.dart';
 import '../../booking/screens/my_bookings_screen.dart';
-import '../../coupons/screens/coupons_offers_screen.dart';
 import '../../settings/screens/settings_screen.dart';
 import '../../support/screens/help_support_screen.dart';
 import 'account_details_screen.dart';
 import 'my_dogs_screen.dart';
 import 'privacy_terms_screen.dart';
 
-const Color profileOrange = Color(0xFFFF7900);
-const Color profileBackground = Color(0xFFFFFAF5);
-const Color profileText = Color(0xFF202020);
-const Color profileMuted = Color(0xFF777777);
+const Color profileOrange = DojoWalkTheme.primary;
+const Color profileBackground = DojoWalkTheme.background;
+const Color profileText = DojoWalkTheme.text;
+const Color profileMuted = DojoWalkTheme.mutedText;
 
 String _tr(String en, String hi, String bn) {
   switch (appLocale.value.languageCode) {
@@ -152,25 +152,6 @@ class ProfileScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 28),
-
-        _menuCard(
-          context,
-          icon: Icons.local_offer_outlined,
-          title: _tr(
-            'Coupons & Offers',
-            'कूपन और ऑफ़र',
-            'কুপন ও অফার',
-          ),
-          subtitle: _tr(
-            'View available offers',
-            'उपलब्ध ऑफ़र देखें',
-            'উপলব্ধ অফার দেখুন',
-          ),
-          onTap: () => _open(
-            context,
-            const CouponsOffersScreen(),
-          ),
-        ),
 
         _menuCard(
           context,
@@ -333,26 +314,6 @@ class ProfileScreen extends StatelessWidget {
               onTap: () => _open(
                 context,
                 const MyAddressesScreen(),
-              ),
-            ),
-
-            // COUPONS
-            _menuCard(
-              context,
-              icon: Icons.local_offer_outlined,
-              title: _tr(
-                'Coupons & Offers',
-                'कूपन और ऑफ़र',
-                'কুপন ও অফার',
-              ),
-              subtitle: _tr(
-                'See offers available to your account',
-                'अपने अकाउंट के लिए उपलब्ध ऑफ़र देखें',
-                'আপনার অ্যাকাউন্টের জন্য উপলব্ধ অফার দেখুন',
-              ),
-              onTap: () => _open(
-                context,
-                const CouponsOffersScreen(),
               ),
             ),
 
