@@ -1,5 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import '../../lib/l10n/app_localizations.dart';
+import '../../../lib/l10n/app_localizations.dart';
 
 void main() {
   group('Authentication localization', () {
