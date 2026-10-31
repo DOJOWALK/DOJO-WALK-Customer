@@ -105,6 +105,50 @@ void main() {
       expect(find.text('Walks per day'), findsNothing);
     });
 
+
+    testWidgets(
+      'blocks Continue when any selected date contains a past time',
+      (tester) async {
+        final fixedNow = DateTime(2026, 11, 5, 12);
+        await tester.pumpWidget(
+          MaterialApp(
+            locale: const Locale('en'),
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            home: ChooseWalkScreen(clock: () => fixedNow),
+          ),
+        );
+
+        await tester.tap(find.text('Choose Dates'));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Add / Select Date'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('6').last);
+        await tester.tap(find.text('OK'));
+        await tester.pumpAndSettle();
+
+        final strings = await AppLocalizations.delegate.load(
+          const Locale('en'),
+        );
+        final continueButton = find.text(strings.continueDogSelection);
+        await tester.ensureVisible(continueButton);
+        await tester.tap(continueButton);
+        await tester.pumpAndSettle();
+
+        // The first selected date is today and its default 7 AM slot is past.
+        // Validation must stop before login/profile navigation is attempted.
+        expect(find.textContaining('5 Nov 2026'), findsOneWidget);
+        expect(find.textContaining('7:00 AM'), findsOneWidget);
+        expect(find.text(strings.loginToContinueBooking), findsNothing);
+      },
+    );
+
     testWidgets('reselecting an already selected date does not duplicate it', (tester) async {
       await tester.pumpWidget(_testApp(const Locale('en')));
       await tester.tap(find.text('Choose Dates'));
