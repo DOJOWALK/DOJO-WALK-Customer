@@ -275,14 +275,6 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                               ),
                             ),
                             const SizedBox(height: 8),
-                            Text(
-                              '${snapshot.error}',
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: dogSelectionMuted,
-                                fontSize: 12,
-                              ),
-                            ),
                             const SizedBox(height: 12),
                             OutlinedButton(
                               onPressed: () => setState(() {}),
