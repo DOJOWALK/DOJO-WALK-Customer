@@ -66,6 +66,8 @@ Time-of-day slots (Morning/Afternoon/Evening/Night) are schedule attributes, not
 **Status:** Founder direction recorded; contract/schema/validator alignment required before approval.  
 **Evidence:** Updated POL-006/POL-011 wording, deterministic date examples, API date-only semantics and cross-app fixtures.
 
+**Validator guardrail:** For start dates whose day exists in the following month, calculate `endDate` as the day before that same day in the following month (e.g. 7 November → 6 December). If the same day does not exist in the following month (e.g. 31 January → February), the draft validator must report `monthly_month_end_policy_required` and must not silently clamp or convert to 28 days. Founder must decide the month-end rule before those dates are accepted.
+
 ### D-04 — Daily Continuous cycle and month-end anchor
 
 **Question:** How does a cycle starting on the 29th, 30th or 31st advance into shorter months?
