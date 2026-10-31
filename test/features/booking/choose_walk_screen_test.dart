@@ -110,6 +110,13 @@ void main() {
       await tester.tap(find.text('Choose Dates'));
       await tester.pumpAndSettle();
 
+      final selectedDateChip = find.byWidgetPredicate(
+        (widget) =>
+            widget is ChoiceChip &&
+            widget.label is Text &&
+            ((widget.label as Text).data ?? '').startsWith('5 '),
+      );
+
       await tester.tap(find.text('Add / Select Date'));
       await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('Next month'));
@@ -118,7 +125,7 @@ void main() {
       await tester.tap(find.text('OK'));
       await tester.pumpAndSettle();
 
-      expect(find.byType(ChoiceChip), findsOneWidget);
+      expect(selectedDateChip, findsOneWidget);
 
       await tester.tap(find.text('Add / Select Date'));
       await tester.pumpAndSettle();
@@ -126,7 +133,7 @@ void main() {
       await tester.tap(find.text('OK'));
       await tester.pumpAndSettle();
 
-      expect(find.byType(ChoiceChip), findsOneWidget);
+      expect(selectedDateChip, findsOneWidget);
     });
   });
 }
