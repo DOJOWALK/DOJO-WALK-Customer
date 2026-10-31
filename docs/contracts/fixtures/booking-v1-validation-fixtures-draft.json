@@ -5,7 +5,7 @@
   "syntheticOnly": true,
   "notes": [
     "Examples are synthetic and for contract review only.",
-    "These fixtures have not been run through a JSON Schema validator or Firebase Emulator.",
+    "The Customer UI Validation workflow runs the JSON Schema and semantic validator; Firebase Emulator coverage has not been executed.",
     "JSON Schema structural acceptance does not imply business eligibility, availability, payment, assignment or authorization.",
     "Timestamp strings are illustrative serialization; Firestore storage binding remains unresolved."
   ],
