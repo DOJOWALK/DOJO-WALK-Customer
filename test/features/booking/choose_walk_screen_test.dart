@@ -104,5 +104,29 @@ void main() {
       expect(find.textContaining('Editing:'), findsOneWidget);
       expect(find.text('Walks per day'), findsNothing);
     });
+
+    testWidgets('reselecting an already selected date does not duplicate it', (tester) async {
+      await tester.pumpWidget(_testApp(const Locale('en')));
+      await tester.tap(find.text('Choose Dates'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Add / Select Date'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Next month'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('5').last);
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ChoiceChip), findsOneWidget);
+
+      await tester.tap(find.text('Add / Select Date'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('5').last);
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ChoiceChip), findsOneWidget);
+    });
   });
 }
