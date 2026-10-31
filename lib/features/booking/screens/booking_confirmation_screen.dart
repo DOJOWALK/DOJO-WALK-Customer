@@ -891,9 +891,7 @@ class _BookingConfirmationScreenState
 
       setState(() => _isSubmitting = false);
 
-      _showMessage(
-        'Booking failed at: $currentStage\n$error',
-      );
+      _showMessage(_l10n.continueFailed);
     }
   }
 
