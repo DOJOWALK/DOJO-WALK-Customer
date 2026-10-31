@@ -48,6 +48,29 @@ void main() {
       expect(find.text('Walks per day'), findsNothing);
     });
 
+    testWidgets('custom duration rejects values below 20 and accepts 60 minutes', (tester) async {
+      await tester.pumpWidget(_testApp(const Locale('en')));
+      await tester.tap(find.text('Walk Now'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Custom duration'));
+      await tester.pumpAndSettle();
+
+      final input = find.byType(TextField);
+      await tester.enterText(input, '19');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Custom duration'), findsOneWidget);
+      expect(find.text('Please enter a duration between 20 and 60 minutes.'), findsOneWidget);
+
+      await tester.enterText(input, '60');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('60 min'), findsOneWidget);
+    });
+
     testWidgets('Daily Walk allows selecting one, two, or three walks per day', (tester) async {
       await tester.pumpWidget(_testApp(const Locale('en')));
       await tester.tap(find.text('Daily Walk'));
