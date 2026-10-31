@@ -99,4 +99,69 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('A-101'), findsOneWidget);
   });
+
+  testWidgets('Home shows loading text while saved addresses are pending',
+      (tester) async {
+    final pending = Completer<List<SavedAddress>>();
+    var attempts = 0;
+    await tester.pumpWidget(
+      _app(
+        HomeScreen(
+          isSignedIn: () => true,
+          loadAddresses: () {
+            attempts++;
+            return pending.future;
+          },
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final strings = await AppLocalizations.delegate.load(const Locale('en'));
+    expect(attempts, 1);
+    expect(find.text(strings.homeLoadingSavedAddress), findsOneWidget);
+
+    pending.complete([_homeAddress()]);
+    await tester.pumpAndSettle();
+    expect(find.textContaining('A-101'), findsOneWidget);
+  });
+
+  testWidgets('Home shows location prompt when customer has no saved address',
+      (tester) async {
+    await tester.pumpWidget(
+      _app(
+        HomeScreen(
+          isSignedIn: () => true,
+          loadAddresses: () async => <SavedAddress>[],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final strings = await AppLocalizations.delegate.load(const Locale('en'));
+    expect(find.text(strings.homeSelectLocation), findsOneWidget);
+    expect(find.text(strings.homeSavedAddressLoadError), findsNothing);
+  });
+
+  testWidgets('Home does not load saved addresses while signed out',
+      (tester) async {
+    var attempts = 0;
+    await tester.pumpWidget(
+      _app(
+        HomeScreen(
+          isSignedIn: () => false,
+          loadAddresses: () async {
+            attempts++;
+            return [_homeAddress()];
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final strings = await AppLocalizations.delegate.load(const Locale('en'));
+    expect(attempts, 0);
+    expect(find.text(strings.homeSelectLocation), findsOneWidget);
+  });
+
 }
