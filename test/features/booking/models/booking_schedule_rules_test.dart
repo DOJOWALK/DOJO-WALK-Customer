@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../../lib/features/booking/models/booking_schedule_rules.dart';
+import '../../../../lib/features/booking/models/booking_schedule_rules.dart';
 
 void main() {
   group('BookingScheduleRules.hasOverlap', () {
