@@ -7,6 +7,7 @@ import '../../profile/screens/name_setup_screen.dart';
 import 'dog_selection_screen.dart';
 import '../../../app/theme.dart';
 import '../../../l10n/app_localizations.dart';
+import '../models/booking_schedule_rules.dart';
 
 const Color bookingOrange = DojoWalkTheme.primary;
 const Color bookingBackground = DojoWalkTheme.background;
@@ -409,25 +410,17 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
       }
     }
 
-    final sorted = [...slots]
-      ..sort((a, b) {
-        final first = a.time.hour * 60 + a.time.minute;
-        final second = b.time.hour * 60 + b.time.minute;
+    final scheduleSlots = slots
+        .map(
+          (slot) => BookingScheduleSlot(
+            start: _dateTimeForSlot(normalizedDate, slot),
+            durationMinutes: slot.durationMinutes,
+          ),
+        )
+        .toList();
 
-        return first.compareTo(second);
-      });
-
-    for (var i = 0; i < sorted.length - 1; i++) {
-      final firstStart = _dateTimeForSlot(normalizedDate, sorted[i]);
-      final secondStart = _dateTimeForSlot(normalizedDate, sorted[i + 1]);
-
-      final firstEnd = firstStart.add(
-        Duration(minutes: sorted[i].durationMinutes),
-      );
-
-      if (secondStart.isBefore(firstEnd)) {
-        return AppLocalizations.of(context).overlapValidation;
-      }
+    if (BookingScheduleRules.hasOverlap(scheduleSlots)) {
+      return AppLocalizations.of(context).overlapValidation;
     }
 
     return null;
@@ -436,19 +429,15 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
   DateTime? _regularStartDate() {
     if (!_isRegular) return _selectedDate;
 
-    final today = _dateOnly(DateTime.now());
-    final slots = _dateSchedules[_dateOnly(_selectedDate)] ?? _currentSlots;
     final now = DateTime.now();
+    final today = _dateOnly(now);
+    final slots = _dateSchedules[_dateOnly(_selectedDate)] ?? _currentSlots;
+    final slotStarts = slots.map((slot) => _dateTimeForSlot(today, slot));
 
-    final hasFutureSlotToday = slots.any((slot) {
-      return _dateTimeForSlot(today, slot).isAfter(now);
-    });
-
-    if (hasFutureSlotToday) {
-      return today;
-    }
-
-    return today.add(const Duration(days: 1));
+    return BookingScheduleRules.regularStartDate(
+      now: now,
+      slotStarts: slotStarts,
+    );
   }
 
   List<Map<String, dynamic>> _serializeSlots(List<_WalkSlot> slots) {
@@ -703,8 +692,7 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
       };
     }
 
-    final sortedDates = _selectedDates.toList()
-      ..sort((a, b) => a.compareTo(b));
+    final sortedDates = BookingScheduleRules.sortDates(_selectedDates);
 
     final dateSchedules = <Map<String, dynamic>>[];
 
