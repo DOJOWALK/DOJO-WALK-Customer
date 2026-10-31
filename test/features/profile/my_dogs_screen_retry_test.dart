@@ -98,4 +98,58 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
+
+  testWidgets('My Dogs shows loading while the dogs stream is pending',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MyDogsScreen(
+          currentUserId: () => 'customer-test',
+          watchDogs: (_) => Stream<List<DogListRecord>>.multi((_) {}),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.text('No Dogs Added Yet'), findsNothing);
+  });
+
+  testWidgets('My Dogs shows the empty state when no dogs exist',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MyDogsScreen(
+          currentUserId: () => 'customer-test',
+          watchDogs: (_) => Stream<List<DogListRecord>>.value(
+            const <DogListRecord>[],
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('No Dogs Added Yet'), findsOneWidget);
+    expect(find.text('Unable to load dogs'), findsNothing);
+  });
+
+  testWidgets('My Dogs shows login required when signed out',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MyDogsScreen(
+          currentUserId: () => null,
+          watchDogs: (_) {
+            fail('Dogs stream must not be opened while signed out.');
+          },
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('Login Required'), findsOneWidget);
+    expect(find.text('Please log in to manage your dogs.'), findsOneWidget);
+  });
+
 }
