@@ -183,8 +183,10 @@ void main() {
 
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     await tester.pumpWidget(const SizedBox.shrink());
-    await tester.pumpAndSettle();
-    await stream.close();
+    await tester.pump();
+    // Do not await StreamController.close(): StreamBuilder teardown may leave
+    // the modal route subscription alive until the next event-loop turn.
+    unawaited(stream.close());
   });
 
   testWidgets('Home address selector shows empty state', (tester) async {
