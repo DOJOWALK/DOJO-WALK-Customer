@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../app/theme.dart';
-import '../../../app/locale_controller.dart';
+import '../../../l10n/app_localizations.dart';
 
 const Color dojoOrange = DojoWalkTheme.primary;
 const Color dojoBackground = DojoWalkTheme.background;
@@ -67,43 +67,26 @@ class _OtpVerificationScreenState
       );
   }
 
-  String _tr(String en, String hi, String bn) {
-    switch (appLocale.value.languageCode) {
-      case 'hi':
-        return hi;
-      case 'bn':
-        return bn;
-      default:
-        return en;
-    }
-  }
-
   String _friendlyError(FirebaseAuthException error) {
+    final l10n = AppLocalizations.of(context);
     switch (error.code) {
       case 'invalid-verification-code':
-        return _tr('Invalid OTP. Please check and try again.', 'गलत OTP है। जाँचकर फिर कोशिश करें।', 'ভুল OTP। যাচাই করে আবার চেষ্টা করুন।');
-
+        return l10n.otpInvalidCode;
       case 'session-expired':
       case 'invalid-verification-id':
-        return _tr('OTP expired. Please request a new OTP.', 'OTP की अवधि समाप्त हो गई। नया OTP मँगाएँ।', 'OTP-এর মেয়াদ শেষ। নতুন OTP নিন।');
-
+        return l10n.otpExpired;
       case 'too-many-requests':
-        return _tr('Too many attempts. Please try again later.', 'बहुत ज़्यादा कोशिशें हुईं। बाद में फिर कोशिश करें।', 'অনেকবার চেষ্টা হয়েছে। পরে আবার চেষ্টা করুন।');
-
+        return l10n.otpTooManyAttempts;
       case 'quota-exceeded':
-        return _tr('Firebase SMS quota exceeded. Please try later.', 'SMS सीमा पूरी हो गई है। बाद में कोशिश करें।', 'SMS সীমা শেষ। পরে আবার চেষ্টা করুন।');
-
+        return l10n.otpSmsQuotaExceeded;
       case 'network-request-failed':
-        return _tr('Check your internet connection and try again.', 'इंटरनेट कनेक्शन जाँचकर फिर कोशिश करें।', 'ইন্টারনেট সংযোগ যাচাই করে আবার চেষ্টা করুন।');
-
+        return l10n.otpNetworkError;
       case 'operation-not-allowed':
-        return _tr('Phone Authentication is not enabled in Firebase.', 'Firebase में Phone Authentication चालू नहीं है।', 'Firebase-এ Phone Authentication চালু নেই।');
-
+        return l10n.otpPhoneAuthDisabled;
       case 'app-not-authorized':
-        return _tr('This app is not authorized in Firebase.', 'यह ऐप Firebase में अधिकृत नहीं है।', 'এই অ্যাপ Firebase-এ অনুমোদিত নয়।');
-
+        return l10n.otpAppUnauthorized;
       default:
-        return error.message ?? _tr('Something went wrong. Please try again.', 'कुछ गड़बड़ हुई। फिर कोशिश करें।', 'কিছু সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+        return l10n.otpGenericError;
     }
   }
 
@@ -308,7 +291,7 @@ class _OtpVerificationScreenState
         backgroundColor: dojoBackground,
         elevation: 0,
         title: Text(
-          _tr('Verify OTP', 'OTP सत्यापित करें', 'OTP যাচাই করুন'),
+          AppLocalizations.of(context).otpVerifyTitle,
           style: TextStyle(
             color: Colors.black87,
             fontWeight: FontWeight.bold,
@@ -332,7 +315,7 @@ class _OtpVerificationScreenState
               const SizedBox(height: 22),
 
               Text(
-                _tr('Verify Your Number', 'अपना नंबर सत्यापित करें', 'আপনার নম্বর যাচাই করুন'),
+                AppLocalizations.of(context).otpVerifyNumberTitle,
                 style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
@@ -342,7 +325,7 @@ class _OtpVerificationScreenState
               const SizedBox(height: 10),
 
               Text(
-                _tr('We sent an OTP to this number:', 'इस नंबर पर OTP भेजा गया है:', 'এই নম্বরে OTP পাঠানো হয়েছে:'),
+                AppLocalizations.of(context).otpSentToNumber,
                 style: TextStyle(
                   color: Colors.black54,
                   fontSize: 15,
@@ -362,7 +345,7 @@ class _OtpVerificationScreenState
               const SizedBox(height: 32),
 
               Text(
-                _tr('6-Digit OTP', '6 अंकों का OTP', '৬ সংখ্যার OTP'),
+                AppLocalizations.of(context).otpSixDigitLabel,
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                 ),
@@ -385,7 +368,7 @@ class _OtpVerificationScreenState
                   }
                 },
                 decoration: InputDecoration(
-                  hintText: _tr('Enter OTP', 'OTP डालें', 'OTP লিখুন'),
+                  hintText: AppLocalizations.of(context).otpEnterHint,
                   counterText: '',
                   filled: true,
                   fillColor: Colors.white,
@@ -428,7 +411,7 @@ class _OtpVerificationScreenState
                           ),
                         )
                       : Text(
-                          _tr('Verify OTP', 'OTP सत्यापित करें', 'OTP যাচাই করুন'),
+                          AppLocalizations.of(context).otpVerifyTitle,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -446,8 +429,8 @@ class _OtpVerificationScreenState
                       : _resendOtp,
                   child: Text(
                     _secondsRemaining > 0
-                        ? _tr('Resend OTP in $_secondsRemaining sec', '$_secondsRemaining सेकंड में OTP दोबारा भेजें', '$_secondsRemaining সেকেন্ডে OTP আবার পাঠান')
-                        : _tr('Resend OTP', 'OTP दोबारा भेजें', 'OTP আবার পাঠান'),
+                        ? _tr('${AppLocalizations.of(context).otpResendIn} $_secondsRemaining ${AppLocalizations.of(context).otpSeconds}', '$_secondsRemaining सेकंड में OTP दोबारा भेजें', '$_secondsRemaining সেকেন্ডে OTP আবার পাঠান')
+                        : AppLocalizations.of(context).otpResend,
                     style: const TextStyle(
                       color: dojoOrange,
                       fontWeight: FontWeight.w700,
@@ -460,7 +443,7 @@ class _OtpVerificationScreenState
                 child: TextButton(
                   onPressed: _loading ? null : _changeMobileNumber,
                   child: Text(
-                    _tr('Change Mobile Number', 'मोबाइल नंबर बदलें', 'মোবাইল নম্বর পরিবর্তন করুন'),
+                    AppLocalizations.of(context).otpChangeMobile,
                     style: TextStyle(
                       color: Colors.black54,
                     ),
@@ -472,7 +455,7 @@ class _OtpVerificationScreenState
 
               Center(
                 child: Text(
-                  _tr('Secure login with DOJO WALK', 'DOJO WALK के साथ सुरक्षित लॉगिन', 'DOJO WALK-এর সঙ্গে নিরাপদ লগইন'),
+                  AppLocalizations.of(context).secureLogin,
                   style: TextStyle(
                     color: Colors.black45,
                     fontSize: 12,
