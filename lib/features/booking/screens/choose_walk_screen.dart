@@ -143,12 +143,18 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
+  // Keep the legacy API/Firestore time string stable; use Flutter's locale-
+  // aware formatter only for customer-visible time labels.
   String _formatTime(TimeOfDay time) {
     final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
     final minute = time.minute.toString().padLeft(2, '0');
     final period = time.period == DayPeriod.am ? 'AM' : 'PM';
 
     return '$hour:$minute $period';
+  }
+
+  String _displayTime(TimeOfDay time) {
+    return MaterialLocalizations.of(context).formatTimeOfDay(time);
   }
 
   int get _totalDurationMinutes {
@@ -402,7 +408,7 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
           continue;
         }
       } else if (!start.isAfter(now)) {
-        return '${_formatTime(slot.time)}: ${AppLocalizations.of(context).pastTimeValidation}';
+        return '${_displayTime(slot.time)}: ${AppLocalizations.of(context).pastTimeValidation}';
       }
     }
 
@@ -1128,7 +1134,7 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  _formatTime(slot.time),
+                  _displayTime(slot.time),
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
