@@ -402,5 +402,5 @@
   "otpResendFailed": "Unable to resend OTP. Please try again.",
   "authAccountLoadFailed": "Could not load account information. Check your internet connection and try again.",
   "authContinueFailed": "Could not continue. Please try again.",
-  "authUnexpectedError": "Something went wrong. Please try again.",
+  "authUnexpectedError": "Something went wrong. Please try again."
 }
