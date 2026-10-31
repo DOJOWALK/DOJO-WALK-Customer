@@ -105,8 +105,8 @@
       },
       "schedule": {
         "timeZone": "Asia/Kolkata",
-        "startDate": "2026-11-02",
-        "endDate": "2026-11-29",
+        "startDate": "2026-11-07",
+        "endDate": "2026-12-06",
         "walksPerDay": 1,
         "walks": [
           {
@@ -260,9 +260,9 @@
     },
     {
       "id": "N14",
-      "name": "Monthly package wrong term",
-      "mutation": "Set endDate to startDate + 28 days",
-      "expected": "Reject by semantic validator: inclusive 28-day term is start + 27 days",
+      "name": "Monthly package uses fixed 28-day term instead of calendar month",
+      "mutation": "For 2026-11-07 startDate, set endDate to 2026-12-04 (28 inclusive days)",
+      "expected": "Reject by semantic validator: calendar-monthly endDate is 2026-12-06",
       "layer": "Domain validation"
     },
     {
