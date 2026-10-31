@@ -62,7 +62,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Custom duration'), findsOneWidget);
-      expect(find.text('Please enter a duration between 20 and 60 minutes.'), findsOneWidget);
+      expect(find.text('Enter between 20 and 60 minutes.'), findsOneWidget);
 
       await tester.enterText(input, '60');
       await tester.tap(find.text('Save'));
