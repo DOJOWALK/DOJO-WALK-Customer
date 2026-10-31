@@ -31,6 +31,13 @@ SavedAddress _homeAddress() => SavedAddress(
       isDefault: true,
     );
 
+Future<void> _openSelector(WidgetTester tester) async {
+  final strings = await AppLocalizations.delegate.load(const Locale('en'));
+  await tester.tap(find.text(strings.homeSelectLocation));
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 350));
+}
+
 void main() {
   testWidgets('Home address error can be retried successfully', (tester) async {
     var attempts = 0;
@@ -42,9 +49,7 @@ void main() {
           isSignedIn: () => true,
           loadAddresses: () async {
             attempts++;
-            if (attempts == 1) {
-              throw StateError('temporary address read failure');
-            }
+            if (attempts == 1) throw StateError('temporary address read failure');
             return [address];
           },
         ),
@@ -75,9 +80,7 @@ void main() {
           isSignedIn: () => true,
           loadAddresses: () {
             attempts++;
-            if (attempts == 1) {
-              return Future.value([_homeAddress()]);
-            }
+            if (attempts == 1) return Future.value([_homeAddress()]);
             return refresh.future;
           },
         ),
@@ -164,4 +167,67 @@ void main() {
     expect(find.text(strings.homeSelectLocation), findsOneWidget);
   });
 
+  testWidgets('Home address selector shows loading state', (tester) async {
+    final stream = StreamController<List<SavedAddress>>();
+    await tester.pumpWidget(
+      _app(
+        HomeScreen(
+          isSignedIn: () => true,
+          loadAddresses: () async => <SavedAddress>[],
+          watchAddresses: () => stream.stream,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _openSelector(tester);
+
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await stream.close();
+  });
+
+  testWidgets('Home address selector shows empty state', (tester) async {
+    final stream = StreamController<List<SavedAddress>>();
+    await tester.pumpWidget(
+      _app(
+        HomeScreen(
+          isSignedIn: () => true,
+          loadAddresses: () async => <SavedAddress>[],
+          watchAddresses: () => stream.stream,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _openSelector(tester);
+    stream.add(<SavedAddress>[]);
+    await tester.pump();
+
+    final strings = await AppLocalizations.delegate.load(const Locale('en'));
+    expect(find.text(strings.homeNoSavedAddresses), findsOneWidget);
+    expect(find.text(strings.homeAddAddressForPickup), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await stream.close();
+  });
+
+  testWidgets('Home address selector shows error state', (tester) async {
+    final stream = StreamController<List<SavedAddress>>();
+    await tester.pumpWidget(
+      _app(
+        HomeScreen(
+          isSignedIn: () => true,
+          loadAddresses: () async => <SavedAddress>[],
+          watchAddresses: () => stream.stream,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _openSelector(tester);
+    stream.addError(StateError('temporary stream failure'));
+    await tester.pump();
+
+    final strings = await AppLocalizations.delegate.load(const Locale('en'));
+    expect(find.text(strings.homeAddressesLoadError), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await stream.close();
+  });
 }
