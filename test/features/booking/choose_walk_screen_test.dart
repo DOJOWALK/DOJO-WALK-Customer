@@ -149,8 +149,11 @@ void main() {
 
         // The first selected date is today and its default 7 AM slot is past.
         // Validation must stop before login/profile navigation is attempted.
-        expect(find.textContaining('5 Nov 2026'), findsOneWidget);
-        expect(find.textContaining('7:00 AM'), findsOneWidget);
+        expect(find.text('5 Nov 2026'), findsOneWidget);
+        expect(
+          find.textContaining('5 Nov 2026: 7:00 AM:'),
+          findsOneWidget,
+        );
         expect(find.text(strings.loginToContinueBooking), findsNothing);
       },
     );
