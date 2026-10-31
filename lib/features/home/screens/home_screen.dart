@@ -31,6 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
   SavedAddress? _selectedSavedAddress;
   String _selectedAddress = 'Select your location';
   bool _loadingAddress = true;
+  bool _addressLoadFailed = false;
 
 
   @override
@@ -74,9 +75,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadDefaultAddress() async {
+    if (mounted) {
+      setState(() {
+        _loadingAddress = true;
+        _addressLoadFailed = false;
+      });
+    }
+
     if (FirebaseAuth.instance.currentUser == null) {
       if (mounted) {
-        setState(() => _loadingAddress = false);
+        setState(() {
+          _loadingAddress = false;
+          _addressLoadFailed = false;
+        });
       }
       return;
     }
@@ -91,6 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _selectedSavedAddress = null;
           _selectedAddress = AppLocalizations.of(context).homeSelectLocation;
           _loadingAddress = false;
+          _addressLoadFailed = false;
         });
         return;
       }
@@ -104,10 +116,14 @@ class _HomeScreenState extends State<HomeScreen> {
         _selectedSavedAddress = selected;
         _selectedAddress = _formatSavedAddress(context, selected);
         _loadingAddress = false;
+        _addressLoadFailed = false;
       });
     } catch (_) {
       if (!mounted) return;
-      setState(() => _loadingAddress = false);
+      setState(() {
+        _loadingAddress = false;
+        _addressLoadFailed = true;
+      });
     }
   }
 
@@ -563,6 +579,28 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
+                  if (_addressLoadFailed) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            AppLocalizations.of(context).homeSavedAddressLoadError,
+                            style: const TextStyle(
+                              color: Colors.redAccent,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: _loadDefaultAddress,
+                          icon: const Icon(Icons.refresh_rounded, size: 17),
+                          label: Text(AppLocalizations.of(context).homeRetry),
+                          style: TextButton.styleFrom(foregroundColor: dojoOrange),
+                        ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 24),
                   Container(
                     padding: const EdgeInsets.all(22),
