@@ -146,15 +146,20 @@ def main() -> int:
             else:
                 failed += 1
                 print(f"FAIL {case_id}: invalid mutation was accepted by JSON Schema")
-        elif case_id in {"N13", "N14"}:
+        elif case_id in {"N13", "N14", "N21"}:
             if case_id == "N13":
                 changed = copy.deepcopy(fixtures["positive"]["temporary_booking"])
                 changed["schedule"]["selectedDates"] = ["2026-11-07"]
                 expected = "temporary_selected_date_outside_range"
-            else:
+            elif case_id == "N14":
                 changed = copy.deepcopy(fixtures["positive"]["monthly_package"])
                 changed["schedule"]["endDate"] = "2026-12-04"
                 expected = "monthly_end_date_not_calendar_monthly"
+            else:
+                changed = copy.deepcopy(fixtures["positive"]["monthly_package"])
+                changed["schedule"]["startDate"] = "2027-01-31"
+                changed["schedule"]["endDate"] = "2027-02-27"
+                expected = "monthly_month_end_policy_required"
             found = semantic_errors(changed)
             if expected in found:
                 passed += 1
