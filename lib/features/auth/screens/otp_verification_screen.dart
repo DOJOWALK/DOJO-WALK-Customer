@@ -145,7 +145,7 @@ class _OtpVerificationScreenState
           _resending = false;
         });
 
-        _message(_tr('Login was unsuccessful. Please try again.', 'लॉगिन नहीं हो पाया। फिर कोशिश करें।', 'লগইন হয়নি। আবার চেষ্টা করুন।'));
+        _message(AppLocalizations.of(context).otpLoginUnsuccessful);
       }
     } on FirebaseAuthException catch (error) {
       if (!mounted || _finished) return;
@@ -164,7 +164,7 @@ class _OtpVerificationScreenState
         _resending = false;
       });
 
-      _message(_tr('Login failed. Please try again.', 'लॉगिन विफल हुआ। फिर कोशिश करें।', 'লগইন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।'));
+      _message(AppLocalizations.of(context).otpLoginFailed);
     }
   }
 
@@ -175,12 +175,12 @@ class _OtpVerificationScreenState
     final verificationId = _verificationId;
 
     if (verificationId == null || verificationId.isEmpty) {
-      _message(_tr('Please request an OTP first.', 'पहले OTP मँगाएँ।', 'আগে OTP নিন।'));
+      _message(AppLocalizations.of(context).otpRequestFirst);
       return;
     }
 
     if (!RegExp(r'^\d{6}$').hasMatch(otp)) {
-      _message(_tr('Please enter the 6-digit OTP.', '6 अंकों का OTP डालें।', '৬ সংখ্যার OTP লিখুন।'));
+      _message(AppLocalizations.of(context).otpEnterSixDigits);
       return;
     }
 
@@ -244,7 +244,7 @@ class _OtpVerificationScreenState
           });
 
           _startTimer();
-          _message(_tr('A new OTP has been sent.', 'नया OTP भेज दिया गया है।', 'নতুন OTP পাঠানো হয়েছে।'));
+          _message(AppLocalizations.of(context).otpNewSent);
         },
 
         codeAutoRetrievalTimeout: (String verificationId) {
@@ -270,7 +270,7 @@ class _OtpVerificationScreenState
         _resending = false;
       });
 
-      _message(_tr('Unable to resend OTP. Please try again.', 'OTP दोबारा नहीं भेज सके। फिर कोशिश करें।', 'OTP আবার পাঠানো যায়নি। আবার চেষ্টা করুন।'));
+      _message(AppLocalizations.of(context).otpResendFailed);
     }
   }
 
@@ -429,7 +429,7 @@ class _OtpVerificationScreenState
                       : _resendOtp,
                   child: Text(
                     _secondsRemaining > 0
-                        ? _tr('${AppLocalizations.of(context).otpResendIn} $_secondsRemaining ${AppLocalizations.of(context).otpSeconds}', '$_secondsRemaining सेकंड में OTP दोबारा भेजें', '$_secondsRemaining সেকেন্ডে OTP আবার পাঠান')
+                        ? '${AppLocalizations.of(context).otpResendIn} $_secondsRemaining ${AppLocalizations.of(context).otpSeconds}'
                         : AppLocalizations.of(context).otpResend,
                     style: const TextStyle(
                       color: dojoOrange,
