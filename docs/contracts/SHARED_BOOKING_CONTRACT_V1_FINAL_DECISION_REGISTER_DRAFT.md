@@ -58,11 +58,13 @@ Time-of-day slots (Morning/Afternoon/Evening/Night) are schedule attributes, not
 
 **Question:** What is the duration and date inclusivity?
 
-**Recommended decision:** Fixed 28 consecutive calendar dates inclusive. End date = start date + 27 days. Do not interpret as a calendar month.
+**Current Founder direction:** Calendar-monthly term, not a fixed 28-day package. The booking starts on the selected start date and ends on the day before the same date in the following month (for example, start 7 November → end 6 December), using the agreed service-local date semantics.
+
+**Decision status:** This direction supersedes the 28-consecutive-day recommendation in earlier draft material. Do not implement `startDate + 27 days` as the Monthly Package rule. The final policy/API examples and edge cases (month-end starts such as 29/30/31, February, leap years, and year boundaries) still require explicit written confirmation before cross-app implementation.
 
 **Owner:** Founder/Product. **Reviewers:** Backend, Customer, Finance.  
-**Status:** Proposed in product requirements; formal approval pending.  
-**Evidence:** Approved policy, date examples including leap-year and year-boundary cases, API date-only semantics.
+**Status:** Founder direction recorded; contract/schema/validator alignment required before approval.  
+**Evidence:** Updated POL-006/POL-011 wording, deterministic date examples, API date-only semantics and cross-app fixtures.
 
 ### D-04 — Daily Continuous cycle and month-end anchor
 
