@@ -406,3 +406,12 @@ Source files reviewed: `choose_walk_screen.dart`, `dog_selection_screen.dart`, `
 - The four-type UI cannot safely be connected by label changes alone. Before implementation, define a versioned shared contract for Customer, Admin, Partner and backend covering booking type IDs, date-only values, schedule arrays, booking lifecycle, quote/payment state, and backward-read behavior for existing documents.
 - GPS/map pickup coordinates and server-derived zone eligibility are not yet supplied by the current saved-address handoff; keep zone validation and availability server-authoritative in the later backend phase.
 - This is a source inspection, not a backend contract approval or runtime test. No Firebase/backend changes were made.
+
+### Authentication localization + CI verification (2026-10-31)
+
+- Migrated the OTP verification screen to generated EN/HI/BN localization getters for titles, validation, resend countdown, resend feedback and Firebase Auth error categories. Removed the stale locale-notifier dependency from that screen; generated AppLocalizations is the visible-copy source.
+- Phone Login now presents localized generic messages instead of raw Firebase exception text for automatic verification, OTP sending, account loading and continuation failures. Internal Firebase exception details are not shown to customers.
+- Added test/features/auth/auth_localization_test.dart to check OTP title/error copy and key availability in English, Hindi and Bengali.
+- CI initially failed on an obsolete appLocale reference and three unused catch bindings. Both issues were fixed in follow-up commits.
+- Verified GitHub Actions run: https://github.com/DOJOWALK/DOJO-WALK-Customer/actions/runs/41159935921, head SHA b6978fabbaf6f079f36da6e6ede23c1748589931. Analyze and Run Tests both completed successfully; Flutter test output reports 24 tests passed. Booking contract validator reported 19 checks passed, 0 failed and 5 blocked because backend/security/Firebase evidence is outside this Customer UI workflow.
+- This workflow does not build Android or Web, does not exercise live Firebase phone-auth/SMS, and does not provide device/browser visual or accessibility QA. Authentication runtime integration and those build/visual checks remain unverified. PR #29 remains open; no merge or backend/Firebase changes were made.
