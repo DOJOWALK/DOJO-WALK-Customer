@@ -145,6 +145,9 @@ void main() {
         // Validation must stop before login/profile navigation is attempted.
         expect(find.textContaining('5 Nov 2026'), findsOneWidget);
         expect(find.textContaining('7:00 AM'), findsOneWidget);
+        final strings = await AppLocalizations.delegate.load(
+          const Locale('en'),
+        );
         expect(find.text(strings.loginToContinueBooking), findsNothing);
       },
     );
