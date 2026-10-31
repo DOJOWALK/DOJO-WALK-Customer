@@ -24,7 +24,7 @@
 |---|---|---|
 | `single_walk` | One individual walk | One local service date and one walk schedule |
 | `temporary_booking` | Finite date-range booking | Explicit inclusive `startDate` and `endDate`, selected service dates |
-| `monthly_package` | Fixed 28-day package | Inclusive end date = start date + 27 days |
+| `monthly_package` | Calendar-monthly package | End date is the day before the same date in the following month, where that date exists; month-end edge rule pending Founder approval |
 | `daily_continuous` | Recurring calendar-cycle service | Start-date-anchored cycle; month-end rollover policy still requires approval |
 
 Morning/Afternoon/Evening/Night are time-slot labels, not booking types. Extra Walk and Reschedule are operations/features, not booking types.
@@ -78,7 +78,7 @@ This is an illustrative shape, not a final Firestore schema. Nullability, coordi
 
 - `single_walk`: exactly one service date and one walk entry. Immediate/ASAP is a request preference, not a separate booking type; server resolves the valid service date/time.
 - `temporary_booking`: required inclusive `startDate` and `endDate`; selected dates must be inside the range. Each selected date may have its own walk list.
-- `monthly_package`: required `startDate`; `endDate = startDate + 27 calendar days` (inclusive 28-day term). Persist both dates after server validation.
+- `monthly_package`: required `startDate` and calendar-monthly `endDate` (e.g. 7 November → 6 December). Do not use a fixed 28-day calculation. If the matching day does not exist in the following month (e.g. 31 January → February), reject/hold for Founder-approved month-end policy; do not silently clamp. Persist both dates after server validation.
 - `daily_continuous`: required `startDate`, recurring schedule and a cycle rule identifier. Do not calculate/persist the next cycle until the month-end policy is approved. No Auto-Pay.
 
 All date-only fields use ISO `YYYY-MM-DD` in the service timezone; timestamps use Firestore server timestamps. Date-only values must not be derived from a UTC timestamp without explicit timezone conversion.
