@@ -133,21 +133,24 @@ void main() {
         await tester.tap(find.text('OK'));
         await tester.pumpAndSettle();
 
-        // Locate the action by widget type so the test does not depend on
-        // the translated button copy or whether its ListView child is built
-        // just before scrolling.
-        final continueButton = find.byType(FilledButton).last;
-        await tester.ensureVisible(continueButton);
-        await tester.tap(continueButton);
+        // The schedule expands the ListView; scroll until its trailing action
+        // is built before interacting with it.
+        final strings = await AppLocalizations.delegate.load(
+          const Locale('en'),
+        );
+        final continueAction = find.text(strings.continueDogSelection);
+        await tester.scrollUntilVisible(
+          continueAction,
+          300,
+          scrollable: find.byType(Scrollable).first,
+        );
+        await tester.tap(continueAction);
         await tester.pumpAndSettle();
 
         // The first selected date is today and its default 7 AM slot is past.
         // Validation must stop before login/profile navigation is attempted.
         expect(find.textContaining('5 Nov 2026'), findsOneWidget);
         expect(find.textContaining('7:00 AM'), findsOneWidget);
-        final strings = await AppLocalizations.delegate.load(
-          const Locale('en'),
-        );
         expect(find.text(strings.loginToContinueBooking), findsNothing);
       },
     );
