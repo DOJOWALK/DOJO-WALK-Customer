@@ -3,9 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../lib/app/locale_controller.dart';
 import '../../../lib/features/profile/screens/my_dogs_screen.dart';
 
 void main() {
+  tearDown(() {
+    appLocale.value = const Locale('en');
+  });
+
   testWidgets('My Dogs retry resubscribes and recovers from a stream error',
       (tester) async {
     var attempts = 0;
@@ -48,6 +53,33 @@ void main() {
     expect(find.text('Unable to load dogs'), findsNothing);
   });
 
+  testWidgets('My Dogs error and retry copy updates in Hindi and Bengali',
+      (tester) async {
+    appLocale.value = const Locale('hi');
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MyDogsScreen(
+          currentUserId: () => 'customer-test',
+          watchDogs: (_) => Stream<List<DogListRecord>>.error(
+            StateError('temporary pets read failure'),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('कुत्तों की जानकारी नहीं खुल पाई'), findsOneWidget);
+    expect(find.text('फिर से कोशिश करें'), findsOneWidget);
+
+    appLocale.value = const Locale('bn');
+    await tester.pump();
+
+    expect(find.text('কুকুরের তথ্য লোড করা যায়নি'), findsOneWidget);
+    expect(find.text('আবার চেষ্টা করুন'), findsOneWidget);
+    expect(find.text('कुत्तों की जानकारी नहीं खुल पाई'), findsNothing);
+  });
+
   testWidgets('My Dogs shows loading while the dogs stream is waiting',
       (tester) async {
     final controller = StreamController<List<DogListRecord>>();
@@ -63,7 +95,9 @@ void main() {
     await tester.pump();
 
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    await controller.close();
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    unawaited(controller.close());
   });
 
   testWidgets('My Dogs shows loading while the dogs stream is pending',
