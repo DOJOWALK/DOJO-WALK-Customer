@@ -328,6 +328,7 @@
           "$ref": "#/$defs/date"
         },
         "endDate": {
+          "description": "For monthly_package, endDate is the day before the same day in the following month when that day exists. Month-end starts whose matching day does not exist in the following month remain blocked until Founder policy approval; JSON Schema does not calculate this cross-field rule.",
           "oneOf": [
             {
               "type": "null"
