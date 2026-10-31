@@ -211,8 +211,24 @@ String _dogOption(String value) {
   }
 }
 
+/// Minimal read model used by the My Dogs list and its isolated widget tests.
+class DogListRecord {
+  const DogListRecord({required this.id, required this.data});
+
+  final String id;
+  final Map<String, dynamic> data;
+}
+
 class MyDogsScreen extends StatefulWidget {
-  const MyDogsScreen({super.key});
+  const MyDogsScreen({
+    super.key,
+    this.currentUserId,
+    this.watchDogs,
+  });
+
+  /// Optional read seams; all production mutations continue using Firestore.
+  final String? Function()? currentUserId;
+  final Stream<List<DogListRecord>> Function(String uid)? watchDogs;
 
   @override
   State<MyDogsScreen> createState() => _MyDogsScreenState();
@@ -220,6 +236,24 @@ class MyDogsScreen extends StatefulWidget {
 
 class _MyDogsScreenState extends State<MyDogsScreen> {
   int _retryAttempt = 0;
+
+  String? get _currentUserId =>
+      widget.currentUserId?.call() ?? FirebaseAuth.instance.currentUser?.uid;
+
+  Stream<List<DogListRecord>> _watchDogs(String uid) {
+    final injected = widget.watchDogs;
+    if (injected != null) return injected(uid);
+    return _pets(uid)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => DogListRecord(id: doc.id, data: doc.data()),
+              )
+              .toList(growable: false),
+        );
+  }
 
   CollectionReference<Map<String, dynamic>> _pets(String uid) {
     return FirebaseFirestore.instance
@@ -233,7 +267,7 @@ class _MyDogsScreenState extends State<MyDogsScreen> {
     return ValueListenableBuilder<Locale>(
       valueListenable: appLocale,
       builder: (context, locale, child) {
-        final user = FirebaseAuth.instance.currentUser;
+        final uid = _currentUserId;
 
         return Scaffold(
           backgroundColor: dogsBackground,
@@ -250,7 +284,7 @@ class _MyDogsScreenState extends State<MyDogsScreen> {
               ),
             ),
           ),
-          body: user == null
+          body: uid == null
               ? _emptyState(
                   icon: Icons.lock_outline_rounded,
                   title: _dogTr(
@@ -264,11 +298,9 @@ class _MyDogsScreenState extends State<MyDogsScreen> {
                     'আপনার কুকুর পরিচালনা করতে লগইন করুন।',
                   ),
                 )
-              : StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              : StreamBuilder<List<DogListRecord>>(
                   key: ValueKey<int>(_retryAttempt),
-                  stream: _pets(user.uid)
-                      .orderBy('createdAt', descending: true)
-                      .snapshots(),
+                  stream: _watchDogs(uid),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
                       return _emptyState(
@@ -298,7 +330,7 @@ class _MyDogsScreenState extends State<MyDogsScreen> {
                       );
                     }
 
-                    final docs = snapshot.data?.docs ?? [];
+                    final docs = snapshot.data ?? <DogListRecord>[];
 
                     if (docs.isEmpty) {
                       return _emptyState(
@@ -328,7 +360,7 @@ class _MyDogsScreenState extends State<MyDogsScreen> {
                         ),
                         const SizedBox(height: 14),
                         ...docs.map((doc) {
-                          final data = doc.data();
+                          final data = doc.data;
                           final name =
                               (data['name'] ?? 'My Dog').toString();
                           final breed =
@@ -426,14 +458,14 @@ class _MyDogsScreenState extends State<MyDogsScreen> {
                                         if (action == 'edit') {
                                           _openDogForm(
                                             context,
-                                            _pets(user.uid),
+                                            _pets(uid),
                                             dogId: doc.id,
                                             existingData: data,
                                           );
                                         } else if (action == 'delete') {
                                           _deleteDog(
                                             context,
-                                            _pets(user.uid),
+                                            _pets(uid),
                                             doc.id,
                                             name,
                                           );
@@ -536,7 +568,7 @@ class _MyDogsScreenState extends State<MyDogsScreen> {
               : FloatingActionButton.extended(
                   onPressed: () => _openDogForm(
                     context,
-                    _pets(user.uid),
+                    _pets(uid),
                   ),
                   backgroundColor: dogsOrange,
                   foregroundColor: Colors.white,
