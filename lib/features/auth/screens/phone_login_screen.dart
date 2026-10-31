@@ -157,14 +157,12 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     } on FirebaseException catch (error) {
       if (mounted) {
         _message(
-          'अकाउंट की जानकारी नहीं मिल पाई। '
-          'इंटरनेट या Firebase permissions जाँचें। '
-          '(${error.code})',
+          AppLocalizations.of(context).authAccountLoadFailed,
         );
       }
     } catch (error) {
       if (mounted) {
-        _message('आगे नहीं बढ़ पाए: $error');
+        _message(AppLocalizations.of(context).authContinueFailed);
       }
     } finally {
       _openingNextScreen = false;
@@ -215,8 +213,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
 
             setState(() => _loading = false);
             _message(
-              error.message ??
-                  AppLocalizations.of(context).automaticVerificationFailed,
+              AppLocalizations.of(context).automaticVerificationFailed,
             );
           } catch (_) {
             if (!mounted) return;
@@ -230,7 +227,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
           if (!mounted) return;
 
           setState(() => _loading = false);
-          _message(error.message ?? AppLocalizations.of(context).otpSendFailed);
+          _message(AppLocalizations.of(context).otpSendFailed);
         },
 
         codeSent: (String verificationId, int? resendToken) async {
@@ -272,7 +269,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
       if (!mounted) return;
 
       setState(() => _loading = false);
-      _message(error.message ?? AppLocalizations.of(context).otpSendFallback);
+      _message(AppLocalizations.of(context).otpSendFallback);
     } catch (_) {
       if (!mounted) return;
 
