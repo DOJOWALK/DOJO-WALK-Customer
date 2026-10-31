@@ -563,7 +563,7 @@ class _MyDogsScreenState extends State<MyDogsScreen> {
                     );
                   },
                 ),
-          floatingActionButton: user == null
+          floatingActionButton: uid == null
               ? null
               : FloatingActionButton.extended(
                   onPressed: () => _openDogForm(
