@@ -152,4 +152,54 @@ void main() {
       );
     });
   });
+
+  group('BookingDateCalculator boundary cases', () {
+    test('dateOnly preserves leap day and removes time', () {
+      expect(
+        BookingDateCalculator.dateOnly(DateTime(2028, 2, 29, 23, 59)),
+        DateTime(2028, 2, 29),
+      );
+    });
+
+    test('daily cycle index zero returns the normalized anchor date', () {
+      for (final policy in DailyCycleAnchorPolicy.values) {
+        expect(
+          BookingDateCalculator.dailyContinuousCycleStart(
+            anchorDate: DateTime(2028, 1, 31, 22, 15),
+            cycleIndex: 0,
+            policy: policy,
+          ),
+          DateTime(2028, 1, 31),
+        );
+      }
+    });
+
+    test('temporary range accepts a single selected boundary date', () {
+      expect(
+        BookingDateCalculator.isTemporaryRangeValid(
+          startDate: DateTime(2026, 10, 7, 8),
+          endDate: DateTime(2026, 10, 7, 20),
+          selectedDates: [DateTime(2026, 10, 7, 12)],
+        ),
+        isTrue,
+      );
+    });
+
+    test('temporary range rejects selected dates before and after the range', () {
+      for (final selected in [
+        DateTime(2026, 9, 30),
+        DateTime(2026, 10, 8),
+      ]) {
+        expect(
+          BookingDateCalculator.isTemporaryRangeValid(
+            startDate: DateTime(2026, 10, 1),
+            endDate: DateTime(2026, 10, 7),
+            selectedDates: [selected],
+          ),
+          isFalse,
+        );
+      }
+    });
+  });
+
 }
