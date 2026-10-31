@@ -107,6 +107,21 @@ void main() {
     });
   });
 
+  test('sortDates handles leap day and year boundary', () {
+    expect(
+      BookingScheduleRules.sortDates([
+        DateTime(2028, 1, 1, 10),
+        DateTime(2028, 2, 29, 20),
+        DateTime(2027, 12, 31, 23),
+      ]),
+      [
+        DateTime(2027, 12, 31),
+        DateTime(2028, 1, 1),
+        DateTime(2028, 2, 29),
+      ],
+    );
+  });
+
   test('sortDates normalizes and sorts dates independent of selection order', () {
     expect(
       BookingScheduleRules.sortDates([
