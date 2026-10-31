@@ -53,6 +53,8 @@ void main() {
       await tester.tap(find.text('Walk Now'));
       await tester.pumpAndSettle();
 
+      await tester.ensureVisible(find.text('Custom duration'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Custom duration'));
       await tester.pumpAndSettle();
 
