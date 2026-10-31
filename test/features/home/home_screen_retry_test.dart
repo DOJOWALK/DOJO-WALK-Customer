@@ -209,8 +209,9 @@ void main() {
     expect(find.text(strings.homeNoSavedAddresses), findsOneWidget);
     expect(find.text(strings.homeAddAddressForPickup), findsOneWidget);
     await tester.pumpWidget(const SizedBox.shrink());
-    await tester.pumpAndSettle();
-    await stream.close();
+    await tester.pump();
+    // Close asynchronously after disposing the StreamBuilder subscription.
+    unawaited(stream.close());
   });
 
   testWidgets('Home address selector shows error state', (tester) async {
@@ -232,7 +233,8 @@ void main() {
     final strings = await AppLocalizations.delegate.load(const Locale('en'));
     expect(find.text(strings.homeAddressesLoadError), findsOneWidget);
     await tester.pumpWidget(const SizedBox.shrink());
-    await tester.pumpAndSettle();
-    await stream.close();
+    await tester.pump();
+    // Close asynchronously after disposing the StreamBuilder subscription.
+    unawaited(stream.close());
   });
 }
