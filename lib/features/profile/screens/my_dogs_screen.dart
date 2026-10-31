@@ -211,8 +211,15 @@ String _dogOption(String value) {
   }
 }
 
-class MyDogsScreen extends StatelessWidget {
+class MyDogsScreen extends StatefulWidget {
   const MyDogsScreen({super.key});
+
+  @override
+  State<MyDogsScreen> createState() => _MyDogsScreenState();
+}
+
+class _MyDogsScreenState extends State<MyDogsScreen> {
+  int _retryAttempt = 0;
 
   CollectionReference<Map<String, dynamic>> _pets(String uid) {
     return FirebaseFirestore.instance
@@ -258,6 +265,7 @@ class MyDogsScreen extends StatelessWidget {
                   ),
                 )
               : StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                  key: ValueKey<int>(_retryAttempt),
                   stream: _pets(user.uid)
                       .orderBy('createdAt', descending: true)
                       .snapshots(),
@@ -271,10 +279,13 @@ class MyDogsScreen extends StatelessWidget {
                           'কুকুরের তথ্য লোড করা যায়নি',
                         ),
                         subtitle: _dogTr(
-                          'Please check your connection and Firestore permissions.',
-                          'इंटरनेट कनेक्शन और Firestore permissions जाँचें।',
-                          'ইন্টারনেট সংযোগ এবং Firestore permissions পরীক্ষা করুন।',
+                          'Please check your connection and try again.',
+                          'इंटरनेट कनेक्शन जाँचकर फिर कोशिश करें।',
+                          'ইন্টারনেট সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।',
                         ),
+                        onRetry: () {
+                          setState(() => _retryAttempt++);
+                        },
                       );
                     }
 
@@ -573,6 +584,7 @@ class MyDogsScreen extends StatelessWidget {
     required IconData icon,
     required String title,
     required String subtitle,
+    VoidCallback? onRetry,
   }) {
     return Center(
       child: Padding(
@@ -600,6 +612,18 @@ class MyDogsScreen extends StatelessWidget {
                 height: 1.5,
               ),
             ),
+            if (onRetry != null) ...[
+              const SizedBox(height: 18),
+              OutlinedButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh_rounded),
+                label: Text(_dogTr('Retry', 'फिर कोशिश करें', 'আবার চেষ্টা করুন')),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: dogsOrange,
+                  side: const BorderSide(color: dogsOrange),
+                ),
+              ),
+            ],
           ],
         ),
       ),
