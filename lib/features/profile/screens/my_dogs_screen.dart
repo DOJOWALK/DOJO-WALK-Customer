@@ -709,7 +709,11 @@ class MyDogsScreen extends StatelessWidget {
                       ScaffoldMessenger.of(pageContext).showSnackBar(
                         SnackBar(
                           content: Text(
-                            '${_dogTr('Could not save dog', 'कुत्ते की जानकारी सेव नहीं हुई', 'কুকুরের তথ্য সংরক্ষণ করা যায়নি')}: $error',
+                            _dogTr(
+                              'Could not save dog details. Please try again.',
+                              'कुत्ते की जानकारी सेव नहीं हुई। दोबारा कोशिश करें।',
+                              'কুকুরের তথ্য সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।',
+                            ),
                           ),
                         ),
                       );
@@ -1153,7 +1157,11 @@ class MyDogsScreen extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '${_dogTr('Could not delete dog', 'कुत्ता हटाया नहीं जा सका', 'কুকুর মুছে ফেলা যায়নি')}: $error',
+            _dogTr(
+            'Could not delete dog. Please try again.',
+            'कुत्ता हटाया नहीं जा सका। दोबारा कोशिश करें।',
+            'কুকুর মুছে ফেলা যায়নি। আবার চেষ্টা করুন।',
+          ),
           ),
         ),
       );
