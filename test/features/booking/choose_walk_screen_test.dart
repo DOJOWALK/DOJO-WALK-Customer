@@ -59,8 +59,11 @@ void main() {
       expect(find.text('2 Walks'), findsOneWidget);
       expect(find.text('3 Walks'), findsOneWidget);
 
+      await tester.ensureVisible(find.text('3 Walks'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('3 Walks'));
       await tester.pumpAndSettle();
+
       expect(find.text('Walk 1'), findsOneWidget);
       expect(find.text('Walk 2'), findsOneWidget);
       expect(find.text('Walk 3'), findsOneWidget);
