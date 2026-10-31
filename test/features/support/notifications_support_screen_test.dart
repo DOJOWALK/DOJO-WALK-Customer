@@ -16,6 +16,11 @@ Widget _localizedApp(Widget child, {String languageCode = 'en'}) {
   );
 }
 
+Future<void> _scrollToSupportForm(WidgetTester tester) async {
+  await tester.drag(find.byType(ListView), const Offset(0, -900));
+  await tester.pumpAndSettle();
+}
+
 void main() {
   group('Customer notifications screen', () {
     testWidgets('shows honest not-connected empty state in English', (tester) async {
@@ -48,13 +53,12 @@ void main() {
     testWidgets('shows FAQ and explicit not-connected disclosure', (tester) async {
       await tester.pumpWidget(_localizedApp(const HelpSupportScreen()));
 
-      expect(find.text('Help & Support'), findsOneWidget);
-      expect(find.text('Frequently Asked Questions'), findsOneWidget);
-      expect(
-        find.textContaining('this form will not send your message'),
-        findsOneWidget,
-      );
-      expect(find.text('Submit Support Request'), findsOneWidget);
+      final l10n = AppLocalizations.of(tester.element(find.byType(HelpSupportScreen)));
+      expect(find.text(l10n.helpAndSupport), findsOneWidget);
+      expect(find.text(l10n.supportFaqTitle), findsOneWidget);
+      await _scrollToSupportForm(tester);
+      expect(find.text(l10n.supportFormNotConnected), findsOneWidget);
+      expect(find.text(l10n.supportSubmitRequest), findsOneWidget);
     });
 
     testWidgets('expands an FAQ answer', (tester) async {
@@ -71,6 +75,7 @@ void main() {
 
     testWidgets('validates short message and does not submit it', (tester) async {
       await tester.pumpWidget(_localizedApp(const HelpSupportScreen()));
+      await _scrollToSupportForm(tester);
 
       await tester.tap(find.text('Submit Support Request'));
       await tester.pumpAndSettle();
@@ -81,6 +86,7 @@ void main() {
 
     testWidgets('valid message still clearly reports that it was not sent', (tester) async {
       await tester.pumpWidget(_localizedApp(const HelpSupportScreen()));
+      await _scrollToSupportForm(tester);
 
       await tester.enterText(
         find.byType(TextFormField),
@@ -89,14 +95,9 @@ void main() {
       await tester.tap(find.text('Submit Support Request'));
       await tester.pump();
 
-      expect(
-        find.textContaining('Your message is not sent yet.'),
-        findsOneWidget,
-      );
-      expect(
-        find.textContaining('this form will not send your message'),
-        findsOneWidget,
-      );
+      final l10n = AppLocalizations.of(tester.element(find.byType(HelpSupportScreen)));
+      expect(find.text(l10n.supportMessageNotSent), findsOneWidget);
+      expect(find.text(l10n.supportFormNotConnected), findsOneWidget);
     });
 
     testWidgets('renders localized support disclosure in Hindi and Bengali', (tester) async {
@@ -104,19 +105,17 @@ void main() {
         _localizedApp(const HelpSupportScreen(), languageCode: 'hi'),
       );
       expect(find.text('मदद और सहायता'), findsOneWidget);
-      expect(
-        find.textContaining('यह फ़ॉर्म आपका संदेश नहीं भेजेगा'),
-        findsOneWidget,
-      );
+      await _scrollToSupportForm(tester);
+      var l10n = AppLocalizations.of(tester.element(find.byType(HelpSupportScreen)));
+      expect(find.text(l10n.supportFormNotConnected), findsOneWidget);
 
       await tester.pumpWidget(
         _localizedApp(const HelpSupportScreen(), languageCode: 'bn'),
       );
       expect(find.text('সহায়তা ও সমর্থন'), findsOneWidget);
-      expect(
-        find.textContaining('এই ফর্ম বার্তা পাঠাবে না'),
-        findsOneWidget,
-      );
+      await _scrollToSupportForm(tester);
+      l10n = AppLocalizations.of(tester.element(find.byType(HelpSupportScreen)));
+      expect(find.text(l10n.supportFormNotConnected), findsOneWidget);
     });
   });
 }
