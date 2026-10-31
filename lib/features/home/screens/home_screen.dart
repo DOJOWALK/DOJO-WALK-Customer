@@ -1,4 +1,3 @@
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -23,11 +22,13 @@ class HomeScreen extends StatefulWidget {
     super.key,
     this.isSignedIn,
     this.loadAddresses,
+    this.watchAddresses,
   });
 
-  /// Optional seams for deterministic retry tests; production uses Firebase.
+  /// Optional seams for deterministic address-state tests; production uses Firebase.
   final bool Function()? isSignedIn;
   final Future<List<SavedAddress>> Function()? loadAddresses;
+  final Stream<List<SavedAddress>> Function()? watchAddresses;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -44,11 +45,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<List<SavedAddress>> _loadAddresses() =>
       widget.loadAddresses?.call() ?? _addresses.getAddresses();
 
+  Stream<List<SavedAddress>> _watchAddresses() =>
+      widget.watchAddresses?.call() ?? _addresses.watchAddresses();
+
   SavedAddress? _selectedSavedAddress;
   String _selectedAddress = 'Select your location';
   bool _loadingAddress = true;
   bool _addressLoadFailed = false;
-
 
   @override
   void initState() {
@@ -110,7 +113,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       final addresses = await _loadAddresses();
-
       if (!mounted) return;
 
       if (addresses.isEmpty) {
@@ -123,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
 
-      final SavedAddress selected = addresses.firstWhere(
+      final selected = addresses.firstWhere(
         (address) => address.isDefault,
         orElse: () => addresses.first,
       );
@@ -149,15 +151,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _openBooking() {
-    _openScreen(const ChooseWalkScreen());
-  }
+  void _openBooking() => _openScreen(const ChooseWalkScreen());
 
   Future<void> _openAddressForm() async {
     if (!_isSignedIn) {
-      _showMessage(
-        AppLocalizations.of(context).homeLoginManageAddresses,
-      );
+      _showMessage(AppLocalizations.of(context).homeLoginManageAddresses);
       return;
     }
 
@@ -168,10 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     if (!mounted) return;
-
-    if (result != null) {
-      await _loadDefaultAddress();
-    }
+    if (result != null) await _loadDefaultAddress();
   }
 
   void _showMessage(String message) {
@@ -183,9 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _openAddressSelector() async {
     if (!_isSignedIn) {
-      _showMessage(
-        AppLocalizations.of(context).homeLoginSelectAddress,
-      );
+      _showMessage(AppLocalizations.of(context).homeLoginSelectAddress);
       return;
     }
 
@@ -201,9 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             decoration: const BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(24),
-              ),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -221,10 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
                   child: Row(
                     children: [
-                      const Icon(
-                        Icons.location_on_outlined,
-                        color: dojoOrange,
-                      ),
+                      const Icon(Icons.location_on_outlined, color: dojoOrange),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
@@ -241,7 +229,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 Expanded(
                   child: StreamBuilder<List<SavedAddress>>(
-                    stream: _addresses.watchAddresses(),
+                    stream: _watchAddresses(),
                     builder: (context, snapshot) {
                       if (snapshot.hasError) {
                         return Center(
@@ -255,19 +243,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       }
 
-                      if (snapshot.connectionState ==
-                              ConnectionState.waiting &&
+                      if (snapshot.connectionState == ConnectionState.waiting &&
                           !snapshot.hasData) {
                         return const Center(
-                          child: CircularProgressIndicator(
-                            color: dojoOrange,
-                          ),
+                          child: CircularProgressIndicator(color: dojoOrange),
                         );
                       }
 
-                      final addresses =
-                          snapshot.data ?? <SavedAddress>[];
-
+                      final addresses = snapshot.data ?? <SavedAddress>[];
                       if (addresses.isEmpty) {
                         return Center(
                           child: Padding(
@@ -306,13 +289,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           vertical: 8,
                         ),
                         itemCount: addresses.length,
-                        separatorBuilder: (_, __) =>
-                            const Divider(height: 1),
+                        separatorBuilder: (_, __) => const Divider(height: 1),
                         itemBuilder: (context, index) {
                           final address = addresses[index];
-                          final isSelected =
-                              _selectedSavedAddress?.id == address.id;
-
+                          final isSelected = _selectedSavedAddress?.id == address.id;
                           return ListTile(
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 8,
@@ -359,10 +339,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 _formatSavedAddress(context, address),
                                 maxLines: 3,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: dojoMuted,
-                                  height: 1.4,
-                                ),
+                                style: const TextStyle(color: dojoMuted, height: 1.4),
                               ),
                             ),
                             trailing: Icon(
@@ -374,8 +351,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             onTap: () {
                               setState(() {
                                 _selectedSavedAddress = address;
-                                _selectedAddress =
-                                    _formatSavedAddress(context, address);
+                                _selectedAddress = _formatSavedAddress(context, address);
                               });
                               Navigator.of(sheetContext).pop();
                             },
@@ -395,9 +371,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         _openAddressForm();
                       },
                       icon: const Icon(Icons.add_location_alt_outlined),
-                      label: Text(
-                        AppLocalizations.of(context).homeAddNewAddress,
-                      ),
+                      label: Text(AppLocalizations.of(context).homeAddNewAddress),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: dojoOrange,
                         side: const BorderSide(color: dojoOrange),
@@ -442,28 +416,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           child: Icon(icon, color: dojoOrange, size: 26),
         ),
-        title: Text(
-          title,
-          style: const TextStyle(
-            color: dojoText,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        title: Text(title, style: const TextStyle(color: dojoText, fontWeight: FontWeight.bold)),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 5),
-          child: Text(
-            subtitle,
-            style: const TextStyle(
-              color: dojoMuted,
-              height: 1.4,
-            ),
-          ),
+          child: Text(subtitle, style: const TextStyle(color: dojoMuted, height: 1.4)),
         ),
-        trailing: const Icon(
-          Icons.arrow_forward_ios,
-          size: 16,
-          color: dojoMuted,
-        ),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: dojoMuted),
         onTap: onTap,
       ),
     );
@@ -492,11 +450,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: dojoOrange,
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: const Icon(
-                          Icons.pets,
-                          color: Colors.white,
-                          size: 27,
-                        ),
+                        child: const Icon(Icons.pets, color: Colors.white, size: 27),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -515,19 +469,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             const SizedBox(height: 3),
                             Text(
                               AppLocalizations.of(context).homeTagline,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: dojoMuted,
-                              ),
+                              style: const TextStyle(fontSize: 12, color: dojoMuted),
                             ),
                           ],
                         ),
                       ),
                       IconButton(
                         tooltip: AppLocalizations.of(context).homeNotifications,
-                        onPressed: () {
-                          _openScreen(const NotificationsScreen());
-                        },
+                        onPressed: () => _openScreen(const NotificationsScreen()),
                         icon: const Icon(
                           Icons.notifications_none_rounded,
                           color: dojoText,
@@ -545,17 +494,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(18),
-                        border: Border.all(
-                          color: const Color(0xFFF0E8E0),
-                        ),
+                        border: Border.all(color: const Color(0xFFF0E8E0)),
                       ),
                       child: Row(
                         children: [
-                          const Icon(
-                            Icons.location_on_outlined,
-                            color: dojoOrange,
-                            size: 28,
-                          ),
+                          const Icon(Icons.location_on_outlined, color: dojoOrange, size: 28),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(
@@ -586,11 +529,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ],
                             ),
                           ),
-                          const Icon(
-                            Icons.keyboard_arrow_down_rounded,
-                            color: dojoOrange,
-                            size: 28,
-                          ),
+                          const Icon(Icons.keyboard_arrow_down_rounded, color: dojoOrange, size: 28),
                         ],
                       ),
                     ),
@@ -602,10 +541,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Expanded(
                           child: Text(
                             AppLocalizations.of(context).homeSavedAddressLoadError,
-                            style: const TextStyle(
-                              color: Colors.redAccent,
-                              fontSize: 12,
-                            ),
+                            style: const TextStyle(color: Colors.redAccent, fontSize: 12),
                           ),
                         ),
                         TextButton.icon(
@@ -623,18 +559,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: const Color(0xFFF0E8E0),
-                      ),
+                      border: Border.all(color: const Color(0xFFF0E8E0)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 11,
-                            vertical: 7,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
                           decoration: BoxDecoration(
                             color: const Color(0xFFFFF0E3),
                             borderRadius: BorderRadius.circular(30),
@@ -652,21 +583,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 16),
                         Text(
                           AppLocalizations.of(context).homeHeroTitle,
-                          style: const TextStyle(
-                            color: dojoText,
-                            fontSize: 30,
-                            fontWeight: FontWeight.w900,
-                            height: 1.15,
-                          ),
+                          style: const TextStyle(color: dojoText, fontSize: 30, fontWeight: FontWeight.w900, height: 1.15),
                         ),
                         const SizedBox(height: 10),
                         Text(
                           AppLocalizations.of(context).homeHeroSubtitle,
-                          style: const TextStyle(
-                            color: dojoMuted,
-                            fontSize: 14,
-                            height: 1.5,
-                          ),
+                          style: const TextStyle(color: dojoMuted, fontSize: 14, height: 1.5),
                         ),
                         const SizedBox(height: 22),
                         SizedBox(
@@ -674,22 +596,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: ElevatedButton.icon(
                             onPressed: _openBooking,
                             icon: const Icon(Icons.directions_walk),
-                            label: Text(
-                              AppLocalizations.of(context).homeBookWalk,
-                            ),
+                            label: Text(AppLocalizations.of(context).homeBookWalk),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: dojoOrange,
                               foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 16,
-                              ),
-                              textStyle: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                             ),
                           ),
                         ),
@@ -699,12 +612,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 24),
                   Text(
                     AppLocalizations.of(context).homeYourDogs,
-                    style: const TextStyle(
-                      color: dojoMuted,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1,
-                    ),
+                    style: const TextStyle(color: dojoMuted, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1),
                   ),
                   const SizedBox(height: 10),
                   _sectionCard(
