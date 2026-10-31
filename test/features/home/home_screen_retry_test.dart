@@ -8,8 +8,8 @@ import '../../../lib/features/addresses/models/saved_address.dart';
 import '../../../lib/features/home/screens/home_screen.dart';
 import '../../../lib/l10n/app_localizations.dart';
 
-Widget _app(Widget home) => MaterialApp(
-      locale: const Locale('en'),
+Widget _app(Widget home, {Locale locale = const Locale('en')}) => MaterialApp(
+      locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [
         AppLocalizations.delegate,
@@ -67,6 +67,26 @@ void main() {
     expect(attempts, 2);
     expect(find.textContaining('A-101'), findsOneWidget);
     expect(find.text(strings.homeSavedAddressLoadError), findsNothing);
+  });
+
+  testWidgets('Home address load error and retry are localized in Hindi and Bengali',
+      (tester) async {
+    for (final locale in const [Locale('hi'), Locale('bn')]) {
+      await tester.pumpWidget(
+        _app(
+          HomeScreen(
+            isSignedIn: () => true,
+            loadAddresses: () async => throw StateError('temporary read failure'),
+          ),
+          locale: locale,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final strings = await AppLocalizations.delegate.load(locale);
+      expect(find.text(strings.homeSavedAddressLoadError), findsOneWidget);
+      expect(find.text(strings.retry), findsOneWidget);
+    }
   });
 
   testWidgets('Home keeps the saved address visible while refreshing',
