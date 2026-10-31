@@ -19,14 +19,12 @@ Widget _localizedApp(Widget child, {String languageCode = 'en'}) {
 AppLocalizations _l10n(WidgetTester tester) =>
     AppLocalizations.of(tester.element(find.byType(HelpSupportScreen)));
 
-Future<void> _ensureVisible(WidgetTester tester, Finder finder) async {
-  await tester.ensureVisible(finder);
-  await tester.pumpAndSettle();
-}
-
 Future<void> _scrollToSupportForm(WidgetTester tester) async {
-  await _ensureVisible(tester, find.byType(TextFormField));
-  await _ensureVisible(tester, find.text(_l10n(tester).supportFormNotConnected));
+  final list = find.byType(ListView);
+  for (var i = 0; i < 6; i++) {
+    await tester.drag(list, const Offset(0, -650));
+    await tester.pumpAndSettle();
+  }
 }
 
 void main() {
@@ -84,7 +82,6 @@ void main() {
       final l10n = _l10n(tester);
       await _scrollToSupportForm(tester);
 
-      await _ensureVisible(tester, find.text(l10n.supportSubmitRequest));
       await tester.tap(find.text(l10n.supportSubmitRequest));
       await tester.pumpAndSettle();
 
@@ -95,13 +92,12 @@ void main() {
     testWidgets('valid message still clearly reports that it was not sent', (tester) async {
       await tester.pumpWidget(_localizedApp(const HelpSupportScreen()));
       final l10n = _l10n(tester);
-      await _ensureVisible(tester, find.byType(TextFormField));
+      await _scrollToSupportForm(tester);
 
       await tester.enterText(
         find.byType(TextFormField),
         'I need help with my booking.',
       );
-      await _ensureVisible(tester, find.text(l10n.supportSubmitRequest));
       await tester.tap(find.text(l10n.supportSubmitRequest));
       await tester.pumpAndSettle();
 
