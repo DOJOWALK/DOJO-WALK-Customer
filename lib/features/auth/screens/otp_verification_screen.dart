@@ -283,9 +283,7 @@ class _OtpVerificationScreenState
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<Locale>(
-      valueListenable: appLocale,
-      builder: (context, locale, child) => Scaffold(
+    return Scaffold(
       backgroundColor: dojoBackground,
       appBar: AppBar(
         backgroundColor: dojoBackground,
@@ -465,7 +463,6 @@ class _OtpVerificationScreenState
             ],
           ),
         ),
-      ),
       ),
     );
   }
