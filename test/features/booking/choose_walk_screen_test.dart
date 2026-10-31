@@ -73,7 +73,7 @@ void main() {
 
       expect(find.text('Select dates'), findsOneWidget);
       expect(find.text('Add / Select Date'), findsOneWidget);
-      expect(find.textContaining('Editing date:'), findsOneWidget);
+      expect(find.textContaining('Editing:'), findsOneWidget);
       expect(find.text('Walks per day'), findsNothing);
     });
   });
