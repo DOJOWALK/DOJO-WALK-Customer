@@ -402,10 +402,10 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
 
       // Regular plans may start today if there is a future walk time.
       if (_isRegular && normalizedDate == today) {
-        if (!start.isAfter(now)) {
+        if (!BookingScheduleRules.isFutureStart(start, now)) {
           continue;
         }
-      } else if (!start.isAfter(now)) {
+      } else if (!BookingScheduleRules.isFutureStart(start, now)) {
         return '${_displayTime(slot.time)}: ${AppLocalizations.of(context).pastTimeValidation}';
       }
     }
@@ -557,7 +557,8 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
       final applicableSlots = startDate == today
           ? startSlots
               .where(
-                (slot) => _dateTimeForSlot(today, slot).isAfter(
+                (slot) => BookingScheduleRules.isFutureStart(
+                  _dateTimeForSlot(today, slot),
                   DateTime.now(),
                 ),
               )
@@ -669,7 +670,10 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
       final startSlots = startDate == today
           ? originalSlots
               .where(
-                (slot) => _dateTimeForSlot(today, slot).isAfter(now),
+                (slot) => BookingScheduleRules.isFutureStart(
+                  _dateTimeForSlot(today, slot),
+                  now,
+                ),
               )
               .toList()
           : originalSlots;
