@@ -237,8 +237,9 @@ class MyDogsScreen extends StatefulWidget {
 class _MyDogsScreenState extends State<MyDogsScreen> {
   int _retryAttempt = 0;
 
-  String? get _currentUserId =>
-      widget.currentUserId?.call() ?? FirebaseAuth.instance.currentUser?.uid;
+  String? get _currentUserId => widget.currentUserId != null
+      ? widget.currentUserId!.call()
+      : FirebaseAuth.instance.currentUser?.uid;
 
   Stream<List<DogListRecord>> _watchDogs(String uid) {
     final injected = widget.watchDogs;
