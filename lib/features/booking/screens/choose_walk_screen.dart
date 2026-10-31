@@ -535,6 +535,10 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
   }
 
   Future<void> _continueToDogSelection() async {
+    // Guard the handler itself as well as the disabled button, so rapid
+    // repeated callbacks cannot start concurrent login/profile navigation.
+    if (_isContinuing) return;
+
     if (_selectedType == null) {
       _message(AppLocalizations.of(context).walkTypeRequired);
       return;
