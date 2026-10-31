@@ -31,6 +31,8 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
 
   bool _loading = true;
   bool _saving = false;
+  bool _loadError = false;
+  bool _profileLoaded = false;
 
   String _phone = '';
   String _gender = '';
@@ -59,6 +61,12 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
   }
 
   Future<void> _loadProfile() async {
+    if (mounted) {
+      setState(() {
+        _loading = true;
+        _loadError = false;
+      });
+    }
     try {
       final doc = await FirebaseFirestore.instance
           .collection('users')
@@ -66,6 +74,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
           .get();
 
       final data = doc.data() ?? {};
+      _profileLoaded = true;
 
       _nameController.text = data['name'] is String
           ? data['name'] as String
@@ -93,8 +102,8 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
         _dateOfBirth = DateTime.tryParse(dob);
       }
     } catch (_) {
-      _nameController.text = widget.user.displayName ?? '';
-      _phone = widget.user.phoneNumber ?? '';
+      _profileLoaded = false;
+      if (mounted) setState(() => _loadError = true);
     } finally {
       if (mounted) {
         setState(() => _loading = false);
@@ -156,6 +165,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
   }
 
   Future<void> _saveProfile() async {
+    if (_loadError || !_profileLoaded || _loading || _saving) return;
     if (!_formKey.currentState!.validate()) return;
 
     if (_dateOfBirth == null) {
@@ -216,7 +226,6 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
     );
 
     if (updated == true && mounted) {
-      setState(() => _loading = true);
       await _loadProfile();
     }
   }
@@ -242,7 +251,39 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                 color: accountOrange,
               ),
             )
-          : Form(
+          : _loadError
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.cloud_off_rounded, size: 44, color: accountMuted),
+                        const SizedBox(height: 14),
+                        Text(
+                          _tr(
+                            'We could not load your account details. Your information has not been changed.',
+                            'अकाउंट की जानकारी लोड नहीं हो सकी। आपकी जानकारी में कोई बदलाव नहीं किया गया है।',
+                            'অ্যাকাউন্টের তথ্য লোড করা যায়নি। আপনার তথ্য পরিবর্তন করা হয়নি।',
+                          ),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: accountText, height: 1.4),
+                        ),
+                        const SizedBox(height: 18),
+                        ElevatedButton.icon(
+                          onPressed: _loadProfile,
+                          icon: const Icon(Icons.refresh_rounded),
+                          label: Text(_tr('Try Again', 'फिर से कोशिश करें', 'আবার চেষ্টা করুন')),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: accountOrange,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : Form(
               key: _formKey,
               child: ListView(
                 padding: const EdgeInsets.all(18),
