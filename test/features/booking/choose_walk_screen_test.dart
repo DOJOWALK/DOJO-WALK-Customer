@@ -133,10 +133,10 @@ void main() {
         await tester.tap(find.text('OK'));
         await tester.pumpAndSettle();
 
-        final strings = await AppLocalizations.delegate.load(
-          const Locale('en'),
-        );
-        final continueButton = find.text(strings.continueDogSelection);
+        // Locate the action by widget type so the test does not depend on
+        // the translated button copy or whether its ListView child is built
+        // just before scrolling.
+        final continueButton = find.byType(FilledButton).last;
         await tester.ensureVisible(continueButton);
         await tester.tap(continueButton);
         await tester.pumpAndSettle();
