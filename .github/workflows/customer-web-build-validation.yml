@@ -1,0 +1,51 @@
+name: Customer Web Build Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: customer-web-build-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.35.7"
+          channel: stable
+          cache: true
+
+      - name: Confirm web platform is not already configured
+        run: test ! -d web
+
+      # Generate missing platform scaffolding only in this disposable CI checkout.
+      - name: Generate temporary Flutter web scaffold
+        run: flutter create --platforms=web .
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Flutter analyze
+        run: flutter analyze
+
+      - name: Build Web
+        run: flutter build web --release
+
+      - name: Verify web output
+        run: test -s build/web/index.html
