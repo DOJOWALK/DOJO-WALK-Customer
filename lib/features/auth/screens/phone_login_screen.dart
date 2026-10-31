@@ -154,13 +154,13 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
           builder: (_) => const AppNavigator(),
         ),
       );
-    } on FirebaseException catch (error) {
+    } on FirebaseException catch (_) {
       if (mounted) {
         _message(
           AppLocalizations.of(context).authAccountLoadFailed,
         );
       }
-    } catch (error) {
+    } catch (_) {
       if (mounted) {
         _message(AppLocalizations.of(context).authContinueFailed);
       }
@@ -208,7 +208,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
               setState(() => _loading = false);
               _message(AppLocalizations.of(context).loginIncomplete);
             }
-          } on FirebaseAuthException catch (error) {
+          } on FirebaseAuthException catch (_) {
             if (!mounted) return;
 
             setState(() => _loading = false);
@@ -265,7 +265,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
 
         codeAutoRetrievalTimeout: (String verificationId) {},
       );
-    } on FirebaseAuthException catch (error) {
+    } on FirebaseAuthException catch (_) {
       if (!mounted) return;
 
       setState(() => _loading = false);
