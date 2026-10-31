@@ -1135,6 +1135,45 @@ class MyDogsScreen extends StatelessWidget {
     if (confirmed != true || !context.mounted) return;
 
     try {
+      // Check the signed-in customer's booking history before deleting a dog.
+      // Firestore rules allow customers to list only their own bookings.
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw StateError('Authentication is required to verify booking history.');
+      }
+
+      final bookingSnapshot = await FirebaseFirestore.instance
+          .collection('bookings')
+          .where('customerId', isEqualTo: user.uid)
+          .get();
+
+      final hasBookingReference = bookingSnapshot.docs.any((booking) {
+        final data = booking.data();
+        final petDetails = data['petDetails'];
+        final nestedDogId = petDetails is Map
+            ? petDetails['dogId']?.toString()
+            : null;
+        return data['dogId']?.toString() == dogId ||
+            nestedDogId == dogId;
+      });
+
+      if (!context.mounted) return;
+
+      if (hasBookingReference) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _dogTr(
+                'This dog is linked to booking history and cannot be deleted.',
+                'यह कुत्ता बुकिंग हिस्ट्री से जुड़ा है, इसलिए इसे हटाया नहीं जा सकता।',
+                'এই কুকুরটির বুকিং ইতিহাস রয়েছে, তাই এটি মুছে ফেলা যাবে না।',
+              ),
+            ),
+          ),
+        );
+        return;
+      }
+
       await collection.doc(dogId).delete();
 
       if (!context.mounted) return;
