@@ -403,6 +403,5 @@
   "authAccountLoadFailed": "Could not load account information. Check your internet connection and try again.",
   "authContinueFailed": "Could not continue. Please try again.",
   "authUnexpectedError": "Something went wrong. Please try again.",
-  "homeSavedAddressLoadError": "Unable to load your saved address. Check your connection and try again.",
-  "homeRetry": "Retry"
+  "homeSavedAddressLoadError": "Unable to load your saved address. Check your connection and try again."
 }
