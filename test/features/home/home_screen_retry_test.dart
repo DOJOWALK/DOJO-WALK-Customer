@@ -183,6 +183,7 @@ void main() {
 
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
     await stream.close();
   });
 
@@ -206,6 +207,7 @@ void main() {
     expect(find.text(strings.homeNoSavedAddresses), findsOneWidget);
     expect(find.text(strings.homeAddAddressForPickup), findsOneWidget);
     await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
     await stream.close();
   });
 
@@ -228,6 +230,7 @@ void main() {
     final strings = await AppLocalizations.delegate.load(const Locale('en'));
     expect(find.text(strings.homeAddressesLoadError), findsOneWidget);
     await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
     await stream.close();
   });
 }
