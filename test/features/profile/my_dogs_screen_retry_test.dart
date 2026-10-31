@@ -70,7 +70,7 @@ void main() {
     await tester.pump();
 
     expect(find.text('कुत्तों की जानकारी नहीं खुल पाई'), findsOneWidget);
-    expect(find.text('फिर से कोशिश करें'), findsOneWidget);
+    expect(find.text('फिर कोशिश करें'), findsOneWidget);
 
     appLocale.value = const Locale('bn');
     await tester.pump();
