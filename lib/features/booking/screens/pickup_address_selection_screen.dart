@@ -202,14 +202,6 @@ class _PickupAddressSelectionScreenState
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        '${snapshot.error}',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: pickupMuted,
-                          fontSize: 12,
-                        ),
-                      ),
                       const SizedBox(height: 12),
                       OutlinedButton(
                         onPressed: () => setState(() {}),
