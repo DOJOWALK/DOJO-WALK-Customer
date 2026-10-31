@@ -94,9 +94,20 @@ def semantic_errors(booking: dict) -> list[str]:
         end = schedule.get("endDate")
         if start and end:
             from datetime import date, timedelta
-            expected = (date.fromisoformat(start) + timedelta(days=27)).isoformat()
-            if end != expected:
-                errors.append("monthly_term_not_28_inclusive_days")
+
+            start_date = date.fromisoformat(start)
+            next_month_year = start_date.year + (1 if start_date.month == 12 else 0)
+            next_month = 1 if start_date.month == 12 else start_date.month + 1
+            try:
+                same_day_next_month = date(
+                    next_month_year, next_month, start_date.day
+                )
+            except ValueError:
+                errors.append("monthly_month_end_policy_required")
+            else:
+                expected = (same_day_next_month - timedelta(days=1)).isoformat()
+                if end != expected:
+                    errors.append("monthly_end_date_not_calendar_monthly")
     return errors
 
 
@@ -142,8 +153,8 @@ def main() -> int:
                 expected = "temporary_selected_date_outside_range"
             else:
                 changed = copy.deepcopy(fixtures["positive"]["monthly_package"])
-                changed["schedule"]["endDate"] = "2026-11-30"
-                expected = "monthly_term_not_28_inclusive_days"
+                changed["schedule"]["endDate"] = "2026-12-04"
+                expected = "monthly_end_date_not_calendar_monthly"
             found = semantic_errors(changed)
             if expected in found:
                 passed += 1
