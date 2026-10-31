@@ -34,13 +34,15 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final AddressService _addressService = AddressService();
+  AddressService? _addressService;
+
+  AddressService get _addresses => _addressService ??= AddressService();
 
   bool get _isSignedIn =>
       widget.isSignedIn?.call() ?? FirebaseAuth.instance.currentUser != null;
 
   Future<List<SavedAddress>> _loadAddresses() =>
-      widget.loadAddresses?.call() ?? _addressService.getAddresses();
+      widget.loadAddresses?.call() ?? _addresses.getAddresses();
 
   SavedAddress? _selectedSavedAddress;
   String _selectedAddress = 'Select your location';
@@ -239,7 +241,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 Expanded(
                   child: StreamBuilder<List<SavedAddress>>(
-                    stream: _addressService.watchAddresses(),
+                    stream: _addresses.watchAddresses(),
                     builder: (context, snapshot) {
                       if (snapshot.hasError) {
                         return Center(
