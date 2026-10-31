@@ -315,17 +315,16 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
   }
 
   Future<void> _chooseDuration(_WalkSlot slot) async {
-    final controller = TextEditingController(
-      text: slot.durationMinutes.toString(),
-    );
+    final inputKey = GlobalKey<FormFieldState<String>>();
 
     final result = await showDialog<int>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
           title: Text(AppLocalizations.of(context).customDurationTitle),
-          content: TextField(
-            controller: controller,
+          content: TextFormField(
+            key: inputKey,
+            initialValue: slot.durationMinutes.toString(),
             autofocus: true,
             keyboardType: TextInputType.number,
             decoration: InputDecoration(
@@ -344,7 +343,7 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
                 foregroundColor: Colors.white,
               ),
               onPressed: () {
-                final minutes = int.tryParse(controller.text.trim());
+                final minutes = int.tryParse(inputKey.currentState?.value?.trim() ?? '');
 
                 if (minutes == null || minutes < 20 || minutes > 60) {
                   ScaffoldMessenger.of(dialogContext).showSnackBar(
@@ -363,8 +362,6 @@ class _ChooseWalkScreenState extends State<ChooseWalkScreen> {
         );
       },
     );
-
-    controller.dispose();
 
     if (result == null || !mounted) return;
 
