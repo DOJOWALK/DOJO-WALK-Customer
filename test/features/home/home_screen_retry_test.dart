@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,10 +20,7 @@ Widget _app(Widget home) => MaterialApp(
       home: home,
     );
 
-void main() {
-  testWidgets('Home address error can be retried successfully', (tester) async {
-    var attempts = 0;
-    final address = SavedAddress(
+SavedAddress _homeAddress() => SavedAddress(
       id: 'home-1',
       label: 'Home',
       flatHouse: 'A-101',
@@ -31,6 +30,11 @@ void main() {
       pincode: '201301',
       isDefault: true,
     );
+
+void main() {
+  testWidgets('Home address error can be retried successfully', (tester) async {
+    var attempts = 0;
+    final address = _homeAddress();
 
     await tester.pumpWidget(
       _app(
@@ -58,5 +62,41 @@ void main() {
     expect(attempts, 2);
     expect(find.textContaining('A-101'), findsOneWidget);
     expect(find.text(strings.homeSavedAddressLoadError), findsNothing);
+  });
+
+  testWidgets('Home keeps the saved address visible while refreshing',
+      (tester) async {
+    var attempts = 0;
+    final refresh = Completer<List<SavedAddress>>();
+
+    await tester.pumpWidget(
+      _app(
+        HomeScreen(
+          isSignedIn: () => true,
+          loadAddresses: () {
+            attempts++;
+            if (attempts == 1) {
+              return Future.value([_homeAddress()]);
+            }
+            return refresh.future;
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('A-101'), findsOneWidget);
+    expect(attempts, 1);
+
+    await tester.drag(find.byType(ListView).first, const Offset(0, 450));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(attempts, 2);
+    expect(find.textContaining('A-101'), findsOneWidget);
+
+    refresh.complete([_homeAddress()]);
+    await tester.pumpAndSettle();
+    expect(find.textContaining('A-101'), findsOneWidget);
   });
 }
