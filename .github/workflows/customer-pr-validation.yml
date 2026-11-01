@@ -50,11 +50,8 @@ jobs:
       - name: Analyze Flutter code
         run: flutter analyze
 
-      - name: Run Flutter tests when test files exist
+      - name: Run Flutter tests (required)
         shell: bash
         run: |
-          if find test -type f -name '*_test.dart' -print -quit 2>/dev/null | grep -q .; then
-            flutter test
-          else
-            echo "::notice::No Flutter test files found; test execution is skipped until tests are added."
-          fi
+          test -n "$(find test -type f -name '*_test.dart' -print -quit)"
+          flutter test
