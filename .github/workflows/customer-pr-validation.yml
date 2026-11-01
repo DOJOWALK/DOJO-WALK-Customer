@@ -1,0 +1,60 @@
+name: Customer Flutter PR Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '**.dart'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - 'analysis_options.yaml'
+      - 'assets/**'
+      - 'android/**'
+      - 'test/**'
+      - '.github/workflows/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: customer-pr-validation-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Analyze Customer app (no release)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.35.7"
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Verify Firebase configuration and app assets
+        run: |
+          test -s android/app/google-services.json
+          test -s "assets/images/DOJO WALK SPLASH.png"
+          test -s "assets/images/DOJO WALK APP ICON.png"
+
+      - name: Analyze Flutter code
+        run: flutter analyze
+
+      - name: Run Flutter tests when test files exist
+        shell: bash
+        run: |
+          if find test -type f -name '*_test.dart' -print -quit 2>/dev/null | grep -q .; then
+            flutter test
+          else
+            echo "::notice::No Flutter test files found; test execution is skipped until tests are added."
+          fi
