@@ -1,7 +1,7 @@
 # DOJO WALK — Customer Booking Schedule & Validation Edge-Case Audit
 
-**Date:** 2026-10-31  
-**Status:** Source/test coverage audit; no runtime code, Firebase, backend, data, or deployment changes.  
+**Date:** 2026-10-31
+**Status:** Source/test coverage audit; no runtime code, Firebase, backend, data, or deployment changes.
 **Repository/branch:** `DOJOWALK/DOJO-WALK-Customer` / `chore/remove-app-language-file`
 
 ## Executive result
