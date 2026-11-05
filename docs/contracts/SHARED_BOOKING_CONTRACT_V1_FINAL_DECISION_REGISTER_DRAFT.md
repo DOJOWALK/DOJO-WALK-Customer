@@ -1,8 +1,8 @@
 # DOJO WALK — Shared Booking Contract v1 Final Decision Register
 
-**Status:** DRAFT — DECISIONS REQUIRED — NOT APPROVED  
-**Date:** 2026-10-30  
-**Scope:** Customer / Admin / Partner / Backend / Firebase booking compatibility  
+**Status:** DRAFT — DECISIONS REQUIRED — NOT APPROVED
+**Date:** 2026-10-30
+**Scope:** Customer / Admin / Partner / Backend / Firebase booking compatibility
 **Related documents:**
 - `SHARED_BOOKING_DATA_CONTRACT_V1_DRAFT.md`
 - `CROSS_APP_BOOKING_COMPATIBILITY_AUDIT_V1.md`
@@ -34,8 +34,8 @@ Approval must be recorded with approver role, date, decision, scope and linked e
 
 **Recommended decision:** Require an explicit integer `schemaVersion` and canonical `bookingType`. Parse only supported versions. Unknown versions return `unsupported`; conflicting canonical and legacy markers return `schema_conflict`.
 
-**Owner:** Backend. **Reviewers:** Firebase, Customer, Admin, Partner.  
-**Status:** Pending approval.  
+**Owner:** Backend. **Reviewers:** Firebase, Customer, Admin, Partner.
+**Status:** Pending approval.
 **Evidence:** JSON Schema (or equivalent), required-field rules, version compatibility policy and fixtures.
 
 ### D-02 — Canonical booking types
@@ -50,8 +50,8 @@ Approval must be recorded with approver role, date, decision, scope and linked e
 
 Time-of-day slots (Morning/Afternoon/Evening/Night) are schedule attributes, not booking types. Extra Walk and Reschedule are actions/features, not booking types.
 
-**Owner:** Founder/Product. **Reviewers:** Customer, Operations, Backend.  
-**Status:** Product direction recorded; formal approval pending.  
+**Owner:** Founder/Product. **Reviewers:** Customer, Operations, Backend.
+**Status:** Product direction recorded; formal approval pending.
 **Evidence:** Signed-off POL-006 wording and acceptance examples.
 
 ### D-03 — Monthly Package term
@@ -62,8 +62,8 @@ Time-of-day slots (Morning/Afternoon/Evening/Night) are schedule attributes, not
 
 **Decision status:** This direction supersedes the 28-consecutive-day recommendation in earlier draft material. Do not implement `startDate + 27 days` as the Monthly Package rule. The final policy/API examples and edge cases (month-end starts such as 29/30/31, February, leap years, and year boundaries) still require explicit written confirmation before cross-app implementation.
 
-**Owner:** Founder/Product. **Reviewers:** Backend, Customer, Finance.  
-**Status:** Founder direction recorded; contract/schema/validator alignment required before approval.  
+**Owner:** Founder/Product. **Reviewers:** Backend, Customer, Finance.
+**Status:** Founder direction recorded; contract/schema/validator alignment required before approval.
 **Evidence:** Updated POL-006/POL-011 wording, deterministic date examples, API date-only semantics and cross-app fixtures.
 
 **Validator guardrail:** For start dates whose day exists in the following month, calculate `endDate` as the day before that same day in the following month (e.g. 7 November → 6 December). If the same day does not exist in the following month (e.g. 31 January → February), the draft validator must report `monthly_month_end_policy_required` and must not silently clamp or convert to 28 days. Founder must decide the month-end rule before those dates are accepted.
@@ -78,8 +78,8 @@ Time-of-day slots (Morning/Afternoon/Evening/Night) are schedule attributes, not
 
 **Recommended decision:** Do not choose by implementation convenience. Founder/Product and Finance must approve one rule and customer-facing examples before cycle calculation is wired to billing.
 
-**Owner:** Founder/Product. **Reviewers:** Finance, Backend, Customer.  
-**Status:** Blocked — no approved selection recorded.  
+**Owner:** Founder/Product. **Reviewers:** Finance, Backend, Customer.
+**Status:** Blocked — no approved selection recorded.
 **Evidence:** Written choice, month-end examples, billing/proration treatment.
 
 ### D-05 — Daily Continuous payment cadence
@@ -90,8 +90,8 @@ Time-of-day slots (Morning/Afternoon/Evening/Night) are schedule attributes, not
 
 **Recommended decision:** Backend must receive an explicit approved cadence and due schedule. No recurring debit or automatic charge. Define due date, grace, overdue, pause and failed-payment behavior separately.
 
-**Owner:** Founder/Product. **Reviewers:** Finance, Backend, Customer Support.  
-**Status:** Partial direction recorded; exact commercial rules pending.  
+**Owner:** Founder/Product. **Reviewers:** Finance, Backend, Customer Support.
+**Status:** Partial direction recorded; exact commercial rules pending.
 **Evidence:** Approved POL-011/POL-012 terms, server billing schedule, customer notices and test cases.
 
 ### D-06 — Temporary Booking date model
@@ -100,8 +100,8 @@ Time-of-day slots (Morning/Afternoon/Evening/Night) are schedule attributes, not
 
 **Recommended decision:** Require explicit inclusive `startDate` and `endDate`, plus selected service dates/days within the range. Reject selected dates outside the range. A disconnected selected-date list is not enough to infer range bounds.
 
-**Owner:** Product + Backend. **Reviewers:** Customer, Admin, Partner.  
-**Status:** Recommended; approval pending.  
+**Owner:** Product + Backend. **Reviewers:** Customer, Admin, Partner.
+**Status:** Recommended; approval pending.
 **Evidence:** Schema validation, timezone/date-only contract and fixture coverage.
 
 ### D-07 — Legacy regular mapping
@@ -110,8 +110,8 @@ Time-of-day slots (Morning/Afternoon/Evening/Night) are schedule attributes, not
 
 **Recommended decision:** No automatic mapping. Keep as `legacy_regular_unclassified`. Existing daily frequency and seven walks/week do not establish Monthly Package or Daily Continuous term/payment semantics.
 
-**Owner:** Backend. **Reviewers:** Founder/Product, Customer, Admin, Partner.  
-**Status:** Safety default recommended; formal mapping decision pending.  
+**Owner:** Backend. **Reviewers:** Founder/Product, Customer, Admin, Partner.
+**Status:** Safety default recommended; formal mapping decision pending.
 **Evidence:** Historical source evidence, reviewed mapping table and regression fixtures.
 
 ### D-08 — Legacy custom mapping
@@ -120,8 +120,8 @@ Time-of-day slots (Morning/Afternoon/Evening/Night) are schedule attributes, not
 
 **Recommended decision:** Only when trusted evidence explicitly establishes inclusive range bounds and all selected dates fall within them. Otherwise preserve as `legacy_custom_dates`, with no canonical type.
 
-**Owner:** Backend. **Reviewers:** Product, Customer, Admin.  
-**Status:** Safety default recommended; formal approval pending.  
+**Owner:** Backend. **Reviewers:** Product, Customer, Admin.
+**Status:** Safety default recommended; formal approval pending.
 **Evidence:** Source-field inventory and deterministic migration examples.
 
 ### D-09 — Legacy one-time mapping
@@ -130,8 +130,8 @@ Time-of-day slots (Morning/Afternoon/Evening/Night) are schedule attributes, not
 
 **Recommended decision:** Treat as a candidate only after immediate-vs-scheduled behavior, one-date semantics and one-walk count are verified. Never claim confirmed or paid from this mapping.
 
-**Owner:** Product + Backend. **Reviewers:** Customer, Firebase.  
-**Status:** Pending approval.  
+**Owner:** Product + Backend. **Reviewers:** Customer, Firebase.
+**Status:** Pending approval.
 **Evidence:** Historical writer behavior, valid fixture and lifecycle mapping.
 
 ### D-10 — Lifecycle state separation
@@ -140,8 +140,8 @@ Time-of-day slots (Morning/Afternoon/Evening/Night) are schedule attributes, not
 
 **Recommended decision:** Yes. Four separate state machines. Unknown legacy values remain unknown with original raw value and reason code. A legacy `pending` is not proof of quote, payment, confirmation or assignment.
 
-**Owner:** Backend. **Reviewers:** Founder/Product, Firebase, all app owners.  
-**Status:** Architecture recommendation; mapping tables pending.  
+**Owner:** Backend. **Reviewers:** Founder/Product, Firebase, all app owners.
+**Status:** Architecture recommendation; mapping tables pending.
 **Evidence:** State diagrams, allowed transitions, server event ownership and tests.
 
 ### D-11 — Assignment authority
@@ -150,8 +150,8 @@ Time-of-day slots (Morning/Afternoon/Evening/Night) are schedule attributes, not
 
 **Recommended decision:** Only a trusted backend assignment record/transition that verifies eligible Walker acceptance and server confirmation. A non-null legacy `walkerId` alone is insufficient for a customer-facing assigned claim until its provenance/history is verified.
 
-**Owner:** Backend/Operations. **Reviewers:** Founder, Firebase/Security, Admin, Partner.  
-**Status:** Pending; trusted assignment writer was not located in the bounded source audit.  
+**Owner:** Backend/Operations. **Reviewers:** Founder, Firebase/Security, Admin, Partner.
+**Status:** Pending; trusted assignment writer was not located in the bounded source audit.
 **Evidence:** Assignment service/function, eligibility checks, atomic concurrency control, audit log and emulator/integration tests.
 
 ### D-12 — Pickup coordinate precedence
@@ -160,8 +160,8 @@ Time-of-day slots (Morning/Afternoon/Evening/Night) are schedule attributes, not
 
 **Recommended decision:** Preserve address reference/text, top-level latitude/longitude, GeoPoint and canonical nested pickup as distinct source variants. Backend contract must specify the authoritative coordinate source, accuracy threshold, freshness and conflict behavior. Do not infer a precedence in app code.
 
-**Owner:** Backend + Safety. **Reviewers:** Partner, Customer, Firebase, Operations.  
-**Status:** Pending approval.  
+**Owner:** Backend + Safety. **Reviewers:** Partner, Customer, Firebase, Operations.
+**Status:** Pending approval.
 **Evidence:** API schema, GPS accuracy/freshness rules, Partner navigation tests and conflict fixtures.
 
 ### D-13 — Service-zone decision
@@ -170,8 +170,8 @@ Time-of-day slots (Morning/Afternoon/Evening/Night) are schedule attributes, not
 
 **Recommended decision:** Backend only, using active and verified polygon geometry and a versioned location catalogue. Customer selects pickup location; no customer-facing zone selector. Missing result means unknown/pending validation, not eligible.
 
-**Owner:** Backend/Location Operations. **Reviewers:** Founder, Firebase, Customer, Admin.  
-**Status:** Product direction recorded; API shape and evidence requirements pending.  
+**Owner:** Backend/Location Operations. **Reviewers:** Founder, Firebase, Customer, Admin.
+**Status:** Product direction recorded; API shape and evidence requirements pending.
 **Evidence:** Zone resolution API, polygon/catalogue version, boundary tests and audit event.
 
 ### D-14 — Quote and payment authority
@@ -180,8 +180,8 @@ Time-of-day slots (Morning/Afternoon/Evening/Night) are schedule attributes, not
 
 **Recommended decision:** Server-generated quote with expiry and policy/pricing version. Payment state only from verified provider/backend event. Client-supplied price or provider reference alone cannot establish paid state. No payment flow until approved price policy and trusted verification exist.
 
-**Owner:** Backend + Finance. **Reviewers:** Founder, Firebase/Security, Customer.  
-**Status:** Pending approval and implementation evidence.  
+**Owner:** Backend + Finance. **Reviewers:** Founder, Firebase/Security, Customer.
+**Status:** Pending approval and implementation evidence.
 **Evidence:** POL-011 approval, quote API, payment verification, webhook/reconciliation tests.
 
 ### D-15 — Shared contract/package ownership
@@ -190,8 +190,8 @@ Time-of-day slots (Morning/Afternoon/Evening/Night) are schedule attributes, not
 
 **Recommended decision:** First approve a language-neutral contract and portable synthetic JSON fixture suite. Run equivalent adapter tests in each app. Decide later whether a shared Dart package, dedicated contract repository or generated schema is justified. Do not assume a shared package/repository already exists.
 
-**Owner:** Architecture/Backend lead. **Reviewers:** all app owners.  
-**Status:** Recommended; owner not assigned.  
+**Owner:** Architecture/Backend lead. **Reviewers:** all app owners.
+**Status:** Recommended; owner not assigned.
 **Evidence:** ADR, repo ownership, release/versioning policy and CI parity checks.
 
 ### D-16 — Raw source, privacy and caching
@@ -200,8 +200,8 @@ Time-of-day slots (Morning/Afternoon/Evening/Night) are schedule attributes, not
 
 **Recommended decision:** Preserve source evidence only within authorized access boundaries. Do not log full documents, addresses, coordinates, dog safety notes, contact details or payment references. Clear user-scoped cache on sign-out/account switch; do not let cache override permission changes or server updates.
 
-**Owner:** Security/Privacy. **Reviewers:** Firebase, Backend, all app owners.  
-**Status:** Pending review.  
+**Owner:** Security/Privacy. **Reviewers:** Firebase, Backend, all app owners.
+**Status:** Pending review.
 **Evidence:** Data-flow review, retention policy, logging allowlist, cache invalidation tests.
 
 ### D-17 — Legacy migration and cutover
@@ -210,8 +210,8 @@ Time-of-day slots (Morning/Afternoon/Evening/Night) are schedule attributes, not
 
 **Recommended decision:** Not during read-adapter design. Require approved schema, deployed backend writer, restrictive Rules, emulator/integration tests, shadow-read parity, dry-run, checkpoint/rollback and explicit go/no-go approval. Never dual-write without a separately approved consistency design.
 
-**Owner:** Backend + Firebase. **Approver:** Founder/CEO.  
-**Status:** NO-GO until gates satisfied.  
+**Owner:** Backend + Firebase. **Approver:** Founder/CEO.
+**Status:** NO-GO until gates satisfied.
 **Evidence:** Migration runbook, dry-run report, rollback rehearsal, compatibility metrics and signed approval.
 
 ## 3. Cross-cutting invariants — must not be weakened
