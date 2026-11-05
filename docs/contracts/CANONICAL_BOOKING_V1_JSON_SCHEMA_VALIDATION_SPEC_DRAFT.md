@@ -1,9 +1,9 @@
 # DOJO WALK — Canonical Booking v1 JSON Schema & Validation Specification
 
-**Status:** DRAFT — REVIEW ONLY — NOT APPROVED  
-**Date:** 2026-10-30  
-**Schema file:** `docs/contracts/schemas/booking-v1.schema.json`  
-**Source policy:** Notion POL-006; pricing/payment references POL-011  
+**Status:** DRAFT — REVIEW ONLY — NOT APPROVED
+**Date:** 2026-10-30
+**Schema file:** `docs/contracts/schemas/booking-v1.schema.json`
+**Source policy:** Notion POL-006; pricing/payment references POL-011
 **Consumers:** Customer, Admin, Partner, Firebase/backend
 
 > This is a proposed contract artifact, not a deployed schema. It does not authorize Firestore writes, Rules changes, Cloud Functions, payment/assignment implementation, migration or PR merge. The JSON Schema is a structural proposal; several product decisions remain open in the Decision Register.
