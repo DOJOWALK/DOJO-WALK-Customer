@@ -1,8 +1,8 @@
 # DOJO WALK — Customer Booking Payload vs Firebase Rules Compatibility Matrix
 
-**Date:** 2026-10-31  
-**Status:** Read-only source comparison; no code, Rules, data, or deployment changes.  
-**Customer source:** `DOJOWALK/DOJO-WALK-Customer`, branch `chore/remove-app-language-file`  
+**Date:** 2026-10-31
+**Status:** Read-only source comparison; no code, Rules, data, or deployment changes.
+**Customer source:** `DOJOWALK/DOJO-WALK-Customer`, branch `chore/remove-app-language-file`
 **Firebase source:** `DOJOWALK/DOJO-WALK-Firebase`, branch `main`
 
 ## Executive result
