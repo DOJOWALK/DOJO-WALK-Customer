@@ -1,8 +1,8 @@
 # DOJO WALK — Shared Booking Adapter Implementation Blueprint v1
 
-**Status:** DRAFT — ARCHITECTURE REVIEW ONLY — NOT IMPLEMENTED  
-**Date:** 2026-10-30  
-**Target:** Customer / Admin / Partner / Firebase booking compatibility  
+**Status:** DRAFT — ARCHITECTURE REVIEW ONLY — NOT IMPLEMENTED
+**Date:** 2026-10-30
+**Target:** Customer / Admin / Partner / Firebase booking compatibility
 **Depends on:** Shared Booking Data Contract v1 Draft; Cross-App Booking Compatibility Audit v1; Legacy Booking Migration Compatibility Plan v1 Draft; Booking Compatibility Test Fixtures v1 Draft.
 
 > This blueprint defines a safe read-only compatibility architecture. It does not authorize runtime code, Firestore writes, Rules changes, data migration, assignment changes, payment changes, deployment or PR merge.
