@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:dojo_walk_customer/app/app_language.dart';
+import 'package:dojo_walk_customer/app/locale_controller.dart';
 
 void main() {
   const english = 'Home';

@@ -1,0 +1,264 @@
+{
+  "title": "DOJO WALK Legacy Firestore Booking Create Fixtures",
+  "status": "DRAFT_NOT_EXECUTED",
+  "syntheticOnly": true,
+  "source": {
+    "customerWriter": "lib/features/booking/screens/booking_confirmation_screen.dart",
+    "firebaseRules": "DOJOWALK/DOJO-WALK-Firebase/firestore.rules@main",
+    "rulesHelpers": [
+      "validBookingBase",
+      "validPickupCoordinates",
+      "validBookingDuration",
+      "validWalkScheduleList",
+      "validOneTimeBooking",
+      "validRegularBooking",
+      "validCustomBooking"
+    ]
+  },
+  "harnessInstructions": [
+    "These are semantic fixture templates, not directly writable Firestore JSON documents.",
+    "Replace __AUTH_UID__ with the authenticated test user's UID.",
+    "Use a real Firestore Timestamp for scheduledAt.",
+    "Use serverTimestamp() for createdAt so Rules evaluate it as request.time.",
+    "For each test, use the fixture's bookingId as the document ID.",
+    "The fixture payloads intentionally use only the legacy allowlisted keys.",
+    "No Firebase Emulator test has been run by creating this file."
+  ],
+  "positive": {
+    "one_time": {
+      "bookingId": "fixture_one_time_001",
+      "customerId": "__AUTH_UID__",
+      "walkType": "scheduled",
+      "bookingPlan": "one_time",
+      "serviceType": "temporary_walk",
+      "serviceName": "One-Time Walk",
+      "petName": "Demo Dog",
+      "dogId": "dog_fixture_001",
+      "petDetails": {
+        "dogId": "dog_fixture_001",
+        "name": "Demo Dog"
+      },
+      "pickupAddressId": "address_fixture_001",
+      "pickupAddress": {
+        "address": "Synthetic Test Address",
+        "latitude": 28.6,
+        "longitude": 77.4
+      },
+      "scheduledAt": "__FIRESTORE_TIMESTAMP__",
+      "duration": "30 minutes",
+      "preferredTime": "06:30",
+      "status": "pending",
+      "walkerId": null,
+      "cancelRequest": null,
+      "createdAt": "__SERVER_TIMESTAMP__",
+      "walkCount": 1,
+      "walkSchedules": [
+        {
+          "time": "06:30",
+          "duration": 30
+        }
+      ]
+    },
+    "regular_daily": {
+      "bookingId": "fixture_regular_daily_001",
+      "customerId": "__AUTH_UID__",
+      "walkType": "scheduled",
+      "bookingPlan": "regular",
+      "serviceType": "regular_walk",
+      "serviceName": "Regular Daily Walk",
+      "petName": "Demo Dog",
+      "dogId": "dog_fixture_001",
+      "petDetails": {
+        "dogId": "dog_fixture_001",
+        "name": "Demo Dog"
+      },
+      "pickupAddressId": "address_fixture_001",
+      "pickupAddress": {
+        "address": "Synthetic Test Address",
+        "latitude": 28.6,
+        "longitude": 77.4
+      },
+      "scheduledAt": "__FIRESTORE_TIMESTAMP__",
+      "duration": "30 minutes",
+      "preferredTime": "07:00",
+      "status": "pending",
+      "walkerId": null,
+      "cancelRequest": null,
+      "createdAt": "__SERVER_TIMESTAMP__",
+      "walkCount": 1,
+      "walkSchedules": [
+        {
+          "time": "07:00",
+          "duration": 30
+        }
+      ],
+      "frequency": "daily",
+      "walksPerWeek": 7,
+      "walksPerDay": 1,
+      "planStatus": "pending_confirmation",
+      "dailyWalkTemplate": [
+        {
+          "time": "07:00",
+          "duration": 30
+        }
+      ]
+    },
+    "choose_dates": {
+      "bookingId": "fixture_choose_dates_001",
+      "customerId": "__AUTH_UID__",
+      "walkType": "scheduled",
+      "bookingPlan": "customize",
+      "serviceType": "custom_walk",
+      "serviceName": "Choose Dates",
+      "petName": "Demo Dog",
+      "dogId": "dog_fixture_001",
+      "petDetails": {
+        "dogId": "dog_fixture_001",
+        "name": "Demo Dog"
+      },
+      "pickupAddressId": "address_fixture_001",
+      "pickupAddress": {
+        "address": "Synthetic Test Address",
+        "latitude": 28.6,
+        "longitude": 77.4
+      },
+      "scheduledAt": "__FIRESTORE_TIMESTAMP__",
+      "duration": "30 minutes",
+      "preferredTime": "18:00",
+      "status": "pending",
+      "walkerId": null,
+      "cancelRequest": null,
+      "createdAt": "__SERVER_TIMESTAMP__",
+      "walkCount": 1,
+      "walkSchedules": [
+        {
+          "time": "18:00",
+          "duration": 30
+        }
+      ],
+      "walksPerDay": 1,
+      "selectedDates": [
+        "2026-11-02",
+        "2026-11-04"
+      ],
+      "dateSchedules": [
+        {
+          "date": "__FIRESTORE_TIMESTAMP_2026_11_02__",
+          "walks": [
+            {
+              "time": "18:00",
+              "duration": 30
+            }
+          ]
+        },
+        {
+          "date": "__FIRESTORE_TIMESTAMP_2026_11_04__",
+          "walks": [
+            {
+              "time": "18:00",
+              "duration": 30
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "negativeCases": [
+    {
+      "id": "N01_wrong_document_id",
+      "mutation": "Set bookingId different from document ID",
+      "expected": "deny"
+    },
+    {
+      "id": "N02_wrong_customer_uid",
+      "mutation": "customerId differs from authenticated UID",
+      "expected": "deny"
+    },
+    {
+      "id": "N03_unknown_canonical_field",
+      "mutation": "Add schemaVersion or bookingType or schedule or startDate or endDate",
+      "expected": "deny"
+    },
+    {
+      "id": "N04_duration_below_minimum",
+      "mutation": "Set duration to '19 minutes'",
+      "expected": "deny"
+    },
+    {
+      "id": "N05_duration_above_maximum",
+      "mutation": "Set duration to '61 minutes'",
+      "expected": "deny"
+    },
+    {
+      "id": "N06_walk_item_duration_below_minimum",
+      "mutation": "Set walkSchedules[0].duration to 19",
+      "expected": "deny"
+    },
+    {
+      "id": "N07_walk_item_duration_above_maximum",
+      "mutation": "Set walkSchedules[0].duration to 61",
+      "expected": "deny"
+    },
+    {
+      "id": "N08_missing_latitude_only",
+      "mutation": "Include latitude without longitude",
+      "expected": "deny"
+    },
+    {
+      "id": "N09_invalid_latitude",
+      "mutation": "Set latitude to 91",
+      "expected": "deny"
+    },
+    {
+      "id": "N10_invalid_longitude",
+      "mutation": "Set longitude to 181",
+      "expected": "deny"
+    },
+    {
+      "id": "N11_walk_count_mismatch",
+      "mutation": "walkCount differs from walkSchedules size",
+      "expected": "deny"
+    },
+    {
+      "id": "N12_regular_missing_daily_template",
+      "mutation": "Remove dailyWalkTemplate from regular payload",
+      "expected": "deny"
+    },
+    {
+      "id": "N13_regular_wrong_frequency",
+      "mutation": "Set frequency to weekly",
+      "expected": "deny"
+    },
+    {
+      "id": "N14_custom_dates_count_mismatch",
+      "mutation": "selectedDates size differs from dateSchedules size",
+      "expected": "deny"
+    },
+    {
+      "id": "N15_custom_missing_selected_dates",
+      "mutation": "Remove selectedDates from customize payload",
+      "expected": "deny"
+    },
+    {
+      "id": "N16_extra_unapproved_key",
+      "mutation": "Add an arbitrary extra key",
+      "expected": "deny"
+    },
+    {
+      "id": "N17_wrong_status_at_create",
+      "mutation": "Set status to confirmed",
+      "expected": "deny"
+    },
+    {
+      "id": "N18_non_null_walker_at_create",
+      "mutation": "Set walkerId to a UID",
+      "expected": "deny"
+    }
+  ],
+  "importantLimitations": [
+    "Rules currently validate custom selectedDates/dateSchedules list presence and equal list size, not date uniqueness, selectedDates/dateSchedules value-by-value equality, date range, or calendar-monthly term.",
+    "Regular validator represents daily recurring template (frequency=daily and walksPerWeek=7); it is not a calendar-monthly term.",
+    "No canonical monthly_package fixture is included as a positive legacy write because current Firestore Rules do not allow canonical fields.",
+    "These cases describe expected outcomes from inspected Rules; the Emulator is required to confirm actual evaluation."
+  ]
+}

@@ -1,5 +1,8 @@
 
 import 'package:flutter/material.dart';
+
+import '../../../app/theme.dart';
+import '../../../app/locale_controller.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -7,8 +10,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../models/saved_address.dart';
 import '../services/address_service.dart';
 
-const Color addressOrange = Color(0xFFFF7900);
-const Color addressBackground = Color(0xFFFFFAF5);
+const Color addressOrange = DojoWalkTheme.primary;
+const Color addressBackground = DojoWalkTheme.background;
 
 class AddressFormScreen extends StatefulWidget {
   final SavedAddress? address;
@@ -59,9 +62,17 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
   @override
   void initState() {
     super.initState();
+    appLocale.addListener(_onLocaleChanged);
     _selectedLocation = _initialLocation;
     _loadExistingAddress();
   }
+
+  void _onLocaleChanged() {
+    if (mounted) setState(() {});
+  }
+
+  String _text(String en, String hi, String bn) =>
+      appText(en: en, hi: hi, bn: bn);
 
   void _loadExistingAddress() {
     final address = widget.address;
@@ -96,6 +107,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
 
   @override
   void dispose() {
+    appLocale.removeListener(_onLocaleChanged);
     _mapController?.dispose();
     _searchController.dispose();
     _flatHouseController.dispose();
@@ -147,7 +159,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
 
     final query = _searchController.text.trim();
     if (query.isEmpty) {
-      _showMessage('पहले address या area लिखें।');
+      _showMessage(_text('Enter an address or area first.', 'पहले पता या क्षेत्र लिखें।', 'প্রথমে ঠিকানা বা এলাকা লিখুন।'));
       return;
     }
 
@@ -160,7 +172,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
       if (!mounted) return;
 
       if (locations.isEmpty) {
-        _showMessage('इस address की location नहीं मिली।');
+        _showMessage(_text('Could not find this address location.', 'इस पते की लोकेशन नहीं मिली।', 'এই ঠিকানার অবস্থান পাওয়া যায়নি।'));
         return;
       }
 
@@ -170,7 +182,11 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
       );
     } catch (_) {
       _showMessage(
-        'Address search नहीं हुआ। दूसरा address लिखकर कोशिश करें।',
+        _text(
+          'Address search failed. Try another address.',
+          'पता खोजा नहीं जा सका। दूसरा पता लिखकर कोशिश करें।',
+          'ঠিকানা খোঁজা যায়নি। অন্য ঠিকানা দিয়ে চেষ্টা করুন।',
+        ),
       );
     } finally {
       if (mounted) {
@@ -189,7 +205,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
           await Geolocator.isLocationServiceEnabled();
 
       if (!serviceEnabled) {
-        _showMessage('फोन की Location चालू करें।');
+        _showMessage(_text('Turn on your phone location service.', 'फोन की लोकेशन चालू करें।', 'ফোনের লোকেশন চালু করুন।'));
         return;
       }
 
@@ -200,13 +216,17 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
       }
 
       if (permission == LocationPermission.denied) {
-        _showMessage('Location permission जरूरी है।');
+        _showMessage(_text('Location permission is required.', 'लोकेशन की अनुमति ज़रूरी है।', 'লোকেশনের অনুমতি প্রয়োজন।'));
         return;
       }
 
       if (permission == LocationPermission.deniedForever) {
         _showMessage(
-          'Phone Settings में जाकर Location permission चालू करें।',
+          _text(
+            'Enable location permission in phone settings.',
+            'फोन की सेटिंग्स में जाकर लोकेशन की अनुमति चालू करें।',
+            'ফোনের সেটিংসে গিয়ে লোকেশনের অনুমতি চালু করুন।',
+          ),
         );
         return;
       }
@@ -224,7 +244,11 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
       );
     } catch (_) {
       _showMessage(
-        'Current location नहीं मिल सकी। दोबारा कोशिश करें।',
+        _text(
+          'Could not get current location. Please try again.',
+          'वर्तमान लोकेशन नहीं मिली। दोबारा कोशिश करें।',
+          'বর্তমান অবস্থান পাওয়া যায়নি। আবার চেষ্টা করুন।',
+        ),
       );
     } finally {
       if (mounted) {
@@ -299,7 +323,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
 
   String? _pincodeValidator(String? value) {
     if (!RegExp(r'^\d{6}$').hasMatch(value?.trim() ?? '')) {
-      return 'सही 6-digit PIN code लिखें।';
+      return _text('Enter a valid 6-digit PIN code.', 'सही 6 अंकों का PIN कोड लिखें।', 'সঠিক ৬ সংখ্যার PIN কোড লিখুন।');
     }
     return null;
   }
@@ -313,7 +337,11 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
 
     if (!_locationConfirmed) {
       _showMessage(
-        'पहले search, current location या map से pickup point चुनें।',
+        _text(
+          'Choose a pickup point using search, current location, or the map first.',
+          'पहले सर्च, वर्तमान लोकेशन या मैप से पिकअप पॉइंट चुनें।',
+          'প্রথমে সার্চ, বর্তমান অবস্থান বা মানচিত্র থেকে পিকআপের স্থান বেছে নিন।',
+        ),
       );
       return;
     }
@@ -347,7 +375,11 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
       Navigator.of(context).pop(savedAddressId);
     } catch (_) {
       _showMessage(
-        'Address save नहीं हुआ। Internet जाँचकर दोबारा कोशिश करें।',
+        _text(
+          'Address could not be saved. Check your internet and try again.',
+          'पता सेव नहीं हुआ। इंटरनेट जाँचकर दोबारा कोशिश करें।',
+          'ঠিকানা সংরক্ষণ করা যায়নি। ইন্টারনেট পরীক্ষা করে আবার চেষ্টা করুন।',
+        ),
       );
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -488,8 +520,8 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                         children: [
                           Text(
                             _isEditing
-                                ? 'Edit Pickup Address'
-                                : 'Address Details',
+                                ? _text('Edit Pickup Address', 'पिकअप पता बदलें', 'পিকআপের ঠিকানা সম্পাদনা করুন')
+                                : _text('Address Details', 'पते का विवरण', 'ঠিকানার বিবরণ'),
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w800,
@@ -498,8 +530,8 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                           const SizedBox(height: 3),
                           Text(
                             _locationConfirmed
-                                ? 'Pickup point selected'
-                                : 'Map पर सही pickup point चुनें',
+                                ? _text('Pickup point selected', 'पिकअप पॉइंट चुना गया', 'পিকআপের স্থান বেছে নেওয়া হয়েছে')
+                                : _text('Choose the correct pickup point on the map', 'मैप पर सही पिकअप पॉइंट चुनें', 'মানচিত্রে সঠিক পিকআপের স্থান বেছে নিন'),
                             style: TextStyle(
                               fontSize: 12,
                               color: _locationConfirmed
@@ -516,62 +548,62 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                 const SizedBox(height: 22),
 
                 _buildTextField(
-                  label: 'Flat / House Number',
+                  label: _text('Flat / House Number', 'फ्लैट / मकान नंबर', 'ফ্ল্যাট / বাড়ির নম্বর'),
                   controller: _flatHouseController,
-                  hint: 'e.g. Flat 201, House 12',
+                  hint: _text('e.g. Flat 201, House 12', 'जैसे फ्लैट 201, मकान 12', 'যেমন ফ্ল্যাট ২০১, বাড়ি ১২'),
                   required: true,
                   validator: (value) => _requiredValidator(
                     value,
-                    'Enter your flat or house number.',
+                    _text('Enter your flat or house number.', 'फ्लैट या मकान नंबर लिखें।', 'ফ্ল্যাট বা বাড়ির নম্বর লিখুন।'),
                   ),
                 ),
                 _buildTextField(
-                  label: 'Building / Society',
+                  label: _text('Building / Society', 'बिल्डिंग / सोसाइटी', 'বিল্ডিং / সোসাইটি'),
                   controller: _buildingController,
-                  hint: 'e.g. ABC Residency',
+                  hint: _text('e.g. ABC Residency', 'जैसे ABC Residency', 'যেমন ABC Residency'),
                 ),
                 _buildTextField(
-                  label: 'Area / Locality',
+                  label: _text('Area / Locality', 'क्षेत्र / इलाका', 'এলাকা / পাড়া'),
                   controller: _areaController,
-                  hint: 'Enter area or locality',
+                  hint: _text('Enter area or locality', 'क्षेत्र या इलाका लिखें', 'এলাকা বা পাড়া লিখুন'),
                   required: true,
                   validator: (value) => _requiredValidator(
                     value,
-                    'Enter your area or locality.',
+                    _text('Enter your area or locality.', 'अपना क्षेत्र या इलाका लिखें।', 'আপনার এলাকা বা পাড়া লিখুন।'),
                   ),
                 ),
                 _buildTextField(
-                  label: 'Landmark',
+                  label: _text('Landmark', 'नज़दीकी पहचान', 'কাছাকাছি পরিচিত স্থান'),
                   controller: _landmarkController,
-                  hint: 'Nearby landmark (optional)',
+                  hint: _text('Nearby landmark (optional)', 'पास की पहचान (वैकल्पिक)', 'কাছাকাছি পরিচিত স্থান (ঐচ্ছিক)'),
                 ),
                 _buildTextField(
-                  label: 'City',
+                  label: _text('City', 'शहर', 'শহর'),
                   controller: _cityController,
-                  hint: 'Enter city',
+                  hint: _text('Enter city', 'शहर लिखें', 'শহরের নাম লিখুন'),
                   required: true,
                   validator: (value) => _requiredValidator(
                     value,
-                    'Enter your city.',
+                    _text('Enter your city.', 'अपना शहर लिखें।', 'আপনার শহরের নাম লিখুন।'),
                   ),
                 ),
                 _buildTextField(
-                  label: 'PIN Code',
+                  label: _text('PIN Code', 'पिन कोड', 'পিন কোড'),
                   controller: _pincodeController,
-                  hint: '6-digit PIN code',
+                  hint: _text('6-digit PIN code', '6 अंकों का पिन कोड', '৬ সংখ্যার পিন কোড'),
                   keyboardType: TextInputType.number,
                   required: true,
                   validator: _pincodeValidator,
                 ),
                 _buildTextField(
-                  label: 'Pickup Instructions',
+                  label: _text('Pickup Instructions', 'पिकअप के निर्देश', 'পিকআপের নির্দেশনা'),
                   controller: _instructionsController,
-                  hint: 'e.g. Call when you reach the gate',
+                  hint: _text('e.g. Call when you reach the gate', 'जैसे गेट पर पहुँचकर कॉल करें', 'যেমন গেটে পৌঁছে ফোন করুন'),
                   maxLines: 3,
                 ),
 
-                const Text(
-                  'Save Address As',
+                Text(
+                  _text('Save Address As', 'पता इस नाम से सेव करें', 'এই নামে ঠিকানা সংরক্ষণ করুন'),
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
@@ -599,8 +631,8 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                           ),
                   activeColor: addressOrange,
                   contentPadding: EdgeInsets.zero,
-                  title: const Text(
-                    'Set as default address',
+                  title: Text(
+                    _text('Set as default address', 'डिफ़ॉल्ट पता बनाएँ', 'ডিফল্ট ঠিকানা হিসেবে রাখুন'),
                     style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                   controlAffinity: ListTileControlAffinity.leading,
@@ -614,7 +646,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                     color: const Color(0xFFFFF0E3),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Row(
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(
@@ -624,8 +656,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                       SizedBox(width: 9),
                       Expanded(
                         child: Text(
-                          'Save करने से पहले map पर pickup point जाँचें। '
-                          'Map की coordinates address के साथ save होंगी।',
+                          _text('Check the pickup point on the map before saving. The map coordinates will be saved with the address.', 'सेव करने से पहले मैप पर पिकअप पॉइंट जाँचें। मैप के निर्देशांक पते के साथ सेव होंगे।', 'সংরক্ষণের আগে মানচিত্রে পিকআপের স্থান পরীক্ষা করুন। মানচিত্রের স্থানাঙ্ক ঠিকানার সঙ্গে সংরক্ষিত হবে।'),
                           style: TextStyle(height: 1.4),
                         ),
                       ),
@@ -659,8 +690,8 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                           )
                         : Text(
                             _isEditing
-                                ? 'Update Address'
-                                : 'Save Address',
+                                ? _text('Update Address', 'पता अपडेट करें', 'ঠিকানা আপডেট করুন')
+                                : _text('Save Address', 'पता सेव करें', 'ঠিকানা সংরক্ষণ করুন'),
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w800,
@@ -749,7 +780,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                             onPressed: () => Navigator.of(context).pop(),
                             icon: const Icon(Icons.arrow_back),
                             color: Colors.black87,
-                            tooltip: 'Back',
+                            tooltip: _text('Back', 'वापस', 'ফিরে যান'),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -763,7 +794,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                               textInputAction: TextInputAction.search,
                               onSubmitted: (_) => _searchAddress(),
                               decoration: InputDecoration(
-                                hintText: 'Search address or area',
+                                hintText: _text('Search address or area', 'पता या क्षेत्र खोजें', 'ঠিকানা বা এলাকা খুঁজুন'),
                                 prefixIcon: const Icon(
                                   Icons.search,
                                   color: addressOrange,
@@ -822,7 +853,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                     Icons.my_location_rounded,
                     color: addressOrange,
                   ),
-                  tooltip: 'Use current location',
+                  tooltip: _text('Use current location', 'वर्तमान लोकेशन इस्तेमाल करें', 'বর্তমান অবস্থান ব্যবহার করুন'),
                 ),
               ),
             ),

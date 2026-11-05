@@ -6,9 +6,11 @@ import 'package:flutter/material.dart';
 import 'otp_verification_screen.dart';
 import '../../profile/screens/name_setup_screen.dart';
 import '../../../app/app_navigator.dart';
+import '../../../app/theme.dart';
+import '../../../l10n/app_localizations.dart';
 
-const Color dojoOrange = Color(0xFFFF7900);
-const Color dojoBackground = Color(0xFFFFFAF5);
+const Color dojoOrange = DojoWalkTheme.primary;
+const Color dojoBackground = DojoWalkTheme.background;
 
 class PhoneLoginScreen extends StatefulWidget {
   /// Null means normal login.
@@ -76,7 +78,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
       final user = FirebaseAuth.instance.currentUser;
 
       if (user == null) {
-        throw Exception('Login session नहीं मिली। दोबारा OTP verify करें।');
+        throw Exception(AppLocalizations.of(context).loginSessionMissing);
       }
 
       final profile = await FirebaseFirestore.instance
@@ -152,17 +154,15 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
           builder: (_) => const AppNavigator(),
         ),
       );
-    } on FirebaseException catch (error) {
+    } on FirebaseException catch (_) {
       if (mounted) {
         _message(
-          'अकाउंट की जानकारी नहीं मिल पाई। '
-          'इंटरनेट या Firebase permissions जाँचें। '
-          '(${error.code})',
+          AppLocalizations.of(context).authAccountLoadFailed,
         );
       }
-    } catch (error) {
+    } catch (_) {
       if (mounted) {
-        _message('आगे नहीं बढ़ पाए: $error');
+        _message(AppLocalizations.of(context).authContinueFailed);
       }
     } finally {
       _openingNextScreen = false;
@@ -181,7 +181,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     final phone = _phoneController.text.trim();
 
     if (!RegExp(r'^[6-9]\d{9}$').hasMatch(phone)) {
-      _message('सही 10 अंकों का भारतीय मोबाइल नंबर डालें।');
+      _message(AppLocalizations.of(context).invalidIndianMobile);
       return;
     }
 
@@ -206,21 +206,20 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
               await _continueAfterLogin();
             } else {
               setState(() => _loading = false);
-              _message('Login पूरा नहीं हुआ।');
+              _message(AppLocalizations.of(context).loginIncomplete);
             }
-          } on FirebaseAuthException catch (error) {
+          } on FirebaseAuthException catch (_) {
             if (!mounted) return;
 
             setState(() => _loading = false);
             _message(
-              error.message ??
-                  'Automatic verification नहीं हुआ।',
+              AppLocalizations.of(context).automaticVerificationFailed,
             );
           } catch (_) {
             if (!mounted) return;
 
             setState(() => _loading = false);
-            _message('Login में समस्या हुई। OTP से कोशिश करें।');
+            _message(AppLocalizations.of(context).automaticLoginFailed);
           }
         },
 
@@ -228,7 +227,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
           if (!mounted) return;
 
           setState(() => _loading = false);
-          _message(error.message ?? 'OTP नहीं भेजा जा सका।');
+          _message(AppLocalizations.of(context).otpSendFailed);
         },
 
         codeSent: (String verificationId, int? resendToken) async {
@@ -266,28 +265,29 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
 
         codeAutoRetrievalTimeout: (String verificationId) {},
       );
-    } on FirebaseAuthException catch (error) {
+    } on FirebaseAuthException catch (_) {
       if (!mounted) return;
 
       setState(() => _loading = false);
-      _message(error.message ?? 'OTP भेजने में समस्या हुई।');
+      _message(AppLocalizations.of(context).otpSendFallback);
     } catch (_) {
       if (!mounted) return;
 
       setState(() => _loading = false);
-      _message('समस्या हुई। इंटरनेट जाँचकर दोबारा कोशिश करें।');
+      _message(AppLocalizations.of(context).loginProblem);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: dojoBackground,
       appBar: AppBar(
         backgroundColor: dojoBackground,
         elevation: 0,
-        title: const Text(
-          'Phone Login',
+        title: Text(
+          l10n.phoneLoginTitle,
           style: TextStyle(
             color: Colors.black87,
             fontWeight: FontWeight.bold,
@@ -307,24 +307,24 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                 color: dojoOrange,
               ),
               const SizedBox(height: 22),
-              const Text(
-                'Welcome to DOJO WALK',
+              Text(
+                l10n.welcomeToDojoWalk,
                 style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 10),
-              const Text(
-                'ऐप में आगे बढ़ने के लिए अपना मोबाइल नंबर डालें।',
+              Text(
+                l10n.phoneLoginInstruction,
                 style: TextStyle(
                   color: Colors.black54,
                   fontSize: 15,
                 ),
               ),
               const SizedBox(height: 32),
-              const Text(
-                'Mobile Number',
+              Text(
+                l10n.mobileNumber,
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
@@ -335,7 +335,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                 maxLength: 10,
                 decoration: InputDecoration(
                   prefixText: '+91  ',
-                  hintText: '10 अंकों का मोबाइल नंबर',
+                  hintText: l10n.mobileNumberHint,
                   counterText: '',
                   filled: true,
                   fillColor: Colors.white,
@@ -373,8 +373,8 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                             strokeWidth: 2,
                           ),
                         )
-                      : const Text(
-                          'Send OTP',
+                      : Text(
+                          l10n.sendOtp,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -383,9 +383,9 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              const Center(
+              Center(
                 child: Text(
-                  'Secure login with DOJO WALK',
+                  l10n.secureLogin,
                   style: TextStyle(
                     color: Colors.black45,
                     fontSize: 12,

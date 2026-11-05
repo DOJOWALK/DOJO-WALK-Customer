@@ -5,11 +5,13 @@ import 'package:flutter/material.dart';
 import '../../profile/screens/my_dogs_screen.dart';
 import 'choose_walk_screen.dart';
 import 'pickup_address_selection_screen.dart';
+import '../../../app/theme.dart';
+import '../../../l10n/app_localizations.dart';
 
-const Color dogSelectionOrange = Color(0xFFFF7900);
-const Color dogSelectionBackground = Color(0xFFFFFAF5);
-const Color dogSelectionText = Color(0xFF202020);
-const Color dogSelectionMuted = Color(0xFF777777);
+const Color dogSelectionOrange = DojoWalkTheme.primary;
+const Color dogSelectionBackground = DojoWalkTheme.background;
+const Color dogSelectionText = DojoWalkTheme.text;
+const Color dogSelectionMuted = DojoWalkTheme.mutedText;
 
 class DogSelectionScreen extends StatefulWidget {
   final WalkBookingType walkType;
@@ -56,17 +58,17 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
         .trim();
   }
 
-  String _dogBreed(Map<String, dynamic> dog) {
+  String _dogBreed(BuildContext context, Map<String, dynamic> dog) {
     final breed = (dog['breed'] ?? '').toString().trim();
-    return breed.isEmpty ? 'Breed not provided' : breed;
+    return breed.isEmpty ? AppLocalizations.of(context).dogBreedNotProvided : breed;
   }
 
-  String _dogGender(Map<String, dynamic> dog) {
+  String _dogGender(BuildContext context, Map<String, dynamic> dog) {
     final gender = (dog['gender'] ?? '').toString().trim();
-    return gender.isEmpty ? 'Not specified' : gender;
+    return gender.isEmpty ? AppLocalizations.of(context).dogNotSpecified : gender;
   }
 
-  String _dogAge(Map<String, dynamic> dog) {
+  String _dogAge(BuildContext context, Map<String, dynamic> dog) {
     final age = dog['age'];
 
     if (age != null && age.toString().trim().isNotEmpty) {
@@ -88,11 +90,11 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
       }
 
       if (years >= 0) {
-        return '$years years';
+        return '$years ${AppLocalizations.of(context).dogAgeYears}';
       }
     }
 
-    return 'Age not provided';
+    return AppLocalizations.of(context).dogAgeNotProvided;
   }
 
   void _showMessage(String message) {
@@ -120,7 +122,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
       // Refresh the screen after returning from My Dogs.
       setState(() {});
     } catch (e) {
-      _showMessage('Dog screen open nahi ho payi: $e');
+      _showMessage(AppLocalizations.of(context).dogOpenDetailsFailed);
     } finally {
       if (mounted) {
         setState(() => _isOpeningDogs = false);
@@ -134,7 +136,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
     final user = _user;
 
     if (user == null) {
-      _showMessage('Please pehle login karein.');
+      _showMessage(AppLocalizations.of(context).dogLoginFirst);
       return;
     }
 
@@ -142,7 +144,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
     final selectedDog = _selectedDog;
 
     if (dogId == null || selectedDog == null) {
-      _showMessage('Please apna dog select karein.');
+      _showMessage(AppLocalizations.of(context).dogSelectOne);
       return;
     }
 
@@ -166,7 +168,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
         }
 
         throw StateError(
-          'Selected dog ab saved list mein nahi hai. Dobara select karein.',
+          AppLocalizations.of(context).dogNoLongerSaved,
         );
       }
 
@@ -176,7 +178,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
 
       if (name.isEmpty || name == 'Unnamed Dog') {
         throw StateError(
-          'Is dog ka naam available nahi hai. Pehle dog details update karein.',
+          AppLocalizations.of(context).dogNameMissing,
         );
       }
 
@@ -200,11 +202,11 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
     } on FirebaseException catch (e) {
       _showMessage(
         e.code == 'permission-denied'
-            ? 'Dog details access nahi ho payi. Firebase Rules check karein.'
-            : 'Dog details load nahi hui (${e.code}). Dobara try karein.',
+            ? AppLocalizations.of(context).dogAccessFailed
+            : AppLocalizations.of(context).dogLoadFailed,
       );
     } catch (e) {
-      _showMessage('Aage continue nahi ho paya: $e');
+      _showMessage(AppLocalizations.of(context).dogContinueFailed);
     } finally {
       if (mounted) {
         setState(() => _isContinuing = false);
@@ -220,13 +222,13 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
         appBar: AppBar(
           backgroundColor: dogSelectionOrange,
           foregroundColor: Colors.white,
-          title: const Text('Select Your Dog'),
+          title: Text(AppLocalizations.of(context).dogSelectionTitle),
         ),
-        body: const Center(
+        body: Center(
           child: Padding(
-            padding: EdgeInsets.all(24),
+            padding: const EdgeInsets.all(24),
             child: Text(
-              'Dog select karne ke liye pehle login karein.',
+              AppLocalizations.of(context).dogLoginToSelect,
               textAlign: TextAlign.center,
             ),
           ),
@@ -240,8 +242,8 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
         backgroundColor: dogSelectionOrange,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
-          'Select Your Dog',
+        title: Text(
+          AppLocalizations.of(context).dogSelectionTitle,
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
@@ -266,25 +268,17 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                               color: dogSelectionOrange,
                             ),
                             const SizedBox(height: 12),
-                            const Text(
-                              'Dog details load nahi ho paayi.',
+                            Text(
+                              AppLocalizations.of(context).dogLoadFailed,
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             const SizedBox(height: 8),
-                            Text(
-                              '${snapshot.error}',
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: dogSelectionMuted,
-                                fontSize: 12,
-                              ),
-                            ),
                             const SizedBox(height: 12),
                             OutlinedButton(
                               onPressed: () => setState(() {}),
-                              child: const Text('Retry'),
+                              child: Text(AppLocalizations.of(context).dogSelectionRetry),
                             ),
                           ],
                         ),
@@ -318,7 +312,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                               color: const Color(0xFFF0E2D5),
                             ),
                           ),
-                          child: const Column(
+                          child: Column(
                             children: [
                               Icon(
                                 Icons.pets,
@@ -327,7 +321,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                               ),
                               SizedBox(height: 16),
                               Text(
-                                'No Dogs Added Yet',
+                                AppLocalizations.of(context).dogSelectionEmptyTitle,
                                 style: TextStyle(
                                   fontSize: 19,
                                   fontWeight: FontWeight.bold,
@@ -336,8 +330,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                               ),
                               SizedBox(height: 8),
                               Text(
-                                'Booking continue karne se pehle '
-                                'apne dog ki details add karein.',
+                                AppLocalizations.of(context).dogSelectionEmptyBody,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: dogSelectionMuted,
@@ -356,7 +349,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                           ),
                           icon: const Icon(Icons.add),
                           label: Text(
-                            _isOpeningDogs ? 'Opening...' : 'Add Your Dog',
+                            _isOpeningDogs ? AppLocalizations.of(context).dogSelectionOpening : AppLocalizations.of(context).dogSelectionAddDog,
                           ),
                         ),
                       ],
@@ -366,8 +359,8 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                   return ListView(
                     padding: const EdgeInsets.all(16),
                     children: [
-                      const Text(
-                        'Which dog is going for a walk?',
+                      Text(
+                        AppLocalizations.of(context).dogWhichForWalk,
                         style: TextStyle(
                           fontSize: 21,
                           fontWeight: FontWeight.bold,
@@ -375,9 +368,8 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                         ),
                       ),
                       const SizedBox(height: 6),
-                      const Text(
-                        'Ek dog select karein. Aap baad mein '
-                        'additional bookings ke liye doosra dog choose kar sakte hain.',
+                      Text(
+                        AppLocalizations.of(context).dogOnePerBooking,
                         style: TextStyle(
                           color: dogSelectionMuted,
                           height: 1.4,
@@ -452,15 +444,15 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                                         ),
                                         const SizedBox(height: 5),
                                         Text(
-                                          _dogBreed(dog),
+                                          _dogBreed(context, dog),
                                           style: const TextStyle(
                                             color: dogSelectionMuted,
                                           ),
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          '${_dogGender(dog)} · '
-                                          '${_dogAge(dog)}',
+                                          '${_dogGender(context, dog)} · '
+                                          '${_dogAge(context, dog)}',
                                           style: const TextStyle(
                                             fontSize: 12,
                                             color: dogSelectionMuted,
@@ -494,7 +486,7 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                           minimumSize: const Size.fromHeight(48),
                         ),
                         icon: const Icon(Icons.add),
-                        label: const Text('Add Another Dog'),
+                        label: Text(AppLocalizations.of(context).dogAddAnother),
                       ),
                     ],
                   );
@@ -530,8 +522,8 @@ class _DogSelectionScreenState extends State<DogSelectionScreen> {
                             strokeWidth: 2,
                           ),
                         )
-                      : const Text(
-                          'Continue to Pickup Address',
+                      : Text(
+                          AppLocalizations.of(context).dogContinuePickup,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                           ),

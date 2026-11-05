@@ -4,9 +4,11 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../app/theme.dart';
+import '../../../l10n/app_localizations.dart';
 
-const Color dojoOrange = Color(0xFFFF7900);
-const Color dojoBackground = Color(0xFFFFFAF5);
+const Color dojoOrange = DojoWalkTheme.primary;
+const Color dojoBackground = DojoWalkTheme.background;
 
 class OtpVerificationScreen extends StatefulWidget {
   final String phoneNumber;
@@ -66,31 +68,25 @@ class _OtpVerificationScreenState
   }
 
   String _friendlyError(FirebaseAuthException error) {
+    final l10n = AppLocalizations.of(context);
     switch (error.code) {
       case 'invalid-verification-code':
-        return 'Invalid OTP. Please check and try again.';
-
+        return l10n.otpInvalidCode;
       case 'session-expired':
       case 'invalid-verification-id':
-        return 'OTP expired. Please request a new OTP.';
-
+        return l10n.otpExpired;
       case 'too-many-requests':
-        return 'Too many attempts. Please try again later.';
-
+        return l10n.otpTooManyAttempts;
       case 'quota-exceeded':
-        return 'Firebase SMS quota exceeded. Please try later.';
-
+        return l10n.otpSmsQuotaExceeded;
       case 'network-request-failed':
-        return 'Check your internet connection and try again.';
-
+        return l10n.otpNetworkError;
       case 'operation-not-allowed':
-        return 'Phone Authentication is not enabled in Firebase.';
-
+        return l10n.otpPhoneAuthDisabled;
       case 'app-not-authorized':
-        return 'This app is not authorized in Firebase.';
-
+        return l10n.otpAppUnauthorized;
       default:
-        return error.message ?? 'Something went wrong. Please try again.';
+        return l10n.otpGenericError;
     }
   }
 
@@ -149,7 +145,7 @@ class _OtpVerificationScreenState
           _resending = false;
         });
 
-        _message('Login was unsuccessful. Please try again.');
+        _message(AppLocalizations.of(context).otpLoginUnsuccessful);
       }
     } on FirebaseAuthException catch (error) {
       if (!mounted || _finished) return;
@@ -168,7 +164,7 @@ class _OtpVerificationScreenState
         _resending = false;
       });
 
-      _message('Login failed. Please try again.');
+      _message(AppLocalizations.of(context).otpLoginFailed);
     }
   }
 
@@ -179,12 +175,12 @@ class _OtpVerificationScreenState
     final verificationId = _verificationId;
 
     if (verificationId == null || verificationId.isEmpty) {
-      _message('Please request an OTP first.');
+      _message(AppLocalizations.of(context).otpRequestFirst);
       return;
     }
 
     if (!RegExp(r'^\d{6}$').hasMatch(otp)) {
-      _message('Please enter the 6-digit OTP.');
+      _message(AppLocalizations.of(context).otpEnterSixDigits);
       return;
     }
 
@@ -248,7 +244,7 @@ class _OtpVerificationScreenState
           });
 
           _startTimer();
-          _message('A new OTP has been sent.');
+          _message(AppLocalizations.of(context).otpNewSent);
         },
 
         codeAutoRetrievalTimeout: (String verificationId) {
@@ -274,7 +270,7 @@ class _OtpVerificationScreenState
         _resending = false;
       });
 
-      _message('Unable to resend OTP. Please try again.');
+      _message(AppLocalizations.of(context).otpResendFailed);
     }
   }
 
@@ -292,8 +288,8 @@ class _OtpVerificationScreenState
       appBar: AppBar(
         backgroundColor: dojoBackground,
         elevation: 0,
-        title: const Text(
-          'Verify OTP',
+        title: Text(
+          AppLocalizations.of(context).otpVerifyTitle,
           style: TextStyle(
             color: Colors.black87,
             fontWeight: FontWeight.bold,
@@ -316,8 +312,8 @@ class _OtpVerificationScreenState
 
               const SizedBox(height: 22),
 
-              const Text(
-                'Verify Your Number',
+              Text(
+                AppLocalizations.of(context).otpVerifyNumberTitle,
                 style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
@@ -326,8 +322,8 @@ class _OtpVerificationScreenState
 
               const SizedBox(height: 10),
 
-              const Text(
-                'We sent an OTP to this number:',
+              Text(
+                AppLocalizations.of(context).otpSentToNumber,
                 style: TextStyle(
                   color: Colors.black54,
                   fontSize: 15,
@@ -346,8 +342,8 @@ class _OtpVerificationScreenState
 
               const SizedBox(height: 32),
 
-              const Text(
-                '6-Digit OTP',
+              Text(
+                AppLocalizations.of(context).otpSixDigitLabel,
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                 ),
@@ -370,7 +366,7 @@ class _OtpVerificationScreenState
                   }
                 },
                 decoration: InputDecoration(
-                  hintText: 'Enter OTP',
+                  hintText: AppLocalizations.of(context).otpEnterHint,
                   counterText: '',
                   filled: true,
                   fillColor: Colors.white,
@@ -412,8 +408,8 @@ class _OtpVerificationScreenState
                             strokeWidth: 2,
                           ),
                         )
-                      : const Text(
-                          'Verify OTP',
+                      : Text(
+                          AppLocalizations.of(context).otpVerifyTitle,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -431,8 +427,8 @@ class _OtpVerificationScreenState
                       : _resendOtp,
                   child: Text(
                     _secondsRemaining > 0
-                        ? 'Resend OTP in $_secondsRemaining sec'
-                        : 'Resend OTP',
+                        ? '${AppLocalizations.of(context).otpResendIn} $_secondsRemaining ${AppLocalizations.of(context).otpSeconds}'
+                        : AppLocalizations.of(context).otpResend,
                     style: const TextStyle(
                       color: dojoOrange,
                       fontWeight: FontWeight.w700,
@@ -444,8 +440,8 @@ class _OtpVerificationScreenState
               Center(
                 child: TextButton(
                   onPressed: _loading ? null : _changeMobileNumber,
-                  child: const Text(
-                    'Change Mobile Number',
+                  child: Text(
+                    AppLocalizations.of(context).otpChangeMobile,
                     style: TextStyle(
                       color: Colors.black54,
                     ),
@@ -455,9 +451,9 @@ class _OtpVerificationScreenState
 
               const SizedBox(height: 8),
 
-              const Center(
+              Center(
                 child: Text(
-                  'Secure login with DOJO WALK',
+                  AppLocalizations.of(context).secureLogin,
                   style: TextStyle(
                     color: Colors.black45,
                     fontSize: 12,
