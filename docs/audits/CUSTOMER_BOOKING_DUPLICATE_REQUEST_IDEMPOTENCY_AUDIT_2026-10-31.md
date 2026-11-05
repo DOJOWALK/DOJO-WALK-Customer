@@ -1,8 +1,8 @@
 # DOJO WALK — Customer Booking Duplicate-Request / Idempotency Audit
 
-**Date:** 2026-10-31  
-**Status:** Read-only audit; no runtime code, backend, Firebase Rules, data, or deployment changes.  
-**Repository/branch:** `DOJOWALK/DOJO-WALK-Customer` / `chore/remove-app-language-file`  
+**Date:** 2026-10-31
+**Status:** Read-only audit; no runtime code, backend, Firebase Rules, data, or deployment changes.
+**Repository/branch:** `DOJOWALK/DOJO-WALK-Customer` / `chore/remove-app-language-file`
 **Inspected file:** `lib/features/booking/screens/booking_confirmation_screen.dart`
 
 ## Executive result
@@ -24,7 +24,7 @@ No safe Customer-only change can guarantee exactly-once booking creation while t
 
 ## Risk classification
 
-**High — duplicate booking risk under ambiguous retry/re-entry.**  
+**High — duplicate booking risk under ambiguous retry/re-entry.**
 The current in-screen guard reduces accidental double taps but does not meet the idempotency requirement described in the Draft POL-006 Customer Booking & Eligibility Policy.
 
 ## Safe scope decision
