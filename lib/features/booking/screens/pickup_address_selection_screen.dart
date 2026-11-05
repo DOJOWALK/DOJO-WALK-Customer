@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../addresses/models/saved_address.dart';
 import '../../addresses/services/address_service.dart';
 import '../../addresses/screens/address_form_screen.dart';
+import '../models/pickup_address_snapshot.dart';
 
 import 'choose_walk_screen.dart';
 import 'booking_confirmation_screen.dart';
@@ -125,25 +126,7 @@ class _PickupAddressSelectionScreenState
     setState(() => _isContinuing = true);
 
     try {
-      final addressMap = <String, dynamic>{
-        'addressId': address.id,
-        'label': address.label,
-        'flatHouse': address.flatHouse,
-        'buildingSociety': address.buildingSociety,
-        'address': [
-          address.flatHouse,
-          address.buildingSociety,
-        ]
-            .map((value) => value.trim())
-            .where((value) => value.isNotEmpty)
-            .join(', '),
-        'area': address.area,
-        'landmark': address.landmark,
-        'city': address.city,
-        'pincode': address.pincode,
-        'pickupInstructions': address.pickupInstructions,
-        'isDefault': address.isDefault,
-      };
+      final addressMap = buildPickupAddressSnapshot(address);
 
       if (!mounted) return;
 
