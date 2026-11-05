@@ -1,8 +1,8 @@
 # DOJO WALK — Legacy Booking Migration & Compatibility Plan v1
 
-**Status:** DRAFT — NOT APPROVED — NOT IMPLEMENTED  
-**Date:** 2026-10-30  
-**Scope:** Customer, Admin, Partner, Firebase/backend booking records  
+**Status:** DRAFT — NOT APPROVED — NOT IMPLEMENTED
+**Date:** 2026-10-30
+**Scope:** Customer, Admin, Partner, Firebase/backend booking records
 **Source of truth:** Notion POL-006; shared contract draft and cross-app compatibility audit are implementation references.
 
 > This plan is documentation only. It does not authorize runtime changes, Firestore Rules changes, Cloud Functions, production data migration, payment/assignment changes, deployment or PR merge.
