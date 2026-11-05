@@ -1,7 +1,7 @@
 # DOJO WALK — Legacy Booking Fixtures & Firebase Emulator Test Plan
 
-**Date:** 2026-10-31  
-**Status:** Draft test plan; NOT executed.  
+**Date:** 2026-10-31
+**Status:** Draft test plan; NOT executed.
 **Owner boundary:** Customer branch contains test documentation only. Firebase repository and backend remain untouched.
 
 ## Objective
