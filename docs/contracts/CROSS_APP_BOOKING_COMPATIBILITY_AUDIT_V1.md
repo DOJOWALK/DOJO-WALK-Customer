@@ -1,8 +1,8 @@
 # DOJO WALK — Cross-App Booking Compatibility Audit (Admin / Partner / Firebase)
 
-**Date:** 2026-10-30  
-**Status:** Read-only source audit — findings verified in the inspected `main` branch snapshots; not a production/deployed-state verification.  
-**Related proposal:** `docs/contracts/SHARED_BOOKING_DATA_CONTRACT_V1_DRAFT.md`  
+**Date:** 2026-10-30
+**Status:** Read-only source audit — findings verified in the inspected `main` branch snapshots; not a production/deployed-state verification.
+**Related proposal:** `docs/contracts/SHARED_BOOKING_DATA_CONTRACT_V1_DRAFT.md`
 **No runtime code, Firestore rules, production data, deployment or PR merge was changed.**
 
 ## 1. Repositories and files inspected
