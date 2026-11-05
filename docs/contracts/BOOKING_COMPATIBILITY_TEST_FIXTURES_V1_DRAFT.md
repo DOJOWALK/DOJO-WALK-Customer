@@ -1,8 +1,8 @@
 # DOJO WALK — Booking Compatibility Test Fixtures & Adapter Specification v1
 
-**Status:** DRAFT — CONTRACT REVIEW ONLY — NOT IMPLEMENTED  
-**Date:** 2026-10-30  
-**Target:** Customer / Admin / Partner / Firebase booking compatibility  
+**Status:** DRAFT — CONTRACT REVIEW ONLY — NOT IMPLEMENTED
+**Date:** 2026-10-30
+**Target:** Customer / Admin / Partner / Firebase booking compatibility
 **Depends on:** Shared Booking Data Contract v1 draft; Cross-App Booking Compatibility Audit v1; Legacy Booking Migration Compatibility Plan v1.
 
 > All IDs, names, addresses, dates and values below are synthetic test data. The legacy fixtures are shaped from the currently inspected Customer writer and Firebase `validBookingBase` rules. They are not production documents and have not been executed in the Firebase Emulator. Server timestamp placeholders must be replaced by test SDK timestamp sentinels when running rules tests.
