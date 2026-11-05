@@ -1,9 +1,9 @@
 # DOJO WALK — Customer Schedule Test Coverage Reconciliation
 
-**Date:** 2026-10-31  
-**Repository:** `DOJOWALK/DOJO-WALK-Customer`  
-**Branch:** `chore/remove-app-language-file`  
-**PR:** #29 (Open / Draft)  
+**Date:** 2026-10-31
+**Repository:** `DOJOWALK/DOJO-WALK-Customer`
+**Branch:** `chore/remove-app-language-file`
+**PR:** #29 (Open / Draft)
 **Scope:** Documentation-only reconciliation. No runtime code, Firebase, backend, data, or deployment changes.
 
 ## Why this follow-up exists
