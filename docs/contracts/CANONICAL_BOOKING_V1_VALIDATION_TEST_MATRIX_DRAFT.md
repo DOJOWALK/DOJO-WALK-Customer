@@ -1,7 +1,7 @@
 # DOJO WALK — Canonical Booking v1 Validation Test Matrix
 
-**Status:** DRAFT — NOT EXECUTED — NOT APPROVED  
-**Date:** 2026-10-30  
+**Status:** DRAFT — NOT EXECUTED — NOT APPROVED
+**Date:** 2026-10-30
 **Related files:**
 - `docs/contracts/schemas/booking-v1.schema.json`
 - `docs/contracts/fixtures/booking-v1-validation-fixtures-draft.json`
