@@ -178,7 +178,10 @@ void main() {
       await tester.tap(find.text('OK'));
       await tester.pumpAndSettle();
 
-      expect(selectedDateChip, findsOneWidget);
+      // The initial selected date and the newly added date can share
+      // the same day number in different months (for example, 5 Nov and
+      // 5 Dec). Both chips are valid and must remain unique.
+      expect(selectedDateChip, findsNWidgets(2));
 
       await tester.tap(find.text('Add / Select Date'));
       await tester.pumpAndSettle();
@@ -186,7 +189,8 @@ void main() {
       await tester.tap(find.text('OK'));
       await tester.pumpAndSettle();
 
-      expect(selectedDateChip, findsOneWidget);
+      // Re-selecting the same date must not add a third chip.
+      expect(selectedDateChip, findsNWidgets(2));
     });
   });
 }
