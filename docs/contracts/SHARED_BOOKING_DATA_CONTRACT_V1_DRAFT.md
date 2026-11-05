@@ -1,8 +1,8 @@
 # DOJO WALK — Shared Booking Data Contract v1 (DRAFT)
 
-**Status:** Draft for cross-app review — NOT approved for production  
-**Scope:** Customer App, Admin App, Partner App, Firebase/backend  
-**Source of truth:** Notion POL-006 Customer Booking & Eligibility Policy  
+**Status:** Draft for cross-app review — NOT approved for production
+**Scope:** Customer App, Admin App, Partner App, Firebase/backend
+**Source of truth:** Notion POL-006 Customer Booking & Eligibility Policy
 **Compatibility target:** Existing legacy booking documents must remain readable.
 
 > This document proposes a canonical contract. It does not authorize Firebase rules, Cloud Functions, payment, availability or assignment implementation. Do not migrate production writes until all app owners approve the schema and backend ownership.
