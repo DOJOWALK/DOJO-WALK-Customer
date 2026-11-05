@@ -1,8 +1,8 @@
 # DOJO WALK — Customer Booking Flow Data Handoff Audit
 
-**Date:** 2026-10-31  
-**Repository:** `DOJOWALK/DOJO-WALK-Customer`  
-**Branch:** `chore/remove-app-language-file`  
+**Date:** 2026-10-31
+**Repository:** `DOJOWALK/DOJO-WALK-Customer`
+**Branch:** `chore/remove-app-language-file`
 **Scope:** Read-only source audit of Choose Walk → Dog Selection → Pickup Address → Booking Confirmation. This document does not authorize a booking API or Firebase change.
 
 ## Executive result
