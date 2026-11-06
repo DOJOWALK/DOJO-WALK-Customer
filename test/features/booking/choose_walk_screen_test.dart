@@ -159,7 +159,21 @@ void main() {
     );
 
     testWidgets('reselecting an already selected date does not duplicate it', (tester) async {
-      await tester.pumpWidget(_testApp(const Locale('en')));
+      // Keep this date-chip test deterministic across CI dates.
+      final fixedNow = DateTime(2026, 11, 5, 12);
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('en'),
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          home: ChooseWalkScreen(clock: () => fixedNow),
+        ),
+      );
       await tester.tap(find.text('Choose Dates'));
       await tester.pumpAndSettle();
 
