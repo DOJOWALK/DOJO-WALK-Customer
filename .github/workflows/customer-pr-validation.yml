@@ -1,8 +1,20 @@
 name: Customer Flutter PR Validation
 
 on:
+  push:
+    branches: [working]
+    paths:
+      - 'AGENTS.md'
+      - '**.dart'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - 'analysis_options.yaml'
+      - 'assets/**'
+      - 'android/**'
+      - 'test/**'
+      - '.github/workflows/**'
   pull_request:
-    branches: [main]
+    branches: [main, working]
     paths:
       - 'AGENTS.md'
       - '**.dart'
